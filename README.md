@@ -11,7 +11,9 @@ Order validation
 
 3. Order cancel can be done anytime except order is pending new, suspended (pending execution), or filled
 
-4. Order will be rejected if pending new queue is full.
+4. Order price must be a valid price from spread range calculation
+
+5. Order will be rejected if pending new queue is full.
 
 Order state
 ------------
