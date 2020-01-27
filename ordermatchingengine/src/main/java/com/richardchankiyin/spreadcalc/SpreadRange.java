@@ -2,6 +2,7 @@ package com.richardchankiyin.spreadcalc;
 
 
 public class SpreadRange {
+	private static final double VERY_LITTLE_NUM = 0.0000001;
 	private double startFrom;
 	private double endWith;
 	private double spread;
@@ -33,14 +34,18 @@ public class SpreadRange {
 		double noOfSpreadDouble = (endWith - startFrom)/spread;
 		if (noOfSpreadDouble < 1)
 			throw new IllegalArgumentException("noOfSpread supporting: " + noOfSpreadDouble + " < l");
-		double residual = (endWith - startFrom) % spread;
-		if (residual > 0)
+		double residual = Math.IEEEremainder((endWith - startFrom), spread);
+		if (!isLogicallyZero(residual))
 			throw new IllegalArgumentException("residual: " + residual + " > 0");
 		
 		
 		this.startFrom = startFrom;
 		this.endWith = endWith;
 		this.spread = spread;
+	}
+	
+	private boolean isLogicallyZero(double num) {
+		return num < VERY_LITTLE_NUM && num > VERY_LITTLE_NUM * -1;
 	}
 	
 	public boolean isInRange(double spot, boolean isGoUp) {
@@ -57,8 +62,8 @@ public class SpreadRange {
 		if (spot == this.startFrom || spot == this.endWith)
 			return true;
 		
-		double residual = (spot - startFrom) % spread;
-		return residual == 0;		
+		double residual = Math.IEEEremainder((spot - startFrom),spread);
+		return isLogicallyZero(residual);		
 	}
 	
 	public double displace(double spot, boolean isGoUp, int noOfSpreads) {
