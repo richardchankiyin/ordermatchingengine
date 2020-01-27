@@ -143,6 +143,7 @@ public class SpreadRangeTest {
 		assertTrue(199.9 == sr.displace(200,false,1));
 		assertTrue(199.8 == sr.displace(200,false,2));
 		assertEquals("199.7", String.format("%.1f", sr.displace(199.8,false,1)));
+		assertEquals("179.9", String.format("%.1f", sr.displace(180.4,false,5)));
 	}
 
 	
