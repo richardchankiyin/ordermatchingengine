@@ -385,4 +385,22 @@ public class SpreadRangesTest {
 		assertTrue(8.90 == result[8]);
 		assertTrue(8.89 == result[9]);
 	}
+	
+	@Test
+	public void testGetSpreadPricesGoUpAcrossTwoRanges() {
+		double[] result = SpreadRanges.getInstance().getSpreadPrices(0.495, true, 3);
+		assertEquals(3, result.length);
+		assertTrue(0.5 == result[0]);
+		assertTrue(0.51 == result[1]);
+		assertTrue(0.52 == result[2]);
+	}
+	
+	@Test
+	public void testGetSpreadPricesNotGoUpAcrossTwoRanges() {
+		double[] result = SpreadRanges.getInstance().getSpreadPrices(0.52, false, 3);
+		assertEquals(3, result.length);
+		assertTrue(0.51 == result[0]);
+		assertTrue(0.50 == result[1]);
+		assertTrue(0.495 == result[2]);
+	}
 }
