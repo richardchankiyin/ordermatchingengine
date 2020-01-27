@@ -113,4 +113,20 @@ public class SpreadRangeTest {
 		sr.displace(20, false, 6);
 	}
 	
+	@Test
+	public void testDisplaceResultGoUp() {
+		SpreadRange sr = new SpreadRange(10,100,2);
+		assertTrue(12 == sr.displace(10,true,1));
+		assertTrue(14 == sr.displace(10,true,2));
+		assertTrue(100 == sr.displace(10,true,45));
+	}
+	
+	@Test
+	public void testDisplaceResultNotGoUp() {
+		SpreadRange sr = new SpreadRange(10,100,2);
+		assertTrue(98 == sr.displace(100,false,1));
+		assertTrue(96 == sr.displace(100,false,2));
+		assertTrue(10 == sr.displace(100,false,45));
+	}
+	
 }
