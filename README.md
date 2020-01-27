@@ -35,3 +35,23 @@ Execution book
 Order Status Publishing
 -----------------------
 1. For order status changes, the engine will publish execution report (Tag 35: 8)
+
+Spread Calculation
+------------------
+1. There are different spread values at different price ranges.
+2. Ranges are:
+0.01 - 0.25 -> 0.001
+0.25 - 0.50 -> 0.005
+0.50 - 10.00 -> 0.010
+10.00 - 20.00 -> 0.020
+20.00 - 100.00 -> 0.050
+100.00 - 200.00 -> 0.100
+200.00 - 500.00 -> 0.200
+500.00 - 1000.00 -> 0.500
+1000.00 - 2000.00 -> 1.000
+
+Engine Start/Stop
+-----------------
+1. To start up the engine, LOGON (Tag 35:A) will be sent with last traded price (FIX tag 44).
+2. To stop the engine, LOGOUT (Tag 35: 5) will be sent to the engine.
+3. Once engine is logged out, non-DFD/non-cancelled orders will be DFD and publish out.
