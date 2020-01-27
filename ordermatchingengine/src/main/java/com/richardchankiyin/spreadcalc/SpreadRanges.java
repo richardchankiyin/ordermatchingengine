@@ -78,6 +78,10 @@ public class SpreadRanges {
 	}
 
 	public boolean isValidPrice(double price, boolean isGoUp) {
+		return getSpreadRangeNode(price, isGoUp) != null;
+	}
+	
+	private SpreadRangeNode getSpreadRangeNode(double price, boolean isGoUp) {
 		SpreadRangeNode startingNode = isGoUp ? firstNode : lastNode;
 		boolean result = false;
 		boolean willContinue = true;
@@ -108,6 +112,6 @@ public class SpreadRanges {
 				}
 			}
 		} while (willContinue);
-		return result;
+		return result ? startingNode: null;
 	}
 }
