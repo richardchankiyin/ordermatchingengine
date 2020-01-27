@@ -83,8 +83,10 @@ public class SpreadRange {
 			result = spot - this.spread * noOfSpreads;
 		}
 		
+		result = roundDouble(result);
+		
 		if (result >= this.startFrom && result <= this.endWith) {
-			return roundDouble(result);
+			return result;
 		} else {
 			throw new IllegalArgumentException("Result: " + result + " not in btw of start from: " + this.startFrom + " and end with: " + this.endWith);
 		}

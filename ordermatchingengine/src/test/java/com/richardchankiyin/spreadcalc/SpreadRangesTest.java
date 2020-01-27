@@ -403,4 +403,18 @@ public class SpreadRangesTest {
 		assertTrue(0.50 == result[1]);
 		assertTrue(0.495 == result[2]);
 	}
+	
+	@Test
+	public void testGetSpreadPricesGoUpNotEnoughResultAvailable() {
+		double[] result = SpreadRanges.getInstance().getSpreadPrices(9995, true, 3);
+		assertEquals(1, result.length);
+		assertTrue(10000 == result[0]);
+	}
+	
+	@Test
+	public void testGetSpreadPricesNotGoUpNotEnoughResultAvailable() {
+		double[] result = SpreadRanges.getInstance().getSpreadPrices(0.011, false, 3);
+		assertEquals(1, result.length);
+		assertTrue(0.01 == result[0]);
+	}
 }
