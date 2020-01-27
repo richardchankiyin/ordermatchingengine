@@ -100,4 +100,17 @@ public class SpreadRangeTest {
 		assertFalse(sr.isInRange(75, false));
 		sr.displace(75, false, 10);
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testDisplaceResultLargerThanEndWith() {
+		SpreadRange sr = new SpreadRange(10,100,2);
+		sr.displace(80, true, 21);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testDisplaceResultSmallerThanStartFrom() {
+		SpreadRange sr = new SpreadRange(10,100,2);
+		sr.displace(20, false, 6);
+	}
+	
 }
