@@ -28,3 +28,10 @@ Order book
 1. Order book has the following attributes: 1. Symbol (54); 2. Buy order queues and 3. Sell order queues
 2. Buy/Sell order queues support spread queuing. For each price, it supports a queue of different order queuing up to be matched
 
+Execution book
+--------------
+1. An execution consists of: 1. ExecID (FIX Tag 17), Buy Order ID, Sell Order ID, execution time (FIX Tag 60)
+
+Order Status Publishing
+-----------------------
+1. For order status changes, the engine will publish execution report (Tag 35: 8)
