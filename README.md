@@ -41,7 +41,7 @@ Spread Calculation
 1. There are different spread values at different price ranges.
 2. Ranges are:
 <p>0.01 - 0.25 -> 0.001</p>
-<p>p.25 - 0.50 -> 0.005</p>
+<p>0.25 - 0.50 -> 0.005</p>
 <p>0.50 - 10.00 -> 0.010</p>
 <p>10.00 - 20.00 -> 0.020</p>
 <p>20.00 - 100.00 -> 0.050</p>
