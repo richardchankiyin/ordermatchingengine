@@ -125,4 +125,34 @@ public class SpreadRangesTest {
 		assertFalse(SpreadRanges.getInstance().isValidPrice(500.3, true));
 		assertFalse(SpreadRanges.getInstance().isValidPrice(999.8, true));
 	}
+	
+	@Test
+	public void testIsValidNinethRangeStartingGoUp() {
+		assertTrue(SpreadRanges.getInstance().isValidPrice(1000, true));
+	}
+	
+	@Test
+	public void testIsValidNinethRangeMidValuesGoUp() {
+		assertTrue(SpreadRanges.getInstance().isValidPrice(1001, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(1002, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(1999, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(1998, true));
+		assertFalse(SpreadRanges.getInstance().isValidPrice(1000.5, true));
+		assertFalse(SpreadRanges.getInstance().isValidPrice(1999.5, true));
+	}
+	
+	@Test
+	public void testIsValidTenthRangeStartingGoUp() {
+		assertTrue(SpreadRanges.getInstance().isValidPrice(2000, true));
+	}
+	
+	@Test
+	public void testIsValidTenthRangeMidValuesGoUp() {
+		assertTrue(SpreadRanges.getInstance().isValidPrice(2002, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(2004, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(4998, true));
+		assertTrue(SpreadRanges.getInstance().isValidPrice(4996, true));
+		assertFalse(SpreadRanges.getInstance().isValidPrice(2001, true));
+		assertFalse(SpreadRanges.getInstance().isValidPrice(4999, true));
+	}
 }
