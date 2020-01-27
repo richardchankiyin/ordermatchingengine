@@ -170,4 +170,10 @@ public class SpreadRangesTest {
 		assertFalse(SpreadRanges.getInstance().isValidPrice(5001, true));
 		assertFalse(SpreadRanges.getInstance().isValidPrice(9998, true));
 	}
+	
+	@Test
+	public void testIsValidOutsideRange() {
+		assertFalse(SpreadRanges.getInstance().isValidPrice(10001, true));
+		assertFalse(SpreadRanges.getInstance().isValidPrice(0.001, true));
+	}
 }
