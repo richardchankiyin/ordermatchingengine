@@ -77,6 +77,44 @@ public class SpreadRanges {
 		}
 	}
 
+	public double[] getSpreadPrices(double spot, boolean isGoUp, int noOfSpreads) {
+		SpreadRangeNode node = getSpreadRangeNode(spot, isGoUp);
+		if (node == null) {
+			throw new IllegalArgumentException("invalid price: " + spot);
+		}
+		
+		if (noOfSpreads < 1) {
+			throw new IllegalArgumentException("noOfSpreads < 1");
+		}
+		
+		double[] result = new double[noOfSpreads];
+		double currentSpot = spot;
+		int endIndex = 0;
+		boolean willContinue = true;
+		for (int i = 0; i < noOfSpreads && willContinue; i++) {
+			result[i] = node.getSpreadRange().displace(currentSpot, isGoUp, 1);
+			currentSpot = result[i];
+			endIndex = i;
+			if (!node.getSpreadRange().isInRange(currentSpot, isGoUp)) {
+				node = isGoUp ? node.getNext() : node.getPrev();
+				if (node == null)
+					willContinue = false;
+			}
+		}
+		
+		if (endIndex < noOfSpreads - 1) {
+			double[] result2 = new double[endIndex + 1];
+			for (int i = 0; i < endIndex + 1; i++) {
+				result2[i] = result[i];
+			}
+			return result2;
+		} else {
+			return result;
+		}
+		
+	}
+	
+	
 	public boolean isValidPrice(double price, boolean isGoUp) {
 		return getSpreadRangeNode(price, isGoUp) != null;
 	}

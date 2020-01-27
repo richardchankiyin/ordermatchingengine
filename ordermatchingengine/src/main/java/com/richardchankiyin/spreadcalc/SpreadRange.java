@@ -1,8 +1,12 @@
 package com.richardchankiyin.spreadcalc;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 
 public class SpreadRange {
 	private static final double VERY_LITTLE_NUM = 0.0000001;
+	private static final int roundScale = 6;
 	private double startFrom;
 	private double endWith;
 	private double spread;
@@ -31,9 +35,9 @@ public class SpreadRange {
 			throw new IllegalArgumentException("startWith: " + startFrom + " >= endWith: " + endWith);
 		
 		// spread check
-		double noOfSpreadDouble = (endWith - startFrom)/spread;
-		if (noOfSpreadDouble < 1)
-			throw new IllegalArgumentException("noOfSpread supporting: " + noOfSpreadDouble + " < l");
+		long noOfSpreadLong = Math.round((endWith - startFrom)/spread);
+		if (noOfSpreadLong < 1L)
+			throw new IllegalArgumentException("noOfSpread supporting: " + noOfSpreadLong + " < l");
 		double residual = Math.IEEEremainder((endWith - startFrom), spread);
 		if (!isLogicallyZero(residual))
 			throw new IllegalArgumentException("residual: " + residual + " > 0");
@@ -80,9 +84,13 @@ public class SpreadRange {
 		}
 		
 		if (result >= this.startFrom && result <= this.endWith) {
-			return result;
+			return roundDouble(result);
 		} else {
 			throw new IllegalArgumentException("Result: " + result + " not in btw of start from: " + this.startFrom + " and end with: " + this.endWith);
 		}
+	}
+	
+	private double roundDouble(Double input) {
+		return new BigDecimal(input.toString()).setScale(roundScale,RoundingMode.HALF_UP).doubleValue();
 	}
 }

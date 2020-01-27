@@ -341,4 +341,26 @@ public class SpreadRangesTest {
 		assertFalse(SpreadRanges.getInstance().isValidPrice(10001, true));
 		assertFalse(SpreadRanges.getInstance().isValidPrice(0.001, true));
 	}
+	
+	@Test
+	public void testGetSpreadPricesGoUpWithinSameRange() {
+		double[] result = SpreadRanges.getInstance().getSpreadPrices(0.5, true, 3);
+		assertEquals(3, result.length);
+		assertTrue(0.51 == result[0]);
+		assertTrue(0.52 == result[1]);
+		assertTrue(0.53 == result[2]);
+		
+		result = SpreadRanges.getInstance().getSpreadPrices(0.54, true, 10);
+		assertEquals(10, result.length);
+		assertTrue(0.55 == result[0]);
+		assertTrue(0.56 == result[1]);
+		assertTrue(0.57 == result[2]);
+		assertTrue(0.58 == result[3]);
+		assertTrue(0.59 == result[4]);
+		assertTrue(0.60 == result[5]);
+		assertTrue(0.61 == result[6]);
+		assertTrue(0.62 == result[7]);
+		assertTrue(0.63 == result[8]);
+		assertTrue(0.64 == result[9]);
+	}
 }
