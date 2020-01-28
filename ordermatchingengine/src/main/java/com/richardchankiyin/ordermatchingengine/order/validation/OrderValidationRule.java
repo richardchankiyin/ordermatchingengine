@@ -6,19 +6,19 @@ import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
 public class OrderValidationRule implements IOrderValidator{
 	private String name;
-	private Function<OrderEvent, OrderValidationRuleResult> rule;
-	public OrderValidationRule(String name, Function<OrderEvent, OrderValidationRuleResult> rule) {
+	private Function<OrderEvent, OrderValidationResult> rule;
+	public OrderValidationRule(String name, Function<OrderEvent, OrderValidationResult> rule) {
 		this.name = name;
 		this.rule = rule;
 	}
 	
-	public OrderValidationRuleResult validate(OrderEvent oe) {
-		OrderValidationRuleResult r = this.rule.apply(oe);
+	public OrderValidationResult validate(OrderEvent oe) {
+		OrderValidationResult r = this.rule.apply(oe);
 		if (r.isAccepted()) {
 			return r;
 		} else {
-			OrderValidationRuleResult nr = 
-				new OrderValidationRuleResult(name + "->" +r.getRejectReason());
+			OrderValidationResult nr = 
+				new OrderValidationResult(name + "->" +r.getRejectReason());
 			return nr;
 		}
 	}

@@ -14,7 +14,7 @@ public class OrderValidationRuleTest {
 	public void testValidatePassAccepted() {
 		OrderValidationRule rule = new OrderValidationRule
 				("dummyaccepted", oe -> 
-					OrderValidationRuleResult.getAcceptedInstance());
+					OrderValidationResult.getAcceptedInstance());
 		assertTrue(rule.validate(new OrderEvent()).isAccepted());
 	}
 	
@@ -22,8 +22,8 @@ public class OrderValidationRuleTest {
 	public void testValidateRejectedWithNameAsReasonPrefix() {
 		OrderValidationRule rule = new OrderValidationRule
 				("dummyrejected", oe -> 
-					new OrderValidationRuleResult("reason"));
-		OrderValidationRuleResult r = rule.validate(new OrderEvent());
+					new OrderValidationResult("reason"));
+		OrderValidationResult r = rule.validate(new OrderEvent());
 		assertFalse(r.isAccepted());
 		assertEquals("dummyrejected->reason", r.getRejectReason());
 	}

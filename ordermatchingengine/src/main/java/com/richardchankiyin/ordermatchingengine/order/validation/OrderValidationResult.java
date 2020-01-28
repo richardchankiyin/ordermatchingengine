@@ -1,20 +1,20 @@
 package com.richardchankiyin.ordermatchingengine.order.validation;
 
-public class OrderValidationRuleResult {
-	private static final OrderValidationRuleResult _accepted = new OrderValidationRuleResult();
+public class OrderValidationResult {
+	private static final OrderValidationResult _accepted = new OrderValidationResult();
 	
 	private boolean isAccepted;
 	private String rejectReason;
 	
-	private OrderValidationRuleResult() {
+	private OrderValidationResult() {
 		this.isAccepted = true;
 	}
 	
-	public static OrderValidationRuleResult getAcceptedInstance() {
+	public static OrderValidationResult getAcceptedInstance() {
 		return _accepted;
 	}
 
-	public OrderValidationRuleResult(String rejectReason) {
+	public OrderValidationResult(String rejectReason) {
 		this.isAccepted = false;
 		this.rejectReason = rejectReason;
 	}
