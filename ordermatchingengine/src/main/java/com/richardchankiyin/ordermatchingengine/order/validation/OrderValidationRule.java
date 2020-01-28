@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
-public class OrderValidationRule {
+public class OrderValidationRule implements IOrderValidator{
 	private String name;
 	private Function<OrderEvent, OrderValidationRuleResult> rule;
 	public OrderValidationRule(String name, Function<OrderEvent, OrderValidationRuleResult> rule) {
