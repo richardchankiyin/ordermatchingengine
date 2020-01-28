@@ -2,6 +2,8 @@ package com.richardchankiyin.ordermatchingengine.order.validation;
 
 import java.util.Arrays;
 import java.util.List;
+
+import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 /**
  * This class is to validate all incoming orders
  * before being processed by the order matching
@@ -12,7 +14,10 @@ import java.util.List;
  */
 public class IncomingOrderValidator extends AbstractOrderValidator implements
 		IOrderValidator {
-	private static final IncomingOrderValidator instance = new IncomingOrderValidator();
+	private IOrderModel orderModel;
+	public IncomingOrderValidator(IOrderModel orderModel) {
+		this.orderModel = orderModel;
+	}
 	
 	private static final OrderValidationRule DATATYPECHECKING 
 		= new OrderValidationRule("DATATYPECHECKING", oe->{
@@ -85,12 +90,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 					return OrderValidationResult.getAcceptedInstance();
 				}
 			});
-			
-	
-	
-	public static IncomingOrderValidator getInstance() {
-		return instance;
-	}
+
 	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {

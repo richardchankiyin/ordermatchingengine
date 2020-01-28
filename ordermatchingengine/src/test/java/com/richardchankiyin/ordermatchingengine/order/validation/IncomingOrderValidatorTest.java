@@ -2,15 +2,23 @@ package com.richardchankiyin.ordermatchingengine.order.validation;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
 public class IncomingOrderValidatorTest {
+	
+	private IncomingOrderValidator validator = null;
+	
+	@Before
+	public void setup() {
+		validator = new IncomingOrderValidator(null);
+	}
 
 	@Test
 	public void testDataTypeCheckingRuleTag38AndTag44Valid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, 111);
 		oe.put(44, 111.5);
@@ -21,7 +29,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testDataTypeCheckingRuleTag38ValidAndTag44Missing() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, 111);
 		
@@ -31,7 +39,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testDataTypeCheckingRuleTag38MissingAndTag44Missing() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		
 		assertTrue(r.validate(oe).isAccepted());
@@ -39,7 +47,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testDataTypeCheckingRuleTag38NotValidTag44Valid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, "111a");
 		oe.put(44, 111.5);
@@ -51,7 +59,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testDataTypeCheckingRuleTag38ValidTag44NotValid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, 111);
 		oe.put(44, "111.5a");
@@ -64,7 +72,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testDataTypeCheckingRuleTag38NotValidTag44NotValid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getDataTypeCheckingRule();
+		OrderValidationRule r = validator.getDataTypeCheckingRule();
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, "111a");
 		oe.put(44, "111.5a");
@@ -76,14 +84,14 @@ public class IncomingOrderValidatorTest {
 
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleSkippingNonNOS() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		assertTrue(r.validate(oe).isAccepted());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderValid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -96,7 +104,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderValid() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -110,7 +118,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingClOrdId() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
 		oe.put(38, 100);
@@ -124,7 +132,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingClOrdId() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
 		oe.put(38, 100);
@@ -139,7 +147,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingOrderQty() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -153,7 +161,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingOrderQty() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -168,7 +176,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingPrice() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "11111");
 		oe.put(35, "D");
@@ -183,7 +191,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSide() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -198,7 +206,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSide() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -213,7 +221,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSymbol() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -227,7 +235,7 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSymbol() {
-		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
