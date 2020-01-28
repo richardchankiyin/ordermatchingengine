@@ -2,6 +2,7 @@ package com.richardchankiyin.ordermatchingengine.order.validation;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 /**
@@ -16,10 +17,11 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		IOrderValidator {
 	private IOrderModel orderModel;
 	public IncomingOrderValidator(IOrderModel orderModel) {
+		Objects.requireNonNull(orderModel, "orderModel is null");
 		this.orderModel = orderModel;
 	}
 	
-	private static final OrderValidationRule DATATYPECHECKING 
+	private final OrderValidationRule DATATYPECHECKING 
 		= new OrderValidationRule("DATATYPECHECKING", oe->{
 				Object orderQtyValue = oe.get(38);
 				Object priceValue = oe.get(44);
@@ -58,7 +60,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			});
 
 	
-	public static final OrderValidationRule NEWORDERSINGLECOMPULSORYFIELDCHECKING 
+	private final OrderValidationRule NEWORDERSINGLECOMPULSORYFIELDCHECKING 
 		= new OrderValidationRule("NEWORDERSINGLECOMPULSORYFIELDCHECKING", oe->{
 				Object msgTypeValue = oe.get(35);
 				if (msgTypeValue != null && "D".equals(msgTypeValue.toString())) {
@@ -92,13 +94,34 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			});
 
 	
+	private final OrderValidationRule NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
+		= new OrderValidationRule("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING", oe-> {
+			Object msgTypeValue = oe.get(35);
+			if (msgTypeValue != null && "D".equals(msgTypeValue.toString()))  {
+				Object clOrdIdValue = oe.get(11);
+				if (clOrdIdValue != null) {
+					boolean isIdFound = this.orderModel.isClientOrderIdFound(clOrdIdValue.toString());
+					if (isIdFound) {
+						return new OrderValidationResult(String.format("Tag: 11 %s is being used in other order", clOrdIdValue.toString()));
+					}
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			} else {
+				// non NOS skip validation
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(
 			// rule 1 datatype checking	
 			DATATYPECHECKING			
-			// rule 2 new order single order checking
+			// rule 2a new order single order checking
 			, NEWORDERSINGLECOMPULSORYFIELDCHECKING
+			// rule 3a new order single client order id checking
+			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
+			
 		);
 	}
 	

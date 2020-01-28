@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
+import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 
 public class IncomingOrderValidatorTest {
 	
@@ -13,7 +14,11 @@ public class IncomingOrderValidatorTest {
 	
 	@Before
 	public void setup() {
-		validator = new IncomingOrderValidator(null);
+		validator = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+		});
 	}
 
 	@Test
