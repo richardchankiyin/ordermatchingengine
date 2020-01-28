@@ -1,4 +1,4 @@
-# ordermatchingengine
+# Order Matching Engine
 This is a repository about the implementation of order matching engine written in java
 
 Requirements
