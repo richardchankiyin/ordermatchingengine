@@ -72,5 +72,29 @@ public class AbstractOrderValidatorTest {
 		assertEquals("dummyrejected1->reason1|dummyrejected2->reason2|"
 				,r.getRejectReason());
 	}
+	
+	@Test
+	public void testValidateMultipleRulesSomeAcceptedSomeRejectedWillBeRejected() {
+		AbstractOrderValidator validator = new AbstractOrderValidator() {
+			protected List<IOrderValidator> getListOfOrderValidators() {
+				return Arrays.asList(
+					new OrderValidationRule("dummyaccepted1", oe -> 
+						OrderValidationResult.getAcceptedInstance())						
+					, new OrderValidationRule
+						("dummyrejected1", oe -> 
+							new OrderValidationResult("reason1"))
+					, new OrderValidationRule("dummyaccepted2", oe -> 
+						OrderValidationResult.getAcceptedInstance())	
+					, new OrderValidationRule
+						("dummyrejected2", oe -> 
+							new OrderValidationResult("reason2"))
+				);
+			}
+		};
+		OrderValidationResult r = validator.validate(new OrderEvent());
+		assertFalse(r.isAccepted());
+		assertEquals("dummyrejected1->reason1|dummyrejected2->reason2|"
+				,r.getRejectReason());
+	}
 
 }
