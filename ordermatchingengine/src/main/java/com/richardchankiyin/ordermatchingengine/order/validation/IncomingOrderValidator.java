@@ -60,6 +60,20 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			});
 
 	
+	private final OrderValidationRule SIDECHECKING
+		= new OrderValidationRule("SIDECHECKING", oe->{
+			Object sideValue = oe.get(54);
+			if (sideValue != null) {
+				if (!"1".equals(sideValue.toString()) && !"2".equals(sideValue.toString())) {
+					return new OrderValidationResult(String.format("Tag 54: %s not supported. ", sideValue.toString()));
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+	
 	private final OrderValidationRule NEWORDERSINGLECOMPULSORYFIELDCHECKING 
 		= new OrderValidationRule("NEWORDERSINGLECOMPULSORYFIELDCHECKING", oe->{
 				Object msgTypeValue = oe.get(35);
@@ -116,10 +130,12 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(
 			// rule 1 datatype checking	
-			DATATYPECHECKING			
-			// rule 2a new order single order checking
+			DATATYPECHECKING
+			// rule 2 side checking
+			, SIDECHECKING
+			// rule 3a new order single compulsory field checking
 			, NEWORDERSINGLECOMPULSORYFIELDCHECKING
-			// rule 3a new order single client order id checking
+			// rule 4a new order single client order id checking
 			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
 			
 		);
@@ -129,6 +145,10 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		return DATATYPECHECKING;
 	}
 	
+	protected OrderValidationRule getSideCheckingRule() {
+		return SIDECHECKING;
+	}
+	
 	protected OrderValidationRule getNewOrderSingleCompulsoryFieldChecking() {
 		return NEWORDERSINGLECOMPULSORYFIELDCHECKING;
 	}
@@ -136,6 +156,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	protected OrderValidationRule getNewOrderSingleClientOrderIdIsNewChecking() {
 		return NEWORDERSINGLECLIENTORDERIDISNEWCHECKING;
 	}
+	
 	
 	
 

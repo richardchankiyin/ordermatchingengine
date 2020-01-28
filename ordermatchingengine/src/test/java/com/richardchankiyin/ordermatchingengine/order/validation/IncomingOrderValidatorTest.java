@@ -88,6 +88,33 @@ public class IncomingOrderValidatorTest {
 	}
 
 	@Test
+	public void testSideCheckingRuleBuyValid() {
+		OrderValidationRule r = validator.getSideCheckingRule();
+		OrderEvent oe = new OrderEvent();
+		oe.put(54, "1");
+		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testSideCheckingRuleSellValid() {
+		OrderValidationRule r = validator.getSideCheckingRule();
+		OrderEvent oe = new OrderEvent();
+		oe.put(54, "2");
+		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testSideCheckingRuleInvalid() {
+		OrderValidationRule r = validator.getSideCheckingRule();
+		OrderEvent oe = new OrderEvent();
+		oe.put(54, "3");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("SIDECHECKING->Tag 54: 3 not supported. ", result.getRejectReason());
+	}
+	
+	
+	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleSkippingNonNOS() {
 		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
