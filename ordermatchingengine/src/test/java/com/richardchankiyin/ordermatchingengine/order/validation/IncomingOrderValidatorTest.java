@@ -137,4 +137,48 @@ public class IncomingOrderValidatorTest {
 		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
 	}
 	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingOrderQty() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(40, "1");
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ", result.getRejectReason());
+	}
+	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingOrderQty() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(40, "2");
+		oe.put(44, 100);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
+	}
+	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingPrice() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "11111");
+		oe.put(35, "D");
+		oe.put(38, 100);
+		oe.put(40, "2");
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
+	}
+	
 }
