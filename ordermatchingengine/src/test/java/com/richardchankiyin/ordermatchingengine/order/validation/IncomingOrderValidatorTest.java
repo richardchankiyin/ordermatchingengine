@@ -74,4 +74,35 @@ public class IncomingOrderValidatorTest {
 		assertEquals("DATATYPECHECKING->Tag 38: 111a is not integer. Tag 44: 111.5a is not numeric. ", result.getRejectReason());
 	}
 
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleSkippingNonNOS() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderValid() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(38, 100);
+		oe.put(40, "1");
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderValid() {
+		OrderValidationRule r = IncomingOrderValidator.getInstance().getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(38, 100);
+		oe.put(40, "1");
+		oe.put(44, 100);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		assertTrue(r.validate(oe).isAccepted());
+	}
 }

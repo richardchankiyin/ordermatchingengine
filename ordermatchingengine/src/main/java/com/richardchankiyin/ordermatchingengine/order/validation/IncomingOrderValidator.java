@@ -51,6 +51,42 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 					return new OrderValidationResult(rejectReason.toString());
 				}
 			});
+
+	
+	public static final OrderValidationRule NEWORDERSINGLECOMPULSORYFIELDCHECKING 
+		= new OrderValidationRule("NEWORDERSINGLECOMPULSORYFIELDCHECKING", oe->{
+				Object msgTypeValue = oe.get(35);
+				if (msgTypeValue != null && "D".equals(msgTypeValue.toString())) {
+					Object orderTypeValue = oe.get(40);
+					if (orderTypeValue != null) {
+						if ("1".equals(orderTypeValue.toString()) || "2".equals(orderTypeValue.toString())) {
+							Object clOrdIdValue = oe.get(11);
+							Object sideValue = oe.get(54);
+							Object symbolValue = oe.get(55);
+							Object priceValue = oe.get(44);
+							Object orderQtyValue = oe.get(38);
+							if ("1".equals(orderTypeValue.toString())) {
+								if (clOrdIdValue == null || sideValue == null || symbolValue == null || orderQtyValue == null) {
+									return new OrderValidationResult("Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ");
+								}
+							} else {
+								if (clOrdIdValue == null || sideValue == null || symbolValue == null || priceValue == null || orderQtyValue == null) {
+									return new OrderValidationResult("Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ");
+								}
+							}
+							return OrderValidationResult.getAcceptedInstance();
+						}
+					} 
+					return new OrderValidationResult(
+							String.format("Tag 40: %s is not supported. Only Market(1) and Limit(2) are being supported. ", orderTypeValue != null ? orderTypeValue : "NULL"));
+					
+				} else {
+					// non NOS skip validation
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			});
+			
+	
 	
 	public static IncomingOrderValidator getInstance() {
 		return instance;
@@ -60,12 +96,18 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(
 			// rule 1 datatype checking	
-			DATATYPECHECKING
+			DATATYPECHECKING			
+			// rule 2 new order single order checking
+			, NEWORDERSINGLECOMPULSORYFIELDCHECKING
 		);
 	}
 	
 	protected OrderValidationRule getDataTypeCheckingRule() {
 		return DATATYPECHECKING;
+	}
+	
+	protected OrderValidationRule getNewOrderSingleCompulsoryFieldChecking() {
+		return NEWORDERSINGLECOMPULSORYFIELDCHECKING;
 	}
 	
 	
