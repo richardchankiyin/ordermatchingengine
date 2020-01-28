@@ -102,7 +102,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 				if (clOrdIdValue != null) {
 					boolean isIdFound = this.orderModel.isClientOrderIdFound(clOrdIdValue.toString());
 					if (isIdFound) {
-						return new OrderValidationResult(String.format("Tag: 11 %s is being used in other order", clOrdIdValue.toString()));
+						return new OrderValidationResult(String.format("Tag 11: %s is being used in other order. ", clOrdIdValue.toString()));
 					}
 				}
 				return OrderValidationResult.getAcceptedInstance();
@@ -131,6 +131,10 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	
 	protected OrderValidationRule getNewOrderSingleCompulsoryFieldChecking() {
 		return NEWORDERSINGLECOMPULSORYFIELDCHECKING;
+	}
+	
+	protected OrderValidationRule getNewOrderSingleClientOrderIdIsNewChecking() {
+		return NEWORDERSINGLECLIENTORDERIDISNEWCHECKING;
 	}
 	
 	

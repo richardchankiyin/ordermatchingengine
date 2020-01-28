@@ -252,4 +252,40 @@ public class IncomingOrderValidatorTest {
 		assertFalse(result.isAccepted());
 		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());		
 	}
+	
+	@Test
+	public void testNewOrderSingleCompulsoryFieldCheckingNotMarketNotLimitOrder() {
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 100);
+		oe.put(40, "3");
+		oe.put(44, 100);
+		oe.put(54, "1");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 40: 3 is not supported. Only Market(1) and Limit(2) are being supported. ", result.getRejectReason());		
+	}
+	
+	@Test
+	public void testNewOrderSingleClientOrderId() {
+		OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		assertTrue(r.validate(oe).isAccepted());
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return true;
+			}
+		});
+		
+		OrderValidationRule r2 = validator2.getNewOrderSingleClientOrderIdIsNewChecking();
+		OrderValidationResult result2 = r2.validate(oe);
+		assertFalse(result2.isAccepted());
+		assertEquals("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is being used in other order. ", result2.getRejectReason());		
+		
+	}
 }
