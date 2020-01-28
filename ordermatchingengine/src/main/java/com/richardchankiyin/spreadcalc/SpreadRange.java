@@ -92,7 +92,7 @@ public class SpreadRange {
 		}
 	}
 	
-	private double roundDouble(Double input) {
-		return new BigDecimal(input.toString()).setScale(roundScale,RoundingMode.HALF_UP).doubleValue();
+	private double roundDouble(double input) {
+		return new BigDecimal(String.format("%s", input)).setScale(roundScale,RoundingMode.HALF_UP).doubleValue();
 	}
 }
