@@ -108,6 +108,24 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			});
 
 	
+	private final OrderValidationRule REPLACEREQUESTCOMPULSORYFIELDCHECKING
+		= new OrderValidationRule("REPLACEREQUESTCOMPULSORYFIELDCHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			if (msgTypeValue != null && "G".equals(msgTypeValue.toString())) {
+				Object clOrdIdValue = oe.get(11);
+				Object orderQtyValue = oe.get(38);
+				if (clOrdIdValue == null || orderQtyValue == null) {
+					return new OrderValidationResult("Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order");
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				// non replace request skip validation
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+	
+	
 	private final OrderValidationRule NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
 		= new OrderValidationRule("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING", oe-> {
 			Object msgTypeValue = oe.get(35);
@@ -135,6 +153,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			, SIDECHECKING
 			// rule 3a new order single compulsory field checking
 			, NEWORDERSINGLECOMPULSORYFIELDCHECKING
+			// rule 3b replace request compulsory field checking
+			, REPLACEREQUESTCOMPULSORYFIELDCHECKING
 			// rule 4a new order single client order id checking
 			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
 			
@@ -151,6 +171,10 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	
 	protected OrderValidationRule getNewOrderSingleCompulsoryFieldChecking() {
 		return NEWORDERSINGLECOMPULSORYFIELDCHECKING;
+	}
+	
+	protected OrderValidationRule getReplaceRequestCompulsoryFieldChecking() {
+		return REPLACEREQUESTCOMPULSORYFIELDCHECKING;
 	}
 	
 	protected OrderValidationRule getNewOrderSingleClientOrderIdIsNewChecking() {

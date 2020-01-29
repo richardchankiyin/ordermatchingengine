@@ -296,6 +296,15 @@ public class IncomingOrderValidatorTest {
 	}
 	
 	@Test
+	public void testReplaceRequestCompulsoryFieldCheckingValid() {
+		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 100);
+	}
+	
+	@Test
 	public void testNewOrderSingleClientOrderId() {
 		OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
 		OrderEvent oe = new OrderEvent();
