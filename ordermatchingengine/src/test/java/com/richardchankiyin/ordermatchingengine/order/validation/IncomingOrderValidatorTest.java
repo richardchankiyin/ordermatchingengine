@@ -302,6 +302,7 @@ public class IncomingOrderValidatorTest {
 		oe.put(11, "1111");
 		oe.put(35, "G");
 		oe.put(38, 100);
+		assertTrue(r.validate(oe).isAccepted());
 	}
 	
 	@Test
