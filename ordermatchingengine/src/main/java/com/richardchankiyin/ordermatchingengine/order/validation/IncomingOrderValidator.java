@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 /**
  * This class is to validate all incoming orders
@@ -177,6 +178,36 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			}
 		});
 	
+	private final OrderValidationRule REPLACEREQUESTAMENDDOWNCHECKING 
+		= new OrderValidationRule("REPLACEREQUESTAMENDDOWNCHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			if (msgTypeValue != null && "G".equals(msgTypeValue.toString()))  {
+				Object clOrdIdValue = oe.get(11);
+				Object orderQtyValue = oe.get(38);
+				if (clOrdIdValue != null && orderQtyValue != null) {
+					int newOrderQty = 0;
+					int oldOrderQty = 0;
+					try {
+						newOrderQty = Integer.parseInt(orderQtyValue.toString());
+						OrderEvent oldOe = orderModel.getOrder(clOrdIdValue.toString());
+						oldOrderQty = Integer.parseInt(oldOe.get(38).toString());
+					} catch (Exception e) {
+						//TODO log exception by logger
+						newOrderQty = 0;
+						oldOrderQty = 0;
+					}
+					
+					if (newOrderQty >= oldOrderQty) {
+						return new OrderValidationResult(String.format("Tag 38: %s is larger/equal to %s which is not amend down for replace request order. ", newOrderQty, oldOrderQty));
+					} 
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+		
+	
 	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
@@ -195,6 +226,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
 			// rule 4b replace request/cancel request client order id checking
 			, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
+			// rule 5a replace request amend down checking
+			, REPLACEREQUESTAMENDDOWNCHECKING
 		);
 	}
 	
@@ -226,6 +259,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		return REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING;
 	}
 	
-	
+	protected OrderValidationRule getReplaceRequestAmendDownChecking() {
+		return REPLACEREQUESTAMENDDOWNCHECKING;
+	}
 
 }

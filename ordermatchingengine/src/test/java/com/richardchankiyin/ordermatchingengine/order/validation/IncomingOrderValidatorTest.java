@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
+import com.richardchankiyin.ordermatchingengine.order.OrderEventView;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 
 public class IncomingOrderValidatorTest {
@@ -413,6 +414,53 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		assertTrue(validator2.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking().validate(oe).isAccepted());		
+	}
+	
+	@Test
+	public void testReplaceRequestAmendDownValid() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 1000);
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 2000);
+				return new OrderEventView(oe);
+			}
+		});
+		
+		assertTrue(validator2.getReplaceRequestAmendDownChecking().validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testReplaceRequestAmendUpValid() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 3000);
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 2000);
+				return new OrderEventView(oe);
+			}
+		});
+		
+		OrderValidationResult result2 = validator2.getReplaceRequestAmendDownChecking().validate(oe);
+		assertFalse(result2.isAccepted());
+		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 3000 is larger/equal to 2000 which is not amend down for replace request order. ", result2.getRejectReason());		
+		
 	}
 	
 }
