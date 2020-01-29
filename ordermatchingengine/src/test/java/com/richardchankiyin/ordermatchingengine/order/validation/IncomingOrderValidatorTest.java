@@ -328,6 +328,25 @@ public class IncomingOrderValidatorTest {
 	}
 	
 	@Test
+	public void testCancelRequestCompulsoryFieldCheckingValid() {
+		OrderValidationRule r = validator.getCancelRequestCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testCancelRequestCompulsoryFieldCheckingMissingClOrdId() {
+		OrderValidationRule r = validator.getCancelRequestCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "F");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("CANCELREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId cannot be missed in a cancel request order", result.getRejectReason());		
+	}
+	
+	@Test
 	public void testNewOrderSingleClientOrderId() {
 		OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
 		OrderEvent oe = new OrderEvent();
