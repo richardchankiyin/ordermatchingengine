@@ -9,7 +9,7 @@ Order validation
 
 2. Order amendment is being supported with limited manner. Only amend down order (Tag 38) with value less than original one will be accepted. Otherwise orders will be rejected. For others like amend up/change price orders, cancel and new orders done in two steps required
 
-3. Order cancel can be done anytime except order is pending new, suspended (pending execution), or filled
+3. Order replace request/cancel can be done anytime except order is pending new, suspended (pending execution), or filled
 
 4. Order price must be a valid price from spread range calculation
 
