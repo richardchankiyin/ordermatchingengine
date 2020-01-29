@@ -297,12 +297,34 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testReplaceRequestCompulsoryFieldCheckingValid() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
 		oe.put(38, 100);
 		assertTrue(r.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testReplaceRequestCompulsoryFieldCheckingMissingOrderQty() {
+		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order", result.getRejectReason());		
+	}
+	
+	@Test
+	public void testReplaceRequestCompulsoryFieldCheckingMissingClOrdId() {
+		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "G");
+		oe.put(38, 100);
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order", result.getRejectReason());		
 	}
 	
 	@Test
