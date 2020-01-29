@@ -131,7 +131,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			if (msgTypeValue != null && "F".equals(msgTypeValue.toString())) {
 				Object clOrdIdValue = oe.get(11);
 				if (clOrdIdValue == null) {
-					return new OrderValidationResult("Tag 11: ClOrdId cannot be missed in a cancel request order");
+					return new OrderValidationResult("Tag 11: ClOrdId cannot be missed in a cancel request order. ");
 				} else {
 					return OrderValidationResult.getAcceptedInstance();
 				}
@@ -160,6 +160,24 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			}
 		});
 	
+	private final OrderValidationRule REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
+		= new OrderValidationRule("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			if (msgTypeValue != null && ("F".equals(msgTypeValue.toString()) || "G".equals(msgTypeValue.toString())))  {
+				Object clOrdIdValue = oe.get(11);
+				if (clOrdIdValue != null) {
+					boolean isIdFound = this.orderModel.isClientOrderIdFound(clOrdIdValue.toString());
+					if (!isIdFound) {
+						return new OrderValidationResult(String.format("Tag 11: %s is not found. ", clOrdIdValue.toString()));
+					}
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+	
+	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(
@@ -175,7 +193,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			, CANCELREQUESTCOMPULSORYFIELDCHECKING
 			// rule 4a new order single client order id checking
 			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
-			
+			// rule 4b replace request/cancel request client order id checking
+			, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
 		);
 	}
 	
@@ -203,6 +222,9 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		return NEWORDERSINGLECLIENTORDERIDISNEWCHECKING;
 	}
 	
+	protected OrderValidationRule getRequestRequestAndCancelRequestClientOrderIdIsNewChecking() {
+		return REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING;
+	}
 	
 	
 

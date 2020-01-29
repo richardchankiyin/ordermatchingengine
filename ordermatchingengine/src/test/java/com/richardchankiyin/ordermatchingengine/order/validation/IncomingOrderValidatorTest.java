@@ -18,6 +18,9 @@ public class IncomingOrderValidatorTest {
 			public boolean isClientOrderIdFound(String clientOrderId) {
 				return false;
 			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
 		});
 	}
 
@@ -343,7 +346,7 @@ public class IncomingOrderValidatorTest {
 		oe.put(35, "F");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("CANCELREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId cannot be missed in a cancel request order", result.getRejectReason());		
+		assertEquals("CANCELREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId cannot be missed in a cancel request order. ", result.getRejectReason());		
 	}
 	
 	@Test
@@ -358,6 +361,9 @@ public class IncomingOrderValidatorTest {
 			public boolean isClientOrderIdFound(String clientOrderId) {
 				return true;
 			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return new OrderEvent();
+			}
 		});
 		
 		OrderValidationRule r2 = validator2.getNewOrderSingleClientOrderIdIsNewChecking();
@@ -366,4 +372,47 @@ public class IncomingOrderValidatorTest {
 		assertEquals("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is being used in other order. ", result2.getRejectReason());		
 		
 	}
+	
+	@Test
+	public void testReplaceRequestClientOrderId() {
+		OrderValidationRule r = validator.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ", result.getRejectReason());
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return true;
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return new OrderEvent();
+			}
+		});
+		assertTrue(validator2.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking().validate(oe).isAccepted());		
+	}
+	
+	@Test
+	public void testCancelRequestClientOrderId() {
+		OrderValidationRule r = validator.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking();
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		OrderValidationResult result = r.validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ", result.getRejectReason());
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return true;
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return new OrderEvent();
+			}
+		});
+		assertTrue(validator2.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking().validate(oe).isAccepted());		
+	}
+	
 }
