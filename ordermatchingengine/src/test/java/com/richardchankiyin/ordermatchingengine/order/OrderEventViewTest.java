@@ -11,7 +11,12 @@ public class OrderEventViewTest {
 	
 	@Before
 	public void setUp() {
-		instance = new OrderEventView(new OrderEvent());
+		OrderEvent oe = new OrderEvent();
+		oe.put(1, 1);
+		oe.put(2, "2");
+		oe.put(3, 3.3d);
+		
+		instance = new OrderEventView(oe);
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -84,4 +89,11 @@ public class OrderEventViewTest {
 		instance.clone();
 	}
 
+	@Test
+	public void testGet() {
+		assertEquals(1, instance.get(1));
+		assertEquals("2", instance.get(2));
+		assertEquals(3.3d, instance.get(3));
+	}
+	
 }
