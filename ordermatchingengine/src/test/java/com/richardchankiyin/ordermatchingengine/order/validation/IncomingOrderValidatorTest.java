@@ -471,7 +471,7 @@ public class IncomingOrderValidatorTest {
 		oe.put(38, 3000);
 		oe.put(40, 1);
 		oe.put(54, 1);
-		oe.put(55, 10.5);
+		oe.put(55, "0005.HK");
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
@@ -483,12 +483,43 @@ public class IncomingOrderValidatorTest {
 				oe.put(38, 4000);
 				oe.put(40, 1);
 				oe.put(54, 1);
-				oe.put(55, 10.5);
+				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
 		});
 		
 		assertTrue(validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe).isAccepted());
 	}
+	
+	@Test
+	public void testReplaceRequestOtherFieldChangeCheckingLimitOrderValid() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 3000);
+		oe.put(40, 2);
+		oe.put(44, 58);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 2);
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		
+		assertTrue(validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe).isAccepted());
+	}
+	
 	
 }
