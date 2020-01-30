@@ -1,5 +1,8 @@
 package com.richardchankiyin.ordermatchingengine.order.validation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +19,7 @@ import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
  */
 public class IncomingOrderValidator extends AbstractOrderValidator implements
 		IOrderValidator {
+	private static final Logger logger = LoggerFactory.getLogger(IncomingOrderValidator.class);
 	private IOrderModel orderModel;
 	public IncomingOrderValidator(IOrderModel orderModel) {
 		Objects.requireNonNull(orderModel, "orderModel is null");
@@ -192,7 +196,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 						OrderEvent oldOe = orderModel.getOrder(clOrdIdValue.toString());
 						oldOrderQty = Integer.parseInt(oldOe.get(38).toString());
 					} catch (Exception e) {
-						//TODO log exception by logger
+						logger.info("issues found.", e);
 						newOrderQty = 0;
 						oldOrderQty = 0;
 					}
@@ -203,11 +207,61 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 				}
 				return OrderValidationResult.getAcceptedInstance();
 			} else {
+				// skip for other message type
 				return OrderValidationResult.getAcceptedInstance();
 			}
 		});
 		
-	
+	private final OrderValidationRule REPLACEREQUESTOTHERFIELDCHANGECHECKING
+		= new OrderValidationRule("REPLACEREQUESTOTHERFIELDCHANGECHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			if (msgTypeValue != null && "G".equals(msgTypeValue.toString()))  {
+				Object clOrdIdValue = oe.get(11);
+				try {
+					OrderEvent oldOe = orderModel.getOrder(clOrdIdValue.toString());
+					Object oldSideValue = oldOe.get(54);
+					Object oldSymbolValue = oldOe.get(55);
+					Object oldOrdTypeValue = oldOe.get(40);
+					Object oldPriceValue = oldOe.get(44);
+					
+					Object newSideValue = oe.get(54);
+					Object newSymbolValue = oe.get(55);
+					Object newOrdTypeValue = oe.get(40);
+					Object newPriceValue = oe.get(44);
+					
+					boolean isReplaceValid = true;
+					
+					if (newSideValue != null && !oldSideValue.equals(newSideValue)) {
+						isReplaceValid = false;
+					}
+					
+					if (newSymbolValue != null && !oldSymbolValue.equals(newSymbolValue)) {
+						isReplaceValid = false;
+					}
+					
+					if (newOrdTypeValue != null && !oldOrdTypeValue.equals(newOrdTypeValue)) {
+						isReplaceValid = false;
+					}
+					
+					if (!Objects.equals(oldPriceValue, newPriceValue)) {
+						isReplaceValid = false;
+					}
+					
+					if (!isReplaceValid) {
+						return new OrderValidationResult("Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ");
+					}
+					
+				}
+				catch (Exception e){
+					// log exception here
+					logger.info("issues found.", e);
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			} else {
+				// skip for other message type
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
 	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
@@ -228,6 +282,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
 			// rule 5a replace request amend down checking
 			, REPLACEREQUESTAMENDDOWNCHECKING
+			// rule 6a replace request other field change checking
+			, REPLACEREQUESTOTHERFIELDCHANGECHECKING
 		);
 	}
 	
@@ -261,6 +317,10 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	
 	protected OrderValidationRule getReplaceRequestAmendDownChecking() {
 		return REPLACEREQUESTAMENDDOWNCHECKING;
+	}
+	
+	protected OrderValidationRule getReplaceRequestOtherFieldChangeChecking() {
+		return REPLACEREQUESTOTHERFIELDCHANGECHECKING;
 	}
 
 }

@@ -463,4 +463,32 @@ public class IncomingOrderValidatorTest {
 		
 	}
 	
+	@Test
+	public void testReplaceRequestOtherFieldChangeCheckingMarketOrderValid() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 3000);
+		oe.put(40, 1);
+		oe.put(54, 1);
+		oe.put(55, 10.5);
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 1);
+				oe.put(54, 1);
+				oe.put(55, 10.5);
+				return new OrderEventView(oe);
+			}
+		});
+		
+		assertTrue(validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe).isAccepted());
+	}
+	
 }
