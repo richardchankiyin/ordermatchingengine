@@ -648,4 +648,50 @@ public class IncomingOrderValidatorTest {
 		assertFalse(result2.isAccepted());
 		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ", result2.getRejectReason());
 	}
+	
+	@Test
+	public void testValidateNewOrderSingleMarketOrderAccepted() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(40, 1);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+		});
+		
+		assertTrue(validator2.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testValidateNewOrderSingleLimitOrderAccepted() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(40, 2);
+		oe.put(44, 58);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+		});
+		
+		assertTrue(validator2.validate(oe).isAccepted());
+	}
+	
 }
