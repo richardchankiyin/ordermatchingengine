@@ -35,6 +35,9 @@ public class OrderMessageQueue implements Runnable {
 	}
 
 	public void start() {
+		if (this.isStopped) {
+			throw new IllegalStateException("queue stopped");
+		}
 		this.thread.start();
 	}
 	
@@ -56,6 +59,7 @@ public class OrderMessageQueue implements Runnable {
 		while (!this.isStopped) {
 			try {
 				OrderEvent oe = this.queue.take();
+				logger.debug("taking from queue: {}", oe);
 				this.receiver.onEvent(oe);
 			}
 			catch (InterruptedException ie) {
