@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
+import com.richardchankiyin.ordermatchingengine.order.OrderEventView;
 
 public class OrderRepository implements IOrderUpdateable{
 	private static final int[] fixtagnotsaved = {35};
@@ -21,11 +22,12 @@ public class OrderRepository implements IOrderUpdateable{
 		Objects.requireNonNull(oe, "Order Event cannot be null");
 		Object okey = oe.get(11);
 		Objects.requireNonNull(okey, "Tag 11 Key missing");
-		OrderEvent existing = getOrderModel().getOrder(okey.toString());
+		OrderEvent existing = orderMap.get(okey.toString());
 		if (existing == null) {
 			existing = new OrderEvent();
 		}
 		existing.putAll(copyOrderEvent(oe));
+		orderMap.put(okey.toString(), existing);
 	}
 	
 	protected OrderEvent copyOrderEvent(OrderEvent oe) {
@@ -50,7 +52,12 @@ public class OrderRepository implements IOrderUpdateable{
 
 		@Override
 		public OrderEvent getOrder(String clientOrderId) {
-			return orderMap.get(clientOrderId);
+			OrderEvent oe = orderMap.get(clientOrderId);
+			if (oe == null) {
+				return null;
+			} else {
+				return new OrderEventView(oe);
+			}
 		}
 		
 	}
