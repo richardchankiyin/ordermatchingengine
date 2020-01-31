@@ -203,7 +203,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 						oldOrderQty = 0;
 					}
 					
-					if (newOrderQty >= oldOrderQty) {
+					if (newOrderQty >= oldOrderQty && newOrderQty != 0 && oldOrderQty != 0) {
 						return new OrderValidationResult(String.format("Tag 38: %s is larger/equal to %s which is not amend down for replace request order. ", newOrderQty, oldOrderQty));
 					} 
 				}

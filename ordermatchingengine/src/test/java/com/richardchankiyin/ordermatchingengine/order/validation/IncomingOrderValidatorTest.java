@@ -767,4 +767,47 @@ public class IncomingOrderValidatorTest {
 
 		assertFalse(validator2.validate(oe).isAccepted());
 	}
+	
+	@Test
+	public void testValidateCancelOrderAccepted() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 1);
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0001.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		
+		assertTrue(validator2.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testValidateCancelOrderClOrdIdNotFound() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+		});
+		
+		assertFalse(validator2.validate(oe).isAccepted());
+	}
 }
