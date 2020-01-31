@@ -1,6 +1,7 @@
 package com.richardchankiyin.ordermatchingengine.order.messagequeue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +43,7 @@ public class OrderMessageQueueTest {
 		OrderMessageQueue queue = new OrderMessageQueue("sendandreceivetest", receiver, 10);
 		queue.start();
 		queue.send(oe);
-		logger.debug("queue status after send oe {}", queue);
 		queue.send(oe2);
-		logger.debug("queue status after send oe2 {}", queue);
 		
 		Thread.sleep(100);
 		
@@ -86,9 +85,7 @@ public class OrderMessageQueueTest {
 		OrderMessageQueue queue = new OrderMessageQueue("oneventhrowexceptionhandled", receiver, 10);
 		queue.start();
 		queue.send(oe);
-		logger.debug("queue status after send oe {}", queue);
 		queue.send(oe2);
-		logger.debug("queue status after send oe2 {}", queue);
 		
 		Thread.sleep(100);
 		
@@ -98,5 +95,38 @@ public class OrderMessageQueueTest {
 		assertEquals(2,received.get(1).get(2));
 		
 		queue.stop();
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testMessageQueueFull() throws Exception{
+		OrderEvent oe = new OrderEvent();
+		oe.put(1, 1);
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(2, 2);
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(3, 3);
+		
+		Thread t = Thread.currentThread();
+		IOrderMessageQueueReceiver receiver = new IOrderMessageQueueReceiver() {
+			public void onEvent(OrderEvent o) {
+				try {
+					logger.debug("incoming oe: {}", o);
+					t.join();
+				}
+				catch (Exception e) {
+					logger.error("error:", e);
+				}
+			}
+		};
+		
+		OrderMessageQueue queue = new OrderMessageQueue("messagequeuefull", receiver, 1);
+		queue.start();
+		queue.send(oe);
+		logger.debug("queue after 1: {}", queue);
+		queue.send(oe2);
+		logger.debug("queue after 2: {}", queue);
+		queue.send(oe3);
+		logger.debug("queue after 3: {}", queue);
+		fail("should not come to this line");
 	}
 }

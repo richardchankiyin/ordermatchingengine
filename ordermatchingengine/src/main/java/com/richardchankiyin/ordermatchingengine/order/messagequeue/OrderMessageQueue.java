@@ -46,9 +46,13 @@ public class OrderMessageQueue implements Runnable {
 	}
 
 	public void send(OrderEvent oe) {
+		if (this.isStopped) {
+			throw new IllegalStateException("queue stopped");
+		}
 		Objects.requireNonNull(oe, "Order Event null!");
-		logger.info("{}", oe);
+		logger.info("send order: {}", oe);
 		boolean eventPutIntotheQueue = this.queue.offer(oe);
+		logger.debug("order: {} eventPutIntotheQueue: {}", oe, eventPutIntotheQueue);
 		if (!eventPutIntotheQueue) {
 			throw new IllegalStateException("queue does not accept!");
 		}
