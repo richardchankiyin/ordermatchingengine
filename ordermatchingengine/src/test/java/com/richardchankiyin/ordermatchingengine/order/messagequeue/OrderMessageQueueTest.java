@@ -26,7 +26,7 @@ public class OrderMessageQueueTest {
 	}
 
 	@Test
-	public void testSendAndReceive() {
+	public void testSendAndReceive() throws Exception{
 		OrderEvent oe = new OrderEvent();
 		oe.put(1, 1);
 		OrderEvent oe2 = new OrderEvent();
@@ -46,6 +46,7 @@ public class OrderMessageQueueTest {
 		queue.send(oe2);
 		logger.debug("queue status after send oe2 {}", queue);
 		
+		Thread.sleep(100);
 		
 		assertEquals(2, received.size());
 		assertEquals(1,received.get(0).get(1));
@@ -65,5 +66,37 @@ public class OrderMessageQueueTest {
 		queue.stop();
 		queue.start();
 		
+	}
+	
+	@Test
+	public void testOnEventThrowExceptionHandled() throws Exception{
+		OrderEvent oe = new OrderEvent();
+		oe.put(1, 1);
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(2, 2);
+		
+		List<OrderEvent> received = new ArrayList<OrderEvent>(2);
+		IOrderMessageQueueReceiver receiver = new IOrderMessageQueueReceiver() {
+			public void onEvent(OrderEvent o) {
+				received.add(o);
+				throw new RuntimeException("receiver throws exception!");
+			}
+		};
+		
+		OrderMessageQueue queue = new OrderMessageQueue("oneventhrowexceptionhandled", receiver, 10);
+		queue.start();
+		queue.send(oe);
+		logger.debug("queue status after send oe {}", queue);
+		queue.send(oe2);
+		logger.debug("queue status after send oe2 {}", queue);
+		
+		Thread.sleep(100);
+		
+		logger.debug("received: {}", received);
+		assertEquals(2, received.size());
+		assertEquals(1,received.get(0).get(1));
+		assertEquals(2,received.get(1).get(2));
+		
+		queue.stop();
 	}
 }
