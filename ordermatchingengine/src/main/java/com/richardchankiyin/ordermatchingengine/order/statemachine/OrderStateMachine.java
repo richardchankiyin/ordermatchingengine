@@ -96,8 +96,8 @@ public class OrderStateMachine {
 			fromStatusToStatusMap.put("0",Arrays.asList("9"));
 			// partial filled to Suspended
 			fromStatusToStatusMap.put("1",Arrays.asList("9"));
-			// Suspended to Partial Filled/Filled
-			fromStatusToStatusMap.put("9",Arrays.asList("1","2"));
+			// Suspended to New/Partial Filled/Filled
+			fromStatusToStatusMap.put("9",Arrays.asList("0","1","2"));
 			// Filled to Done For Day
 			fromStatusToStatusMap.put("2",Arrays.asList("3"));
 			
