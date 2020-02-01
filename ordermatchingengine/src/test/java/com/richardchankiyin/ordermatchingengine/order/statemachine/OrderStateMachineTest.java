@@ -2,6 +2,9 @@ package com.richardchankiyin.ordermatchingengine.order.statemachine;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
@@ -286,37 +289,6 @@ public class OrderStateMachineTest {
 	}
 	
 	@Test
-	public void testReplaceRequestOnStatusFilledNotAccepted() {
-		IOrderModel model = new IOrderModel() {
-			public boolean isClientOrderIdFound(String clientOrderId) {
-				return "1111".equals(clientOrderId);
-			}
-			
-			public OrderEvent getOrder(String clientOrderId) {
-				OrderEvent oe = new OrderEvent();
-				oe.put(11, "1111");
-				oe.put(39, "2");
-				return oe;
-			}
-		};
-		
-		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
-			@Override
-			public void updateOrder(OrderEvent oe) {}
-		};
-		
-		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
-		OrderEvent oe = new OrderEvent();
-		oe.put(11, "1111");
-		oe.put(35, "G");
-		oe.put(39, "9");
-		OrderValidationResult result = om.getReplaceRequestStatusChange().validate(oe);
-		assertFalse(result.isAccepted());
-		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 39: 2 cannot be further replaced. ", result.getRejectReason());
-
-	}
-	
-	@Test
 	public void testReplaceRequestOnStatusDFDNotAccepted() {
 		IOrderModel model = new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
@@ -346,4 +318,193 @@ public class OrderStateMachineTest {
 		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 39: 3 cannot be further replaced. ", result.getRejectReason());
 
 	}
+	
+	@Test
+	public void testReplaceRequestFromNewToSuspendedAccepted() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "0");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		
+		assertTrue(om.getReplaceRequestStatusChange().validate(oe).isAccepted());
+		
+	}
+	
+	@Test
+	public void testReplaceRequestFromPartialFilledToSuspendedAccepted() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "1");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		
+		assertTrue(om.getReplaceRequestStatusChange().validate(oe).isAccepted());
+		
+	}
+	
+	@Test
+	public void testReplaceRequestFromFilledToDFD() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "2");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "3");
+		
+		assertTrue(om.getReplaceRequestStatusChange().validate(oe).isAccepted());
+		
+	}
+	
+	@Test
+	public void testReplaceRequestFromSuspectedToPartialFilled() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "9");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "1");
+		
+		assertTrue(om.getReplaceRequestStatusChange().validate(oe).isAccepted());
+		
+	}
+	
+	@Test
+	public void testReplaceRequestFromSuspectedToFilled() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "9");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "2");
+		
+		assertTrue(om.getReplaceRequestStatusChange().validate(oe).isAccepted());
+	}
+	
+	private OrderValidationResult replaceRequestValidation(String fromStatus, String toStatus) {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, fromStatus);
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, toStatus);
+		
+		return om.getReplaceRequestStatusChange().validate(oe);
+	}
+	
+	@Test
+	public void testReplaceRequestStatusChangeInvalid() {
+		List<String> statusFromTo = 
+			Arrays.asList("A0", "A9", "A1", "A2", "A3", "01", "02", "03", "13");
+		for (String i: statusFromTo) {
+			assertFalse(replaceRequestValidation(
+					String.valueOf(i.charAt(0)), String.valueOf(i.charAt(1)))
+						.isAccepted());
+		}
+	}
+	
 }
