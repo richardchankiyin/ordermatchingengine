@@ -507,4 +507,92 @@ public class OrderStateMachineTest {
 		}
 	}
 	
+	@Test
+	public void testCancelRequestOnNonExistClOrdId() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(39, "4");
+		
+		OrderValidationResult result = om.getCancelRequestStatusChange().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("CANCELREQUESTSTATUSCHANGE->Tag 11: 1111 Cancel request on a non-exist order is rejected. ", result.getRejectReason());
+
+	}
+	
+	@Test
+	public void testCancelRequestFromNewToCancelled() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "0");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(39, "4");
+		
+		assertTrue(om.getCancelRequestStatusChange().validate(oe).isAccepted());
+		
+	}
+	
+	@Test
+	public void testCancelRequestFromPartialFilledToFilled() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "1");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(39, "2");
+		
+		assertTrue(om.getCancelRequestStatusChange().validate(oe).isAccepted());
+		
+	}
 }

@@ -126,6 +126,42 @@ public class OrderStateMachine {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 	
+	private final OrderValidationRule CANCELREQUESTSTATUSCHANGE
+		= new OrderValidationRule("CANCELREQUESTSTATUSCHANGE", oe->{
+			Map<String, List<String>> fromStatusToStatusMap = new HashMap<>();
+			// new to cancelled
+			fromStatusToStatusMap.put("0",Arrays.asList("4"));
+			// partial filled to filled
+			fromStatusToStatusMap.put("1",Arrays.asList("2"));
+			
+			Object clOrdId = oe.get(11);
+			Object msgType = oe.get(35);
+			
+			if (clOrdId != null && "F".equals(msgType)) {
+				Object ordStatus = oe.get(39);
+				boolean isOrderExist = model.isClientOrderIdFound(clOrdId.toString());
+				if (isOrderExist) {
+					OrderEvent oldOe = model.getOrder(clOrdId.toString());
+					Object oldOrdStatus = oldOe.get(39);
+					if (!fromStatusToStatusMap.containsKey(oldOrdStatus)) {
+						return new OrderValidationResult(String.format("Tag 39: %s cannot be further cancelled. ", oldOrdStatus));
+					} else {
+						List<String> acceptedStatus = fromStatusToStatusMap.get(oldOrdStatus);
+						if (!acceptedStatus.contains(ordStatus)) {
+							return new OrderValidationResult(String.format("Tag 39: from %s to %s cancel request is rejected. ", oldOrdStatus, ordStatus));
+						} else {
+							return OrderValidationResult.getAcceptedInstance();
+						}
+					}		
+					
+				} else {
+					return new OrderValidationResult(String.format("Tag 11: %s Cancel request on a non-exist order is rejected. ", clOrdId));
+				}
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+	
+	
 	protected OrderValidationRule getNosFromNonexistingToPendingNew() {
 		return NOSFROMNONEXISTINGTOPENDINGNEW;		
 	}
@@ -138,6 +174,10 @@ public class OrderStateMachine {
 		return REPLACEREQUESTSTATUSCHANGE;
 	}
 	
+	protected OrderValidationRule getCancelRequestStatusChange() {
+		return CANCELREQUESTSTATUSCHANGE;
+	}
+	
 	private class OrderStateMachineProcessOrderValidator extends AbstractOrderValidator {
 		
 		@Override
@@ -146,6 +186,7 @@ public class OrderStateMachine {
 					NOSFROMNONEXISTINGTOPENDINGNEW
 					, NOSFROMPENDINGNEWTONEW
 					, REPLACEREQUESTSTATUSCHANGE
+					, CANCELREQUESTSTATUSCHANGE
 					);
 		}
 		
