@@ -59,8 +59,36 @@ public class OrderStateMachine {
 				}
 	});
 	
+	private final OrderValidationRule NOSFROMPENDINGNEWTONEW
+		= new OrderValidationRule("NOSFROMPENDINGNEWTONEW", oe->{
+			Object clOrdId = oe.get(11);
+			Object msgType = oe.get(35);
+			if (clOrdId != null && "D".equals(msgType)) {
+				Object ordStatus = oe.get(39);
+				boolean isOrderExist = model.isClientOrderIdFound(clOrdId.toString());
+				if (isOrderExist) {
+					OrderEvent oldOe = model.getOrder(clOrdId.toString());
+					Object oldOrdStatus = oldOe.get(39);
+					if ("0".equals(ordStatus) && "A".equals(oldOrdStatus)) {
+						return OrderValidationResult.getAcceptedInstance();
+					} else {
+						// reject as only from A->0
+						return new OrderValidationResult(String.format("Tag 39: from %s to %s not accepted. Only A to 0", oldOrdStatus, ordStatus));
+					}
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+	
 	protected OrderValidationRule getNosFromNonexistingToPendingNew() {
 		return NOSFROMNONEXISTINGTOPENDINGNEW;		
+	}
+	
+	protected OrderValidationRule getNosFromPendingNewToNew() {
+		return NOSFROMPENDINGNEWTONEW;
 	}
 	
 	private class OrderStateMachineProcessOrderValidator extends AbstractOrderValidator {
@@ -69,6 +97,7 @@ public class OrderStateMachine {
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					NOSFROMNONEXISTINGTOPENDINGNEW
+					, NOSFROMPENDINGNEWTONEW
 					);
 		}
 		
