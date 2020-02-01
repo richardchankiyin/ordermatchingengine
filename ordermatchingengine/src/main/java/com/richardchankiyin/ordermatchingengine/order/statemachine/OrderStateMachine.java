@@ -1,7 +1,9 @@
 package com.richardchankiyin.ordermatchingengine.order.statemachine;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
@@ -73,7 +75,7 @@ public class OrderStateMachine {
 						return OrderValidationResult.getAcceptedInstance();
 					} else {
 						// reject as only from A->0
-						return new OrderValidationResult(String.format("Tag 39: from %s to %s not accepted. Only A to 0", oldOrdStatus, ordStatus));
+						return new OrderValidationResult(String.format("Tag 39: from %s to %s not accepted. Only A to 0. ", oldOrdStatus, ordStatus));
 					}
 				} else {
 					return OrderValidationResult.getAcceptedInstance();
@@ -81,6 +83,45 @@ public class OrderStateMachine {
 			} else {
 				return OrderValidationResult.getAcceptedInstance();
 			}
+		});
+	
+	
+	private final OrderValidationRule REPLACEREQUESTSTATUSCHANGE
+		= new OrderValidationRule("REPLACEREQUESTSTATUSCHANGE", oe->{
+			Map<String, List<String>> fromStatusToStatusMap = new HashMap<>();
+			// new to Suspended
+			fromStatusToStatusMap.put("0",Arrays.asList("9"));
+			// partial filled to Suspended
+			fromStatusToStatusMap.put("1",Arrays.asList("9"));
+			// Suspended to Partial Filled/Filled
+			fromStatusToStatusMap.put("9",Arrays.asList("1","2"));
+			
+			Object clOrdId = oe.get(11);
+			Object msgType = oe.get(35);
+			
+			if (clOrdId != null && "G".equals(msgType)) {
+				Object ordStatus = oe.get(39);
+				boolean isOrderExist = model.isClientOrderIdFound(clOrdId.toString());
+				if (isOrderExist) {
+					OrderEvent oldOe = model.getOrder(clOrdId.toString());
+					Object oldOrdStatus = oldOe.get(39);
+					
+					if (!fromStatusToStatusMap.containsKey(oldOrdStatus)) {
+						return new OrderValidationResult(String.format("Tag 39: %s cannot be further replaced. ", oldOrdStatus));
+					} else {
+						List<String> acceptedStatus = fromStatusToStatusMap.get(oldOrdStatus);
+						if (!acceptedStatus.contains(ordStatus)) {
+							return new OrderValidationResult(String.format("Tag 39: from %s to %s replace request is rejected. ", oldOrdStatus, ordStatus));
+						} else {
+							return OrderValidationResult.getAcceptedInstance();
+						}
+					}					
+				} else {
+					return new OrderValidationResult(String.format("Tag 11: %s Replace request on a non-exist order is rejected. ", clOrdId));
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
 		});
 	
 	protected OrderValidationRule getNosFromNonexistingToPendingNew() {
@@ -91,6 +132,10 @@ public class OrderStateMachine {
 		return NOSFROMPENDINGNEWTONEW;
 	}
 	
+	protected OrderValidationRule getReplaceRequestStatusChange() {
+		return REPLACEREQUESTSTATUSCHANGE;
+	}
+	
 	private class OrderStateMachineProcessOrderValidator extends AbstractOrderValidator {
 		
 		@Override
@@ -98,6 +143,7 @@ public class OrderStateMachine {
 			return Arrays.asList(
 					NOSFROMNONEXISTINGTOPENDINGNEW
 					, NOSFROMPENDINGNEWTONEW
+					, REPLACEREQUESTSTATUSCHANGE
 					);
 		}
 		

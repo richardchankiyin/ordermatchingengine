@@ -190,7 +190,7 @@ public class OrderStateMachineTest {
 		oe.put(39, "9");
 		OrderValidationResult result = om.getNosFromPendingNewToNew().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 9 not accepted. Only A to 0", result.getRejectReason());
+		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 9 not accepted. Only A to 0. ", result.getRejectReason());
 
 		// NOS A -> 1 rejected
 		om = new OrderStateMachine(model, orderUpdateable);
@@ -200,7 +200,7 @@ public class OrderStateMachineTest {
 		oe.put(39, "1");
 		result = om.getNosFromPendingNewToNew().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 1 not accepted. Only A to 0", result.getRejectReason());
+		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 1 not accepted. Only A to 0. ", result.getRejectReason());
 
 		// NOS A -> 2 rejected
 		om = new OrderStateMachine(model, orderUpdateable);
@@ -210,7 +210,7 @@ public class OrderStateMachineTest {
 		oe.put(39, "2");
 		result = om.getNosFromPendingNewToNew().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 2 not accepted. Only A to 0", result.getRejectReason());
+		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 2 not accepted. Only A to 0. ", result.getRejectReason());
 		
 		// NOS A -> 3 rejected
 		om = new OrderStateMachine(model, orderUpdateable);
@@ -220,8 +220,130 @@ public class OrderStateMachineTest {
 		oe.put(39, "3");
 		result = om.getNosFromPendingNewToNew().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 3 not accepted. Only A to 0", result.getRejectReason());
+		assertEquals("NOSFROMPENDINGNEWTONEW->Tag 39: from A to 3 not accepted. Only A to 0. ", result.getRejectReason());
 		
 		
+	}
+	
+	@Test
+	public void testReplaceRequestOnNonExistingClOrdId() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return false;
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		
+		OrderValidationResult result = om.getReplaceRequestStatusChange().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 11: 1111 Replace request on a non-exist order is rejected. ", result.getRejectReason());
+
+	}
+	
+	@Test
+	public void testReplaceRequestOnStatusPendingNewNotAccepted() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "A");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		OrderValidationResult result = om.getReplaceRequestStatusChange().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 39: A cannot be further replaced. ", result.getRejectReason());
+
+	}
+	
+	@Test
+	public void testReplaceRequestOnStatusFilledNotAccepted() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "2");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		OrderValidationResult result = om.getReplaceRequestStatusChange().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 39: 2 cannot be further replaced. ", result.getRejectReason());
+
+	}
+	
+	@Test
+	public void testReplaceRequestOnStatusDFDNotAccepted() {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, "3");
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(39, "9");
+		OrderValidationResult result = om.getReplaceRequestStatusChange().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("REPLACEREQUESTSTATUSCHANGE->Tag 39: 3 cannot be further replaced. ", result.getRejectReason());
+
 	}
 }
