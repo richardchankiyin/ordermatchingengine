@@ -28,8 +28,11 @@ public class OrderStateMachine {
 	}
 	
 	public OrderValidationResult handleEvent(OrderEvent oe) {
-		//TODO to be implemented
-		return null;
+		OrderValidationResult result = processOrderValidator.validate(oe);
+		if (result.isAccepted()) {
+			orderUpdateable.updateOrder(oe);
+		}
+		return result;
 	}
 
 	private final OrderValidationRule NOSFROMNONEXISTINGTOPENDINGNEW =
