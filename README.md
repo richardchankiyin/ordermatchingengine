@@ -19,7 +19,7 @@ Order state
 ------------
 1. Order status (FIX Tag 39) NewOrderSingle: PendingNew (A) -> New (0)
 2. Order status (replace request): New (0) -> Suspended (9) -> PartiallyFilled (1) -> Suspended (9) -> Filled (2) -> Done For Day (3) 
-3. Order status (cancellation): New (0) /PartiallyFilled (1) -> Cancelled (4) 
+3. Order status (cancellation): New (0) /PartiallyFilled (1) -> Cancelled (4) -> Done For Day (3)
 
 Order matching
 --------------
