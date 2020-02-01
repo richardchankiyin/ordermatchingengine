@@ -595,4 +595,44 @@ public class OrderStateMachineTest {
 		assertTrue(om.getCancelRequestStatusChange().validate(oe).isAccepted());
 		
 	}
+	
+	
+	private OrderValidationResult cancelRequestValidation(String fromStatus, String toStatus) {
+		IOrderModel model = new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(39, fromStatus);
+				return oe;
+			}
+		};
+		
+		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
+			@Override
+			public void updateOrder(OrderEvent oe) {}
+		};
+		
+		OrderStateMachine om = new OrderStateMachine(model, orderUpdateable);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(39, toStatus);
+		
+		return om.getCancelRequestStatusChange().validate(oe);
+	}
+	
+	@Test
+	public void testCancelRequestStatusChangeInvalid() {
+		List<String> statusFromTo = 
+			Arrays.asList("01", "02", "03", "09", "10", "13", "14", "A0", "A1", "A2", "A3", "A4", "9A", "90", "91", "92", "93", "94");
+		for (String i: statusFromTo) {
+			assertFalse(cancelRequestValidation(
+					String.valueOf(i.charAt(0)), String.valueOf(i.charAt(1)))
+						.isAccepted());
+		}
+	}
 }
