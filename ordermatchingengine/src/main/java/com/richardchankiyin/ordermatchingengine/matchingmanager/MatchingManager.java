@@ -70,7 +70,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 						}
 						
 						if (price <= 0) {
-							return new OrderValidationResult(String.format("Tag 44: %s is not positive. ", price));
+							return new OrderValidationResult(String.format("Tag 44: %s is not positive. ", priceVal));
 						} else {
 							return OrderValidationResult.getAcceptedInstance();
 						}

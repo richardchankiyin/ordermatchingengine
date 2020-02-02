@@ -66,6 +66,27 @@ public class MatchingManagerTest {
 		assertEquals("MATCHMGRLOGONCHECKING->Tag 54 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
 	}
 	
+	@Test
+	public void testLogonCheckingPriceNotNumeric() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, "100aa");
+		oe.put(54, "0001.HK");
+		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRLOGONCHECKING->Tag 44: 100aa not a numeric figure. ", result.getRejectReason());
+	}
+	
+	@Test
+	public void testLogonCheckingPriceNotPositive() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 0);
+		oe.put(54, "0001.HK");
+		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRLOGONCHECKING->Tag 44: 0 is not positive. ", result.getRejectReason());
+	}
 
 
 }
