@@ -41,7 +41,11 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		
 	}
 	
-	protected OrderValidationRule LOGONCHECKING
+	protected OrderValidationRule getLogonChecking() {
+		return LOGONCHECKING;
+	}
+	
+	private final OrderValidationRule LOGONCHECKING
 		= new OrderValidationRule("LOGONCHECKING", oe->{
 			Object msgType = oe.get(35);
 			if (msgType != null && "5".equals(msgType.toString())) {
