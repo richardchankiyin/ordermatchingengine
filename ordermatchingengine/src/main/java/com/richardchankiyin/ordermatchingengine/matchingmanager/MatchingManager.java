@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +120,8 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 					, MATCHMGRLOGONCHECKING
 					// rule 2b logout checking
 					, MATCHMGRLOGOUTCHECKING
+					// rule 3 order after logged on checking
+					, MATCHMGRCANACCEPTORDERCHECKING
 			);
 		}
 		
@@ -136,6 +137,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	protected OrderValidationRule getLogoutChecking() {
 		return MATCHMGRLOGOUTCHECKING;
+	}
+	
+	protected OrderValidationRule getCanAcceptOrderChecking() {
+		return MATCHMGRCANACCEPTORDERCHECKING;
 	}
 	
 	private final OrderValidationRule MATCHMGRMSGTYPECHECKING
@@ -199,4 +204,22 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			}
 		});
 
+	private final OrderValidationRule MATCHMGRCANACCEPTORDERCHECKING
+		= new OrderValidationRule("MATCHMGRCANACCEPTORDERCHECKING", oe->{
+			Object msgType = oe.get(35);
+			if (msgType != null) {
+				Set<String> msgTypesAcceptedAfterLogon = new HashSet<String>(Arrays.asList("D","F","G"));
+				if (msgTypesAcceptedAfterLogon.contains(msgType.toString())) {
+					if (this.isLoggedOn()) {
+						return OrderValidationResult.getAcceptedInstance();
+					} else {
+						return new OrderValidationResult("Order only accepted after logon. ");
+					}
+				}
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+	
 }

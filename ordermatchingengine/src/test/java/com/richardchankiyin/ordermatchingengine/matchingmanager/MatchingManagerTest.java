@@ -1,6 +1,8 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
-import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueue;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueueForTest;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
@@ -222,6 +223,89 @@ public class MatchingManagerTest {
 		assertFalse(result.isAccepted());
 		assertEquals("MATCHMGRLOGOUTCHECKING->Tag 35: 5 Logout on a non-logged-in machine rejected. ", result.getRejectReason());
 	}
+	
+	private OrderValidationResult getOrderValidationResultAfterLogon(String msgType) {
+		MatchingManager loggedOnMgr = new MatchingManager(new IOrderStateMachine() {
+
+			@Override
+			public IOrderModel getOrderModel() {
+				return null;
+			}
+
+			@Override
+			public OrderValidationResult handleEvent(OrderEvent oe) {
+				return null;
+			}
+			
+		}, new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+			}
+			
+		}) {
+			public boolean isLoggedOn() { return true; }
+		};
+		
+		OrderValidationRule r = loggedOnMgr.getCanAcceptOrderChecking();
+		
+		OrderEvent oe = new OrderEvent();
+		if (msgType != null)
+			oe.put(35, msgType);
+		return r.validate(oe);
+	}
+	
+	@Test
+	public void testCanAcceptOrderAfterLogon() {
+		assertTrue(getOrderValidationResultAfterLogon("D").isAccepted());
+		assertTrue(getOrderValidationResultAfterLogon("F").isAccepted());
+		assertTrue(getOrderValidationResultAfterLogon("G").isAccepted());
+	}
+	
+	private OrderValidationResult getOrderValidationResultBeforeLogon(String msgType) {
+		MatchingManager notLoggedOnMgr = new MatchingManager(new IOrderStateMachine() {
+
+			@Override
+			public IOrderModel getOrderModel() {
+				return null;
+			}
+
+			@Override
+			public OrderValidationResult handleEvent(OrderEvent oe) {
+				return null;
+			}
+			
+		}, new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+			}
+			
+		}) {
+			public boolean isLoggedOn() { return false; }
+		};
+		
+		OrderValidationRule r = notLoggedOnMgr.getCanAcceptOrderChecking();
+		
+		OrderEvent oe = new OrderEvent();
+		if (msgType != null)
+			oe.put(35, msgType);
+		return r.validate(oe);
+	}
+	
+	@Test
+	public void testCanAcceptOrderBeforeLogon() {
+		OrderValidationResult result = getOrderValidationResultBeforeLogon("D");
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRCANACCEPTORDERCHECKING->Order only accepted after logon. ", result.getRejectReason());
+		
+		OrderValidationResult result2 = getOrderValidationResultBeforeLogon("F");
+		assertFalse(result2.isAccepted());
+		assertEquals("MATCHMGRCANACCEPTORDERCHECKING->Order only accepted after logon. ", result2.getRejectReason());
+		
+		OrderValidationResult result3 = getOrderValidationResultBeforeLogon("G");
+		assertFalse(result3.isAccepted());
+		assertEquals("MATCHMGRCANACCEPTORDERCHECKING->Order only accepted after logon. ", result3.getRejectReason());
+	}
+	
 	
 	@Test
 	public void testLogon() throws Exception{
