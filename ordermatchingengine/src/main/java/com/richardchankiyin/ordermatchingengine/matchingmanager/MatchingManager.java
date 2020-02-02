@@ -1,5 +1,6 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,17 +19,26 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private String symbol = null;
 	private boolean isLoggedOn = false;
 	private double lastTradedPriceWhenStarted = Double.NaN;
+	private MatchingManagerIncomingEventValidator validator = null;
 	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
 		Objects.requireNonNull(om, "OrderStateMachine cannot be null");
 		Objects.requireNonNull(publisher, "Publisher cannot be null");
 		this.om = om;
 		this.publisher = publisher;
+		this.validator = new MatchingManagerIncomingEventValidator();
 	}
 
 	@Override
 	public void onEvent(OrderEvent oe) {
 		// TODO Auto-generated method stub
-
+		OrderValidationResult validationResult = this.validator.validate(oe);
+		if (validationResult.isAccepted()) {
+			
+		} else {
+			//validation failure
+			
+		}
+		
 	}
 	
 	public boolean isLoggedOn() {
@@ -39,8 +49,9 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
-			// TODO Auto-generated method stub
-			return null;
+			return Arrays.asList(
+					MATCHMGRLOGONCHECKING
+			);
 		}
 		
 	}
