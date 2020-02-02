@@ -115,6 +115,11 @@ public class IncomingOrderValidatorTest {
 		OrderValidationResult result2 = getMessageTypeOrderValidationResult("5");
 		assertFalse(result2.isAccepted());
 		assertEquals("MSGTYPECHECKING->Tag 35: 5 not accepted. Only accepts: [D, F, G] .", result2.getRejectReason());
+		
+		OrderValidationResult result3 = getMessageTypeOrderValidationResult(null);
+		assertFalse(result3.isAccepted());
+		assertEquals("MSGTYPECHECKING->Type 35 msg type is missing. ", result3.getRejectReason());
+		
 	}
 	
 	@Test
