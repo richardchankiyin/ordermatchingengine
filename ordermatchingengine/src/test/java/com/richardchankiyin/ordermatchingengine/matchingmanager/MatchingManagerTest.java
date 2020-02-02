@@ -2,6 +2,9 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -9,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueue;
+import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueueForTest;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
@@ -221,6 +225,7 @@ public class MatchingManagerTest {
 	
 	@Test
 	public void testLogon() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
 		MatchingManager testLogonMatchingManager = new MatchingManager(new IOrderStateMachine() {
 
 			@Override
@@ -236,11 +241,14 @@ public class MatchingManagerTest {
 		}, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
 				logger.debug("publish event: {}", oe);
 			}			
 		});
 		
-		OrderMessageQueue queue = new OrderMessageQueue("testLogonQueue", testLogonMatchingManager, 10);
+		assertFalse(testLogonMatchingManager.isLoggedOn());
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testLogonQueue", testLogonMatchingManager, 10);
 		
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -248,9 +256,11 @@ public class MatchingManagerTest {
 		oe.put(54, "0001.HK");
 		queue.start();
 		queue.send(oe);
-
+		queue.stop();
+		queue.join();
 		
-		//assertTrue(testLogonMatchingManager.isLoggedOn());
+		assertTrue(testLogonMatchingManager.isLoggedOn());
+		assertEquals(1, publishedOrderEvent.size());
 		
 	}
 

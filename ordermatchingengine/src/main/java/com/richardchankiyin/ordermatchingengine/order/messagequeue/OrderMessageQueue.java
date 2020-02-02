@@ -29,6 +29,11 @@ public class OrderMessageQueue implements Runnable {
 		this.thread = new Thread(this, name);
 	}
 	
+	// for testing purpose
+	protected Thread getThread(){
+		return this.thread;
+	}
+	
 	public String toString() {
 		return String.format(
 				"[name: %s | receiver: %s | queue: %s]", 

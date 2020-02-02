@@ -62,10 +62,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol
 		OrderEvent news = new OrderEvent();
-		oe.put(33, 1);
-		oe.put(35, "B");
-		oe.put(148, msg);
-		oe.put(58, msg);
+		news.put(33, 1);
+		news.put(35, "B");
+		news.put(148, msg);
+		news.put(58, msg);
 		this.publisher.publish(news);
 	};
 	private Consumer<OrderEvent> handleLogoutEvent = oe -> {
@@ -90,7 +90,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 				eventHandlerMap.getOrDefault(oe.get(35).toString(), handleOthers).accept(oe);
 			} else {
 				//validation failure
-				
+				logger.debug("validation failed: {}", validationResult);
 			}
 		}
 		catch (Throwable t) {

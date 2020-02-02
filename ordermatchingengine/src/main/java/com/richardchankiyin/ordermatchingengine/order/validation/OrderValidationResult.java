@@ -26,4 +26,8 @@ public class OrderValidationResult {
 	public String getRejectReason() {
 		return this.rejectReason;
 	}
+	
+	public String toString() {
+		return this.isAccepted ? "Accepted" : "Not accepted with reason: " + this.rejectReason;
+	}
 }
