@@ -31,6 +31,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 	}
 	
+	public boolean isLoggedOn() {
+		return this.isLoggedOn;
+	}
+	
 	private class MatchingManagerIncomingEventValidator extends AbstractOrderValidator {
 
 		@Override
@@ -42,14 +46,14 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	}
 	
 	protected OrderValidationRule getLogonChecking() {
-		return LOGONCHECKING;
+		return MATCHMGRLOGONCHECKING;
 	}
 	
-	private final OrderValidationRule LOGONCHECKING
-		= new OrderValidationRule("LOGONCHECKING", oe->{
+	private final OrderValidationRule MATCHMGRLOGONCHECKING
+		= new OrderValidationRule("MATCHMGRLOGONCHECKING", oe->{
 			Object msgType = oe.get(35);
-			if (msgType != null && "5".equals(msgType.toString())) {
-				if (isLoggedOn) {
+			if (msgType != null && "A".equals(msgType.toString())) {
+				if (this.isLoggedOn()) {
 					return new OrderValidationResult("Tag 35: A Logon rejected as it is logged on. ");
 				} else {
 					Object symbolVal = oe.get(54);
