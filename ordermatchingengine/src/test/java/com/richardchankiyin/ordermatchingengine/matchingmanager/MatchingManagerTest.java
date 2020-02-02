@@ -157,5 +157,63 @@ public class MatchingManagerTest {
 
 	}
 
+	@Test
+	public void testLogoutCheckingMgrOnLoggedOnMgr() {
+		MatchingManager loggedOnMgr = new MatchingManager(new IOrderStateMachine() {
+
+			@Override
+			public IOrderModel getOrderModel() {
+				return null;
+			}
+
+			@Override
+			public OrderValidationResult handleEvent(OrderEvent oe) {
+				return null;
+			}
+			
+		}, new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+			}
+			
+		}) {
+			public boolean isLoggedOn() { return true; }
+		};
+		
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "5");
+		assertTrue(loggedOnMgr.getLogoutChecking().validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testLogoutCheckingMgrOnNotLoggedOnMgr() {
+		MatchingManager loggedOutMgr = new MatchingManager(new IOrderStateMachine() {
+
+			@Override
+			public IOrderModel getOrderModel() {
+				return null;
+			}
+
+			@Override
+			public OrderValidationResult handleEvent(OrderEvent oe) {
+				return null;
+			}
+			
+		}, new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+			}
+			
+		}) {
+			public boolean isLoggedOn() { return false; }
+		};
+		
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "5");
+		OrderValidationResult result = loggedOutMgr.getLogoutChecking().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRLOGOUTCHECKING->Tag 35: 5 Logout on a non-logged-in machine rejected. ", result.getRejectReason());
+	}
+	
 
 }

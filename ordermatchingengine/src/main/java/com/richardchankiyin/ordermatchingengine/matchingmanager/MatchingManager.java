@@ -28,6 +28,14 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.om = om;
 		this.publisher = publisher;
 		this.validator = new MatchingManagerIncomingEventValidator();
+		initParams();
+	}
+	
+	// init the params
+	private void initParams() {
+		this.symbol = null;
+		this.isLoggedOn = false;
+		this.lastTradedPriceWhenStarted = Double.NaN;
 	}
 
 	@Override
@@ -52,8 +60,12 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
+					// rule 1 msg type checking
 					MATCHMGRMSGTYPECHECKING
+					// rule 2a logon checking
 					, MATCHMGRLOGONCHECKING
+					// rule 2b logout checking
+					, MATCHMGRLOGOUTCHECKING
 			);
 		}
 		
@@ -65,6 +77,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	protected OrderValidationRule getLogonChecking() {
 		return MATCHMGRLOGONCHECKING;
+	}
+	
+	protected OrderValidationRule getLogoutChecking() {
+		return MATCHMGRLOGOUTCHECKING;
 	}
 	
 	private final OrderValidationRule MATCHMGRMSGTYPECHECKING
@@ -114,5 +130,18 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			}
 		});
 
+	private final OrderValidationRule MATCHMGRLOGOUTCHECKING
+		= new OrderValidationRule("MATCHMGRLOGOUTCHECKING", oe->{
+			Object msgType = oe.get(35);
+			if (msgType != null && "5".equals(msgType.toString())) {
+				if (!this.isLoggedOn()) {
+					return new OrderValidationResult("Tag 35: 5 Logout on a non-logged-in machine rejected. ");
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
 
 }
