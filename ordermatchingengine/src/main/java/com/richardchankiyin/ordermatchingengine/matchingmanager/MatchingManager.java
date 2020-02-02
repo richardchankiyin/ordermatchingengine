@@ -1,10 +1,15 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
+import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
@@ -26,12 +31,47 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 	}
 	
-	private void handleLogon(OrderEvent oe) {
-		Object symbolValue = oe.get(54);
-		Object lastTradedPrice = oe.get(44);
-		if (symbolValue == null || lastTradedPrice == null) {
-			throw new IllegalArgumentException("Tag 54: Symbol and Tag: 44 cannot be null");
+	private class MatchingManagerIncomingEventValidator extends AbstractOrderValidator {
+
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			// TODO Auto-generated method stub
+			return null;
 		}
+		
 	}
+	
+	protected OrderValidationRule LOGONCHECKING
+		= new OrderValidationRule("LOGONCHECKING", oe->{
+			Object msgType = oe.get(35);
+			if (msgType != null && "5".equals(msgType.toString())) {
+				if (isLoggedOn) {
+					return new OrderValidationResult("Tag 35: A Logon rejected as it is logged on. ");
+				} else {
+					Object symbolVal = oe.get(54);
+					Object priceVal = oe.get(44);
+					if (symbolVal == null || priceVal == null) {
+						return new OrderValidationResult("Tag 54 Symbol and Tag 44 Price cannot be missing. ");
+					} else {
+						double price = -1;
+						try {
+							price = Double.parseDouble(priceVal.toString());
+						}
+						catch (Exception e) {
+							return new OrderValidationResult(String.format("Tag 44: %s not a numeric figure. ", priceVal));
+						}
+						
+						if (price <= 0) {
+							return new OrderValidationResult(String.format("Tag 44: %s is not positive. ", price));
+						} else {
+							return OrderValidationResult.getAcceptedInstance();
+						}
+					}
+				}
+			} else {
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+
 
 }

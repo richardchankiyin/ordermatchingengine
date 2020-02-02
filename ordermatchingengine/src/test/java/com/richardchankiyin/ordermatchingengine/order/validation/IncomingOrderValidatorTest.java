@@ -91,6 +91,32 @@ public class IncomingOrderValidatorTest {
 		assertEquals("DATATYPECHECKING->Tag 38: 111a is not integer. Tag 44: 111.5a is not numeric. ", result.getRejectReason());
 	}
 
+	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
+		OrderValidationRule r = validator.getMsgTypeCheckingRule();
+		OrderEvent oe = new OrderEvent();
+		if (msgType != null)
+			oe.put(35, msgType);
+		return r.validate(oe);
+	}
+	
+	@Test
+	public void testMsgTypeCheckingAccepted() {
+		getMessageTypeOrderValidationResult("D").isAccepted();
+		getMessageTypeOrderValidationResult("F").isAccepted();
+		getMessageTypeOrderValidationResult("G").isAccepted();
+	}
+	
+	@Test
+	public void testMsgTypeCheckingRejected() {
+		OrderValidationResult result = getMessageTypeOrderValidationResult("A");
+		assertFalse(result.isAccepted());
+		assertEquals("MSGTYPECHECKING->Tag 35: A not accepted. Only accepts: [D, F, G] .", result.getRejectReason());
+		
+		OrderValidationResult result2 = getMessageTypeOrderValidationResult("5");
+		assertFalse(result2.isAccepted());
+		assertEquals("MSGTYPECHECKING->Tag 35: 5 not accepted. Only accepts: [D, F, G] .", result2.getRejectReason());
+	}
+	
 	@Test
 	public void testSideCheckingRuleBuyValid() {
 		OrderValidationRule r = validator.getSideCheckingRule();

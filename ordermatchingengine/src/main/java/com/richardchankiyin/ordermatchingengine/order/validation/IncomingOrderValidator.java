@@ -64,6 +64,20 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 				}
 			});
 
+	private final OrderValidationRule MSGTYPECHECKING
+		= new OrderValidationRule("MSGTYPECHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			List<String> acceptedMsgTypes = Arrays.asList("D","F","G");
+			if (msgTypeValue != null) {
+				if (!acceptedMsgTypes.contains(msgTypeValue.toString())) {
+					return new OrderValidationResult(String.format("Tag 35: %s not accepted. Only accepts: %s .", msgTypeValue, acceptedMsgTypes));
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				return new OrderValidationResult("Type 35 msg type is missing. ");
+			}
+		});
 	
 	private final OrderValidationRule SIDECHECKING
 		= new OrderValidationRule("SIDECHECKING", oe->{
@@ -271,27 +285,33 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		return Arrays.asList(
 			// rule 1 datatype checking	
 			DATATYPECHECKING
-			// rule 2 side checking
+			// rule 2 msg type checking
+			, MSGTYPECHECKING
+			// rule 3 side checking
 			, SIDECHECKING
-			// rule 3a new order single compulsory field checking
+			// rule 4a new order single compulsory field checking
 			, NEWORDERSINGLECOMPULSORYFIELDCHECKING
-			// rule 3b replace request compulsory field checking
+			// rule 4b replace request compulsory field checking
 			, REPLACEREQUESTCOMPULSORYFIELDCHECKING
-			// rule 3c cancel request compulsory field checking
+			// rule 4c cancel request compulsory field checking
 			, CANCELREQUESTCOMPULSORYFIELDCHECKING
-			// rule 4a new order single client order id checking
+			// rule 5a new order single client order id checking
 			, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
-			// rule 4b replace request/cancel request client order id checking
+			// rule 5b replace request/cancel request client order id checking
 			, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
-			// rule 5a replace request amend down checking
+			// rule 6a replace request amend down checking
 			, REPLACEREQUESTAMENDDOWNCHECKING
-			// rule 6a replace request other field change checking
+			// rule 7a replace request other field change checking
 			, REPLACEREQUESTOTHERFIELDCHANGECHECKING
 		);
 	}
 	
 	protected OrderValidationRule getDataTypeCheckingRule() {
 		return DATATYPECHECKING;
+	}
+	
+	protected OrderValidationRule getMsgTypeCheckingRule() {
+		return MSGTYPECHECKING;
 	}
 	
 	protected OrderValidationRule getSideCheckingRule() {
