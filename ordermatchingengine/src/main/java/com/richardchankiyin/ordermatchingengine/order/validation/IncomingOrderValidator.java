@@ -4,8 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
@@ -67,7 +69,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	private final OrderValidationRule MSGTYPECHECKING
 		= new OrderValidationRule("MSGTYPECHECKING", oe->{
 			Object msgTypeValue = oe.get(35);
-			List<String> acceptedMsgTypes = Arrays.asList("D","F","G");
+			Set<String> acceptedMsgTypes = new HashSet<String>(Arrays.asList("D","F","G"));
 			if (msgTypeValue != null) {
 				if (!acceptedMsgTypes.contains(msgTypeValue.toString())) {
 					return new OrderValidationResult(String.format("Tag 35: %s not accepted. Only accepts: %s .", msgTypeValue, acceptedMsgTypes));

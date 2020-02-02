@@ -1,8 +1,10 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
@@ -50,15 +52,35 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
-					MATCHMGRLOGONCHECKING
+					MATCHMGRMSGTYPECHECKING
+					, MATCHMGRLOGONCHECKING
 			);
 		}
 		
 	}
 	
+	protected OrderValidationRule getMsgTypeChecking() {
+		return MATCHMGRMSGTYPECHECKING;
+	}
+	
 	protected OrderValidationRule getLogonChecking() {
 		return MATCHMGRLOGONCHECKING;
 	}
+	
+	private final OrderValidationRule MATCHMGRMSGTYPECHECKING
+		= new OrderValidationRule("MATCHMGRMSGTYPECHECKING", oe->{
+			Object msgTypeValue = oe.get(35);
+			Set<String> acceptedMsgTypes = new HashSet<String>(Arrays.asList("D","F","G", "A", "5"));
+			if (msgTypeValue != null) {
+				if (!acceptedMsgTypes.contains(msgTypeValue.toString())) {
+					return new OrderValidationResult(String.format("Tag 35: %s not accepted. Only accepts: %s .", msgTypeValue, acceptedMsgTypes));
+				} else {
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			} else {
+				return new OrderValidationResult("Type 35 msg type is missing. ");
+			}
+		});
 	
 	private final OrderValidationRule MATCHMGRLOGONCHECKING
 		= new OrderValidationRule("MATCHMGRLOGONCHECKING", oe->{

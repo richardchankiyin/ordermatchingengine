@@ -9,6 +9,7 @@ import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 
 public class MatchingManagerTest {
@@ -36,6 +37,40 @@ public class MatchingManagerTest {
 			
 		});
 	}
+	
+	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
+		OrderValidationRule r = matchingMgr.getMsgTypeChecking();
+		OrderEvent oe = new OrderEvent();
+		if (msgType != null)
+			oe.put(35, msgType);
+		return r.validate(oe);
+	}
+	
+	@Test
+	public void testMsgTypeCheckingAccepted() {
+		getMessageTypeOrderValidationResult("A").isAccepted();
+		getMessageTypeOrderValidationResult("5").isAccepted();
+		getMessageTypeOrderValidationResult("D").isAccepted();
+		getMessageTypeOrderValidationResult("F").isAccepted();
+		getMessageTypeOrderValidationResult("G").isAccepted();
+	}
+	
+	@Test
+	public void testMsgTypeCheckingRejected() {
+		OrderValidationResult result = getMessageTypeOrderValidationResult("0");
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRMSGTYPECHECKING->Tag 35: 0 not accepted. Only accepts: [A, D, 5, F, G] .", result.getRejectReason());
+		
+		OrderValidationResult result2 = getMessageTypeOrderValidationResult("1");
+		assertFalse(result2.isAccepted());
+		assertEquals("MATCHMGRMSGTYPECHECKING->Tag 35: 1 not accepted. Only accepts: [A, D, 5, F, G] .", result2.getRejectReason());
+		
+		OrderValidationResult result3 = getMessageTypeOrderValidationResult(null);
+		assertFalse(result3.isAccepted());
+		assertEquals("MATCHMGRMSGTYPECHECKING->Type 35 msg type is missing. ", result3.getRejectReason());
+		
+	}
+	
 	
 	@Test
 	public void testLogonCheckingAccepted() {
