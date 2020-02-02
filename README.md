@@ -22,6 +22,9 @@ Order state
 3. Order status (cancellation): New (0) -> Cancelled (4) <br/> 
                                 PartialFilled (1) -> Filled (2)
 
+<br/>
+Remarks: for 2, we do not have a state called "Replaced" (5) maintained internally in the state machine because it will be very complicated. For orders accepted without execution, the state will be new. Before entering the state machine, amend down replace order (38=G) will be validated before actual matching.
+
 Order matching
 --------------
 1. From pending new queue, extract orders from it in FIFO. The order picked will be suspended to stop any incoming replace.
