@@ -56,6 +56,16 @@ public class MatchingManagerTest {
 		assertEquals("MATCHMGRLOGONCHECKING->Tag 54 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
 	}
 	
+	@Test
+	public void testLogonCheckingMissingSymbol() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 100);
+		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
+		assertFalse(result.isAccepted());
+		assertEquals("MATCHMGRLOGONCHECKING->Tag 54 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
+	}
+	
 
 
 }
