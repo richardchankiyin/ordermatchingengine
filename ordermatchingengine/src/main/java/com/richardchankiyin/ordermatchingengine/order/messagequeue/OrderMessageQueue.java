@@ -12,6 +12,7 @@ public class OrderMessageQueue implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(OrderMessageQueue.class);
 	private ArrayBlockingQueue<OrderEvent> queue = null;
 	private IOrderMessageQueueReceiver receiver = null;
+	private boolean isStarted = false;
 	private boolean isStopped = false;
 	private String name = null;
 	private Thread thread = null;
@@ -35,17 +36,32 @@ public class OrderMessageQueue implements Runnable {
 	}
 
 	public void start() {
+		if (this.isStarted) {
+			throw new IllegalStateException("queue started");
+		}
 		if (this.isStopped) {
 			throw new IllegalStateException("queue stopped");
 		}
+		
+		this.isStarted = true;
+		
 		this.thread.start();
 	}
 	
 	public void stop() {
+		if (!this.isStarted) {
+			throw new IllegalStateException("queue not yet started");
+		}
+		if (this.isStopped) {
+			throw new IllegalStateException("queue stopped");
+		}
 		this.isStopped = true;
 	}
 
 	public void send(OrderEvent oe) {
+		if (!this.isStarted) {
+			throw new IllegalStateException("queue not yet started");
+		}
 		if (this.isStopped) {
 			throw new IllegalStateException("queue stopped");
 		}

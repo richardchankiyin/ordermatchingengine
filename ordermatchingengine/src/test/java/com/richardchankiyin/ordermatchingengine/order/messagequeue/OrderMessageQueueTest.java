@@ -1,6 +1,7 @@
 package com.richardchankiyin.ordermatchingengine.order.messagequeue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -26,6 +27,60 @@ public class OrderMessageQueueTest {
 		new OrderMessageQueue("a", null, 10);
 	}
 
+	@Test(expected=IllegalStateException.class)
+	public void testSendBeforeStart() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(1, 1);
+		
+		
+		List<OrderEvent> received = new ArrayList<OrderEvent>(2);
+		IOrderMessageQueueReceiver receiver = new IOrderMessageQueueReceiver() {
+			public void onEvent(OrderEvent o) {
+				received.add(o);
+			}
+		};
+		
+		OrderMessageQueue queue = new OrderMessageQueue("sendbeforestart", receiver, 10);
+		queue.send(oe);
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testSendAfterStop() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(1, 1);
+		
+		
+		List<OrderEvent> received = new ArrayList<OrderEvent>(2);
+		IOrderMessageQueueReceiver receiver = new IOrderMessageQueueReceiver() {
+			public void onEvent(OrderEvent o) {
+				received.add(o);
+			}
+		};
+		
+		OrderMessageQueue queue = new OrderMessageQueue("sendafterstop", receiver, 10);
+		queue.start();
+		queue.stop();
+		assertTrue(true);
+		queue.send(oe);
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testStartAfterStop() {
+		List<OrderEvent> received = new ArrayList<OrderEvent>(2);
+		IOrderMessageQueueReceiver receiver = new IOrderMessageQueueReceiver() {
+			public void onEvent(OrderEvent o) {
+				received.add(o);
+			}
+		};
+		OrderMessageQueue queue = new OrderMessageQueue("startafterstop", receiver, 10);
+		queue.start();
+		assertTrue(true);
+		queue.stop();
+		assertTrue(true);
+		queue.start();
+		fail("we should not be here");
+	}
+	
 	@Test
 	public void testSendAndReceive() throws Exception{
 		OrderEvent oe = new OrderEvent();

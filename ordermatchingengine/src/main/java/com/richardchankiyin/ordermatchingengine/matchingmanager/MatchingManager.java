@@ -1,10 +1,17 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
@@ -16,18 +23,22 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
+	private static final Logger logger = LoggerFactory.getLogger(MatchingManager.class);
 	private IOrderStateMachine om = null;
 	private IPublisher publisher = null;
 	private String symbol = null;
 	private boolean isLoggedOn = false;
 	private double lastTradedPriceWhenStarted = Double.NaN;
 	private MatchingManagerIncomingEventValidator validator = null;
+	private Map<String, Consumer<OrderEvent>> eventHandlerMap = null;
+	
 	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
 		Objects.requireNonNull(om, "OrderStateMachine cannot be null");
 		Objects.requireNonNull(publisher, "Publisher cannot be null");
 		this.om = om;
 		this.publisher = publisher;
 		this.validator = new MatchingManagerIncomingEventValidator();
+		initHandlers();
 		initParams();
 	}
 	
@@ -37,22 +48,66 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.isLoggedOn = false;
 		this.lastTradedPriceWhenStarted = Double.NaN;
 	}
+	
+	private void initHandlers() {
+		eventHandlerMap = new HashMap<>();
+		eventHandlerMap.put("A", handleLogonEvent);
+		eventHandlerMap.put("5", handleLogoutEvent);
+	}
 
+	private Consumer<OrderEvent> handleLogonEvent = oe -> {
+		this.isLoggedOn = true;
+		this.symbol = oe.get(54).toString();
+		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
+		String msg = String.format("%s starting accepting orders", symbol);
+		// publish a news msg to indicate accepting orders for this symbol
+		OrderEvent news = new OrderEvent();
+		oe.put(33, 1);
+		oe.put(35, "B");
+		oe.put(148, msg);
+		oe.put(58, msg);
+		this.publisher.publish(news);
+	};
+	private Consumer<OrderEvent> handleLogoutEvent = oe -> {
+		this.isLoggedOn = false;
+		// TODO cancel outstanding orders and DFD
+	};
+	private Consumer<OrderEvent> handleOthers = oe -> {
+		logger.warn("incoming event {} has no proper handling function", oe);
+	};
+	
+	protected Consumer<OrderEvent> getHandleLogonEvent() {
+		return this.handleLogonEvent;
+	}
+	
+	
 	@Override
 	public void onEvent(OrderEvent oe) {
-		// TODO Auto-generated method stub
-		OrderValidationResult validationResult = this.validator.validate(oe);
-		if (validationResult.isAccepted()) {
-			
-		} else {
-			//validation failure
-			
+		logger.info("incoming order: {}", oe);
+		try {
+			OrderValidationResult validationResult = this.validator.validate(oe);
+			if (validationResult.isAccepted()) {
+				eventHandlerMap.getOrDefault(oe.get(35).toString(), handleOthers).accept(oe);
+			} else {
+				//validation failure
+				
+			}
 		}
-		
+		catch (Throwable t) {
+			logger.error("Something wrong happened at event handling", t);
+		}
 	}
 	
 	public boolean isLoggedOn() {
 		return this.isLoggedOn;
+	}
+	
+	public String getSymbol() {
+		return this.symbol;
+	}
+	
+	public double getLastTradedPriceWhenStarted() {
+		return this.lastTradedPriceWhenStarted;
 	}
 	
 	private class MatchingManagerIncomingEventValidator extends AbstractOrderValidator {

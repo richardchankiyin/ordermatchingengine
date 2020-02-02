@@ -4,8 +4,11 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
+import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueue;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
@@ -13,6 +16,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 
 public class MatchingManagerTest {
+	private static final Logger logger = LoggerFactory.getLogger(MatchingManagerTest.class);
 	
 	private MatchingManager matchingMgr = null; 
 
@@ -215,5 +219,39 @@ public class MatchingManagerTest {
 		assertEquals("MATCHMGRLOGOUTCHECKING->Tag 35: 5 Logout on a non-logged-in machine rejected. ", result.getRejectReason());
 	}
 	
+	@Test
+	public void testLogon() throws Exception{
+		MatchingManager testLogonMatchingManager = new MatchingManager(new IOrderStateMachine() {
+
+			@Override
+			public IOrderModel getOrderModel() {
+				return null;
+			}
+
+			@Override
+			public OrderValidationResult handleEvent(OrderEvent oe) {
+				return null;
+			}
+			
+		}, new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueue queue = new OrderMessageQueue("testLogonQueue", testLogonMatchingManager, 10);
+		
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 100);
+		oe.put(54, "0001.HK");
+		queue.start();
+		queue.send(oe);
+
+		
+		//assertTrue(testLogonMatchingManager.isLoggedOn());
+		
+	}
 
 }
