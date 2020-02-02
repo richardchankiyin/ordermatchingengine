@@ -14,7 +14,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 
-public class OrderStateMachine {
+public class OrderStateMachine implements IOrderStateMachine{
 	private IOrderModel model = null;
 	private IOrderUpdateable orderUpdateable = null;
 	private OrderStateMachineProcessOrderValidator processOrderValidator = null;
@@ -33,6 +33,10 @@ public class OrderStateMachine {
 			orderUpdateable.updateOrder(oe);
 		}
 		return result;
+	}
+	
+	public IOrderModel getOrderModel() {
+		return model;
 	}
 
 	private final OrderValidationRule NOSFROMNONEXISTINGTOPENDINGNEW =
