@@ -86,7 +86,7 @@ public class MatchingManagerTest {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
 		oe.put(44, 100);
-		oe.put(54, "0001.HK");
+		oe.put(55, "0001.HK");
 		assertTrue(matchingMgr.getLogonChecking().validate(oe).isAccepted());
 	}
 	
@@ -94,10 +94,10 @@ public class MatchingManagerTest {
 	public void testLogonCheckingMissingLastTradedPrice() {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
-		oe.put(54, "0001.HK");
+		oe.put(55, "0001.HK");
 		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("MATCHMGRLOGONCHECKING->Tag 54 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
+		assertEquals("MATCHMGRLOGONCHECKING->Tag 55 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
 	}
 	
 	@Test
@@ -107,7 +107,7 @@ public class MatchingManagerTest {
 		oe.put(44, 100);
 		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("MATCHMGRLOGONCHECKING->Tag 54 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
+		assertEquals("MATCHMGRLOGONCHECKING->Tag 55 Symbol and Tag 44 Price cannot be missing. ", result.getRejectReason());
 	}
 	
 	@Test
@@ -115,7 +115,7 @@ public class MatchingManagerTest {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
 		oe.put(44, "100aa");
-		oe.put(54, "0001.HK");
+		oe.put(55, "0001.HK");
 		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
 		assertFalse(result.isAccepted());
 		assertEquals("MATCHMGRLOGONCHECKING->Tag 44: 100aa not a numeric figure. ", result.getRejectReason());
@@ -126,7 +126,7 @@ public class MatchingManagerTest {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
 		oe.put(44, 0);
-		oe.put(54, "0001.HK");
+		oe.put(55, "0001.HK");
 		OrderValidationResult result = matchingMgr.getLogonChecking().validate(oe);
 		assertFalse(result.isAccepted());
 		assertEquals("MATCHMGRLOGONCHECKING->Tag 44: 0 is not positive. ", result.getRejectReason());
@@ -337,7 +337,7 @@ public class MatchingManagerTest {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
 		oe.put(44, 100);
-		oe.put(54, "0001.HK");
+		oe.put(55, "0001.HK");
 		queue.start();
 		queue.send(oe);
 		queue.stop();

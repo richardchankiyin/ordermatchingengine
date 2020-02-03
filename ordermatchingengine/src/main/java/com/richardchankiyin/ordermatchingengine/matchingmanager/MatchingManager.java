@@ -56,7 +56,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 	private Consumer<OrderEvent> handleLogonEvent = oe -> {
 		this.isLoggedOn = true;
-		this.symbol = oe.get(54).toString();
+		this.symbol = oe.get(55).toString();
 		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol
@@ -165,10 +165,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 				if (this.isLoggedOn()) {
 					return new OrderValidationResult("Tag 35: A Logon rejected as it is logged on. ");
 				} else {
-					Object symbolVal = oe.get(54);
+					Object symbolVal = oe.get(55);
 					Object priceVal = oe.get(44);
 					if (symbolVal == null || priceVal == null) {
-						return new OrderValidationResult("Tag 54 Symbol and Tag 44 Price cannot be missing. ");
+						return new OrderValidationResult("Tag 55 Symbol and Tag 44 Price cannot be missing. ");
 					} else {
 						double price = -1;
 						try {

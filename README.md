@@ -59,7 +59,7 @@ Spread Calculation
 
 Engine Start/Stop
 -----------------
-1. To start up the engine, LOGON (Tag 35:A) will be sent with last traded price (FIX tag 44).
+1. To start up the engine, LOGON (Tag 35:A) will be sent with last traded price (FIX tag 44) and symbol (FIX tag 55).
 2. To stop the engine, LOGOUT (Tag 35: 5) will be sent to the engine.
 3. Once engine is logged out, non-DFD/non-cancelled orders will be DFD and publish out.
 4. The engine start/stop is being controlled by an internal clock to manage the start/stop time.
