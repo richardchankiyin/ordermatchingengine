@@ -3,6 +3,8 @@ package com.richardchankiyin.spreadcalc;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.richardchankiyin.utils.NumericUtils;
+
 
 public class SpreadRange {
 	private static final double VERY_LITTLE_NUM = 0.0000001;
@@ -93,6 +95,6 @@ public class SpreadRange {
 	}
 	
 	private double roundDouble(double input) {
-		return new BigDecimal(String.format("%s", input)).setScale(roundScale,RoundingMode.HALF_UP).doubleValue();
+		return NumericUtils.roundDouble(input, roundScale);
 	}
 }
