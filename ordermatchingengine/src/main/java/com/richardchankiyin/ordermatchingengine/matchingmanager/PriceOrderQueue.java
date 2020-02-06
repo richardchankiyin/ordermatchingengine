@@ -1,23 +1,34 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
+import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.utils.NumericUtils;
 
 public class PriceOrderQueue {
-
+	private static final Logger logger = LoggerFactory.getLogger(PriceOrderQueue.class);
 	private final static int ROUNDSCALE = 6;
 	
 	private Map<String, OrderEvent> clOrdIdToOrderEvent;
 	private Queue<OrderEvent> orderQueue;
+	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	private boolean isBuy;
 	private long totalOrderQuantity;
 	private double orderPrice;
+	
+	
 	
 	public PriceOrderQueue(double orderPrice, boolean isBuy) {
 		if (orderPrice <= 0) {
@@ -42,36 +53,115 @@ public class PriceOrderQueue {
 		return this.isBuy;
 	}
 	
+	private class AddOrderValidator extends AbstractOrderValidator {
+
+		private final OrderValidationRule CLORDIDCHECKING
+			= new OrderValidationRule("CLORDIDCHECKING", oe->{
+				Object clOrdId = oe.get(11);
+				if (clOrdId == null) {
+					return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
+				} else {
+					if (clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
+						return new OrderValidationResult("Tag 11: ClOrdId exists. ");
+					}
+				}
+				
+				return OrderValidationResult.getAcceptedInstance();
+			});
+		
+		private final OrderValidationRule MSGTYPECHECKING
+			= new OrderValidationRule("MSGTYPECHECKING", oe->{
+				Object msgType = oe.get(35);
+				if (msgType == null) {
+					return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
+				} else {
+					if (!"D".equals(msgType)) {
+						return new OrderValidationResult("Tag 35: MsgType can only be D. ");
+					}
+				}
+				
+				return OrderValidationResult.getAcceptedInstance();
+			});
+		
+		private final OrderValidationRule QTYCHECKING
+			= new OrderValidationRule("QTYCHECKING", oe->{
+				Object qty = oe.get(38);
+				if (qty == null) {
+					return new OrderValidationResult("Tag 38: Qty cannot be missing. ");
+				} else {
+					long qtyLong = 0;
+					try {
+						qtyLong = Long.parseLong(qty.toString());
+					}
+					catch (Exception e) {
+						logger.debug("qty parsing issue", e);
+						return new OrderValidationResult("Tag 38: Qty must be integer. ");
+					}
+					if (qtyLong <= 0) {
+						return new OrderValidationResult("Tag 38: Qty must be positive. ");
+					}
+					
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			});
+		
+		private final OrderValidationRule PRICECHECKING
+			= new OrderValidationRule("PRICECHECKING", oe->{
+				Object price = oe.get(44);
+				if (price == null) {
+					return new OrderValidationResult("Tag 44: Price cannot be missing. ");
+				} else {
+					if (orderPrice != NumericUtils.roundDouble(Double.parseDouble(price.toString()), ROUNDSCALE)) {
+						return new OrderValidationResult(String.format("Tag 44: Price %s is not the same as expected: %s. ", price, orderPrice));
+					}
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			});
+		
+		private final OrderValidationRule SIDECHECKING
+			= new OrderValidationRule("SIDECHECKING", oe->{
+				Object side = oe.get(54);
+				if (side == null) {
+					return new OrderValidationResult("Tag 54: Side cannot be missing. ");
+				} else {
+					boolean isSideValid = isBuy ? "1".equals(side) : "2".equals(side);
+					if (!isSideValid) {
+						return new OrderValidationResult(String.format("Tag 54: Side %s is not valid. ", side));
+					}
+				}
+				
+				return OrderValidationResult.getAcceptedInstance();
+			});
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(
+					CLORDIDCHECKING
+					, MSGTYPECHECKING
+					, QTYCHECKING
+					, PRICECHECKING
+					, SIDECHECKING
+					);
+		}
+		
+	}
+	
+	private void handleValidationResult(AbstractOrderValidator validator, OrderEvent oe) {
+		OrderValidationResult validationResult = validator.validate(oe);
+		if (!validationResult.isAccepted()) {
+			throw new IllegalArgumentException(validationResult.getRejectReason());
+		}
+	}
+	
 	/**
 	 * This is to add a new order single to the order book
 	 * @param oe
 	 */
 	public void addOrder(OrderEvent oe) {
+		handleValidationResult(this.addOrderValidator, oe);
 		Object clOrdId = oe.get(11);
-		Objects.requireNonNull(clOrdId, "Tag 11: ClOrdId cannot be missing. ");
-		Object msgType = oe.get(35);
-		Objects.requireNonNull(msgType, "Tag 35: MsgType cannot be missing. ");
-		if (!"D".equals(msgType))
-			throw new IllegalArgumentException("Only accept NOS");
 		Object qty = oe.get(38);
-		Objects.requireNonNull(qty, "Tag 38: qty cannot be missing. ");
 		long qtyLong = Long.parseLong(qty.toString());
-		Object price = oe.get(44);
-		Objects.requireNonNull(price, "Tag 44: price cannot be missing. ");
-		if (orderPrice != NumericUtils.roundDouble(Double.parseDouble(price.toString()), ROUNDSCALE)) {
-			throw new IllegalArgumentException(String.format("Price %s is not expected: %s", price, orderPrice));
-		}
-		Object side = oe.get(54);
-		Objects.requireNonNull(side, "Tag 54: side cannot be missing. ");
-		boolean isSideValid = this.isBuy ? "1".equals(side) : "2".equals(side);
-		if (!isSideValid) {
-			throw new IllegalArgumentException(String.format("side %s is not matching", side));
-		}
-		
-		if (clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
-			throw new IllegalArgumentException(String.format("ClOrdId: %s exists", clOrdId));
-		}
-		
 		this.totalOrderQuantity += qtyLong;
 		clOrdIdToOrderEvent.put(clOrdId.toString(), oe);
 		orderQueue.add(oe);
