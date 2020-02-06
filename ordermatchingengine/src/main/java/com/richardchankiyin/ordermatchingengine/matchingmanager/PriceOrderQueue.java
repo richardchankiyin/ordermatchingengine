@@ -146,10 +146,12 @@ public class PriceOrderQueue {
 		
 	}
 	
-	private void handleValidationResult(AbstractOrderValidator validator, OrderEvent oe) {
+	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
 		OrderValidationResult validationResult = validator.validate(oe);
 		if (!validationResult.isAccepted()) {
-			throw new IllegalArgumentException(validationResult.getRejectReason());
+			String rejectReason = validationResult.getRejectReason();
+			logger.debug("OrderEvent: {} validator: {} Rejected Reason: {}", oe, validator, rejectReason);
+			throw new IllegalArgumentException(rejectReason);
 		}
 	}
 	
@@ -158,7 +160,7 @@ public class PriceOrderQueue {
 	 * @param oe
 	 */
 	public void addOrder(OrderEvent oe) {
-		handleValidationResult(this.addOrderValidator, oe);
+		handleValidationResult(oe, addOrderValidator);
 		Object clOrdId = oe.get(11);
 		Object qty = oe.get(38);
 		long qtyLong = Long.parseLong(qty.toString());
