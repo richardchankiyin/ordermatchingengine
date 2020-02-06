@@ -27,6 +27,7 @@ public class PriceOrderQueue {
 	private boolean isBuy;
 	private long totalOrderQuantity;
 	private double orderPrice;
+	private long queueSize = 0;
 	
 	
 	
@@ -51,6 +52,10 @@ public class PriceOrderQueue {
 	
 	public boolean isBuy() {
 		return this.isBuy;
+	}
+	
+	public long getQueueSize() {
+		return this.queueSize;
 	}
 	
 	private class AddOrderValidator extends AbstractOrderValidator {
@@ -167,6 +172,7 @@ public class PriceOrderQueue {
 		this.totalOrderQuantity += qtyLong;
 		clOrdIdToOrderEvent.put(clOrdId.toString(), oe);
 		orderQueue.add(oe);
+		++queueSize;
 	}
 	
 }
