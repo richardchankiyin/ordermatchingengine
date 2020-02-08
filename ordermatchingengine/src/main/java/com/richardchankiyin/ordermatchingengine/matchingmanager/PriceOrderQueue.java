@@ -77,13 +77,17 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		}
 	}
 	
+	private boolean canHouseKeep(OrderEvent oe) {
+		Object status = oe.get(39);
+		return "2".equals(status) || "4".equals(status) || status == null;
+	}
+	
 	private void housekeepQueue() {
 		boolean isContinue = true;
 		while (isContinue) {
 			OrderEvent oe = orderQueue.peek();
 			if (oe != null) {
-				Object status = oe.get(39);
-				if ("2".equals(status) || "4".equals(status) || status == null) {
+				if (canHouseKeep(oe)) {
 					OrderEvent oePolled = orderQueue.poll();
 					Object clOrdId = oePolled.get(11);
 					clOrdIdToOrderEvent.remove(clOrdId);
@@ -520,4 +524,44 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		housekeepQueue();
 		
 	}
+	
+	/******* Execute Order *********/
+	private void validateExecuteOrderQuantity(long quantity) {
+		if (quantity <= 0) {
+			throw new IllegalArgumentException("quantity must be positive.");
+		}
+		if (quantity > this.totalOrderQuantity) {
+			throw new IllegalArgumentException("insufficient quantity for execution.");
+		}
+		
+	}
+	public List<OrderEvent> executeOrder(long quantity) {
+		validateExecuteOrderQuantity(quantity);
+		
+		boolean isContinue = true;
+		long unExecutedQuantity = quantity;
+		while (isContinue) {
+			OrderEvent oe = orderQueue.peek();
+			if (oe != null) {
+				if (canHouseKeep(oe)) {
+					OrderEvent oeTobeHousekept = orderQueue.poll();
+					Object clOrdId = oeTobeHousekept.get(11);
+					clOrdIdToOrderEvent.remove(clOrdId);
+					
+				} else {
+					//TODO to be implemented
+					
+				}
+			} else {
+				isContinue = false;
+			}			
+		}
+		
+		if (unExecutedQuantity != 0) {
+			logger.error("unExecutedQuantity not zero, should have some issues....");
+		}
+		
+		return null;
+	}
+	
 }
