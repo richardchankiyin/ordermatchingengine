@@ -153,6 +153,41 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 				}
 			});
 		
+		private final OrderValidationRule ADDORDERCUMQTYCHECKING
+			= new OrderValidationRule("ADDORDERCUMQTYCHECKING", oe->{
+				Object cumQty = oe.get(14);
+				if (cumQty == null) {
+					// accept cumQty missing
+					return OrderValidationResult.getAcceptedInstance();
+				} else {
+					long cumQtyLong = 0;
+					try {
+						cumQtyLong = Long.parseLong(cumQty.toString());
+					}
+					catch (Exception e) {
+						logger.debug("cumQty", e);
+						return new OrderValidationResult("Tag 14: CumQty must be integer. ");
+					}
+					if (cumQtyLong <= 0) {
+						return new OrderValidationResult("Tag 14: CumQty must be positive. ");
+					}
+					
+					Object qty = oe.get(38);
+					long qtyLong = 0;
+					try {
+						qtyLong = Long.parseLong(qty.toString());
+						if (cumQtyLong >=  qtyLong) {
+							return new OrderValidationResult(String.format("Tag 14: CumQty %s cannot be larger than/equals to Tag 38: Qty %s",cumQtyLong,qtyLong));
+						}
+					}
+					catch (Exception e) {
+						logger.debug("qty parsing issue", e);
+					}
+					return OrderValidationResult.getAcceptedInstance();
+				}
+			});
+
+		
 		private final OrderValidationRule ADDORDERPRICECHECKING
 			= new OrderValidationRule("ADDORDERPRICECHECKING", oe->{
 				Object price = oe.get(44);
@@ -187,6 +222,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 					ADDORDERCLORDIDCHECKING
 					, ADDORDERMSGTYPECHECKING
 					, ADDORDERQTYCHECKING
+					, ADDORDERCUMQTYCHECKING
 					, ADDORDERPRICECHECKING
 					, ADDORDERSIDECHECKING
 					);
@@ -202,19 +238,27 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		Object clOrdId = oe.get(11);
 		Object qty = oe.get(38);
 		long qtyLong = Long.parseLong(qty.toString());
-		this.totalOrderQuantity += qtyLong;
+		Object cumQty = oe.get(14);
+		long cumQtyLong = 0;
+		if (cumQty != null) {
+			cumQtyLong = Long.parseLong(cumQty.toString());
+		}
+		long remainingQty = qtyLong - cumQtyLong;
+		this.totalOrderQuantity += remainingQty;
+		
+		
 		// new order event to separate from original reference
-		OrderEvent oeForOrderBook = initializeOrder(oe);
+		OrderEvent oeForOrderBook = initializeOrder(oe, cumQtyLong);
 		getOrderEventInternalMap().put(clOrdId.toString(), oeForOrderBook);
 		orderQueue.add(oeForOrderBook);
 		++queueSize;
 	}
 	
-	private OrderEvent initializeOrder(OrderEvent oe) {
+	private OrderEvent initializeOrder(OrderEvent oe, long cumQty) {
 		OrderEvent oeForOrderBook = new OrderEvent(oe);
 		// initialize fields
-		oeForOrderBook.put(14, 0L);
-		oeForOrderBook.put(39, "0");
+		oeForOrderBook.put(14, cumQty);
+		oeForOrderBook.put(39, cumQty == 0 ? "0" : "1");		
 		oeForOrderBook.remove(35);
 		return oeForOrderBook;
 	}

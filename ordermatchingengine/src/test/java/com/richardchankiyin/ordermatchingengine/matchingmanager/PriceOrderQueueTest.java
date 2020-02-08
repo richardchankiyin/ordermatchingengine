@@ -94,6 +94,70 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
+	public void testAddOrderQtyNotInteger() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, "xxx");
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddOrderCumQtyNonPositive() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(14, -30);
+		oe.put(35, "D");
+		oe.put(38, 1000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddOrderCumQtyNotInteger() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(14, "xxx");
+		oe.put(35, "D");
+		oe.put(38, 1000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddOrderCumQtyEqualsToQty() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(14, 1000);
+		oe.put(35, "D");
+		oe.put(38, 1000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testAddOrderCumQtyLargerThanQty() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(14, 2000);
+		oe.put(35, "D");
+		oe.put(38, 1000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
 	public void testAddOrderPriceMissing() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
@@ -117,7 +181,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testAddOrderPriceSideMissing() {
+	public void testAddOrderSideMissing() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -129,7 +193,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testAddOrderPriceBuySideNotMatch() {
+	public void testAddOrderBuySideNotMatch() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -141,7 +205,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testAddOrderPriceSellSideNotMatch() {
+	public void testAddOrderSellSideNotMatch() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, false);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -152,38 +216,8 @@ public class PriceOrderQueueTest {
 		poq.addOrder(oe);
 	}
 	
-	@Test
-	public void testAddOrderPrice() {
-		PriceOrderQueue poq = new PriceOrderQueue(30, true);
-		OrderEvent oe = new OrderEvent();
-		oe.put(11, "1111");
-		oe.put(35, "D");
-		oe.put(38, 2000);
-		oe.put(44, 30);
-		oe.put(54, "1");
-		poq.addOrder(oe);
-		
-		assertTrue(30 == poq.getOrderPrice());
-		assertTrue(poq.isBuy());
-		assertEquals(2000, poq.getTotalOrderQuantity());
-		assertEquals(1, poq.getQueueSize());
-		
-		OrderEvent oe2 = new OrderEvent();
-		oe2.put(11, "2222");
-		oe2.put(35, "D");
-		oe2.put(38, 1000);
-		oe2.put(44, 30);
-		oe2.put(54, "1");
-		poq.addOrder(oe2);
-		
-		assertTrue(30 == poq.getOrderPrice());
-		assertTrue(poq.isBuy());
-		assertEquals(3000, poq.getTotalOrderQuantity());
-		assertEquals(2, poq.getQueueSize());
-	}
-	
 	@Test(expected=IllegalArgumentException.class)
-	public void testAddOrderPriceDuplicateClOrdId() {
+	public void testAddOrderDuplicateClOrdId() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -203,8 +237,80 @@ public class PriceOrderQueueTest {
 		
 	}
 	
+	@Test
+	public void testAddOrderStatusNew() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 2000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		assertTrue(30 == poq.getOrderPrice());
+		assertTrue(poq.isBuy());
+		assertEquals(2000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertNull(poq.getOrderEventInternalMap().get("1111").get(35));
+		assertEquals("0", poq.getOrderEventInternalMap().get("1111").get(39));
+				
+		
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "2222");
+		oe2.put(35, "D");
+		oe2.put(38, 1000);
+		oe2.put(44, 30);
+		oe2.put(54, "1");
+		poq.addOrder(oe2);
+		
+		assertTrue(30 == poq.getOrderPrice());
+		assertTrue(poq.isBuy());
+		assertEquals(3000, poq.getTotalOrderQuantity());
+		assertEquals(2, poq.getQueueSize());
+		assertNull(poq.getOrderEventInternalMap().get("2222").get(35));
+		assertEquals("0", poq.getOrderEventInternalMap().get("2222").get(39));
+	}
+	
+	@Test
+	public void testAddOrderPartialFilled() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(14, 1000);
+		oe.put(35, "D");
+		oe.put(38, 2000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		assertTrue(30 == poq.getOrderPrice());
+		assertTrue(poq.isBuy());
+		assertEquals(1000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertNull(poq.getOrderEventInternalMap().get("1111").get(35));
+		assertEquals("1", poq.getOrderEventInternalMap().get("1111").get(39));
+		
+		
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "2222");
+		oe2.put(14, 3000);
+		oe2.put(35, "D");
+		oe2.put(38, 5000);
+		oe2.put(44, 30);
+		oe2.put(54, "1");
+		poq.addOrder(oe2);
+		
+		assertTrue(30 == poq.getOrderPrice());
+		assertTrue(poq.isBuy());
+		assertEquals(3000, poq.getTotalOrderQuantity());
+		assertEquals(2, poq.getQueueSize());
+		assertNull(poq.getOrderEventInternalMap().get("2222").get(35));
+		assertEquals("1", poq.getOrderEventInternalMap().get("2222").get(39));
+	}
+	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceClOrdIdNotFound() {
+	public void testUpdateOrderClOrdIdNotFound() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -225,7 +331,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceMsgTypeNewOrderSingle() {
+	public void testUpdateOrderMsgTypeNewOrderSingle() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -246,7 +352,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceMsgTypeCancelOrder() {
+	public void testUpdateOrderMsgTypeCancelOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -267,7 +373,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceQtyMissing() {
+	public void testUpdateOrderQtyMissing() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -287,7 +393,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceQtyNoChange() {
+	public void testUpdateOrderQtyNoChange() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -308,7 +414,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceQtyAmendUp() {
+	public void testUpdateOrderQtyAmendUp() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -329,7 +435,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceQtyLargerThanRemainingQty() {
+	public void testUpdateOrderQtyLargerThanRemainingQty() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -356,7 +462,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceQtyEqualsToRemainingQty() {
+	public void testUpdateOrderQtyEqualsToRemainingQty() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -383,7 +489,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceIncomingPriceNotMatch() {
+	public void testUpdateOrderIncomingPriceNotMatch() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -404,7 +510,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceIncomingSideNotMatch() {
+	public void testUpdateOrderIncomingSideNotMatch() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -425,7 +531,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceOnCancelledOrder() {
+	public void testUpdateOrderOnCancelledOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -453,7 +559,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testUpdateOrderPriceOnFullyFilledOrder() {
+	public void testUpdateOrderOnFullyFilledOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -481,7 +587,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test
-	public void testUpdateOrderPrice() {
+	public void testUpdateOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -505,7 +611,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testCancelOrderPriceClOrdIdNotFound() {
+	public void testCancelOrderClOrdIdNotFound() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -517,7 +623,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testCancelOrderPriceMsgTypeNotAccepted() {
+	public void testCancelOrderMsgTypeNotAccepted() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -534,7 +640,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testCancelOrderPriceOnCancelledOrder() {
+	public void testCancelOrderOnCancelledOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -556,7 +662,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testCancelOrderPriceOnFilledOrder() {
+	public void testCancelOrderOnFilledOrder() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
 			protected Map<String, OrderEvent> getOrderEventInternalMap() {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
@@ -578,7 +684,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test
-	public void testCancelOrderPriceOnNew() {
+	public void testCancelOrderOnNew() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -600,7 +706,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test
-	public void testCancelOrderPriceOnNewNotHousekept() {
+	public void testCancelOrderOnNewNotHousekept() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -630,7 +736,7 @@ public class PriceOrderQueueTest {
 	}
 	
 	@Test
-	public void testCancelOrderPriceOn2NewHousekeptTogetherAtLast() {
+	public void testCancelOrderOn2NewHousekeptTogetherAtLast() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
