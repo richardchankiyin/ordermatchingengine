@@ -17,13 +17,14 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.utils.NumericUtils;
 
-public class PriceOrderQueue {
+public class PriceOrderQueue implements IPriceOrderQueue{
 	private static final Logger logger = LoggerFactory.getLogger(PriceOrderQueue.class);
 	private final static int ROUNDSCALE = 6;
 	
 	private Map<String, OrderEvent> clOrdIdToOrderEvent;
 	private Queue<OrderEvent> orderQueue;
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
+	private UpdateOrderValidator updateOrderValidator = new UpdateOrderValidator();
 	private boolean isBuy;
 	private long totalOrderQuantity;
 	private double orderPrice;
@@ -175,7 +176,7 @@ public class PriceOrderQueue {
 		// new order event to separate from original reference
 		OrderEvent oeForOrderBook = new OrderEvent(oe);
 		// initialize fields
-		oeForOrderBook.put(14, 0);
+		oeForOrderBook.put(14, 0L);
 		clOrdIdToOrderEvent.put(clOrdId.toString(), oeForOrderBook);
 		orderQueue.add(oeForOrderBook);
 		++queueSize;
@@ -233,19 +234,21 @@ public class PriceOrderQueue {
 				
 				try {
 					Object clOrdId = oe.get(11);
-					
-					OrderEvent originOrderEvent = clOrdIdToOrderEvent.get(clOrdId.toString());
-					// check original order qty
-					Object originalQty = originOrderEvent.get(38);
-					long originQtyLong = Long.parseLong(originalQty.toString());
-					if (qtyLong >= originQtyLong) {
-						return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to origin qty: %s. ",qty,originalQty));
-					}
-					// check new qty >= CumQty
-					Object originCumQty = originOrderEvent.get(14);
-					long originCumQtyLong = Long.parseLong(originCumQty.toString());
-					if (qtyLong >= originCumQtyLong) {
-						return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to cum qty (Tag 14): %s. ",qty,originCumQty));
+					if (clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
+						OrderEvent originOrderEvent = clOrdIdToOrderEvent.get(clOrdId.toString());
+						// check original order qty
+						Object originalQty = originOrderEvent.get(38);
+						long originQtyLong = Long.parseLong(originalQty.toString());
+						if (qtyLong >= originQtyLong) {
+							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to origin qty: %s. ",qty,originalQty));
+						}
+						// check new qty >= CumQty
+						Object originCumQty = originOrderEvent.get(14);
+						long originCumQtyLong = Long.parseLong(originCumQty.toString());
+						long remainQtyLong = originQtyLong - originCumQtyLong;
+						if (qtyLong >= remainQtyLong) {
+							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to remainingQty: %s. ",qty,remainQtyLong));
+						}
 					}
 					
 				}
@@ -257,15 +260,63 @@ public class PriceOrderQueue {
 			}
 		});
 		
+		private final OrderValidationRule UPDATEORDERPRICECHECKING
+		= new OrderValidationRule("UPDATEORDERPRICECHECKING", oe->{
+			Object price = oe.get(44);
+			if (price == null) {
+				return new OrderValidationResult("Tag 44: Price cannot be missing. ");
+			} else {
+				if (orderPrice != NumericUtils.roundDouble(Double.parseDouble(price.toString()), ROUNDSCALE)) {
+					return new OrderValidationResult(String.format("Tag 44: Price %s is not the same as expected: %s. ", price, orderPrice));
+				}
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERSIDECHECKING
+		= new OrderValidationRule("UPDATEORDERSIDECHECKING", oe->{
+			Object side = oe.get(54);
+			if (side == null) {
+				return new OrderValidationResult("Tag 54: Side cannot be missing. ");
+			} else {
+				boolean isSideValid = isBuy ? "1".equals(side) : "2".equals(side);
+				if (!isSideValid) {
+					return new OrderValidationResult(String.format("Tag 54: Side %s is not valid. ", side));
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					UPDATEORDERCLORDIDCHECKING
 					, UPDATEORDERMSGTYPECHECKING
 					, UPDATEORDERQTYCHECKING
+					, UPDATEORDERPRICECHECKING
+					, UPDATEORDERSIDECHECKING
 					);
 		}
 		
+	}
+	
+	/**
+	 * This is to update an order in the order book
+	 * @param oe
+	 */
+	public void updateOrder(OrderEvent oe) {
+		handleValidationResult(oe, updateOrderValidator);
+		Object clOrdId = oe.get(11);
+		Object qty = oe.get(38);
+		OrderEvent originalOrder = clOrdIdToOrderEvent.get(clOrdId.toString());
+		Object originalQty = originalOrder.get(38);
+		long qtyLong = Long.parseLong(qty.toString());
+		long originalQtyLong = Long.parseLong(originalQty.toString());
+		long diff = originalQtyLong - qtyLong;
+		// update object in the order book
+		originalOrder.put(38, qtyLong);
+		this.totalOrderQuantity -= diff;
 	}
 	
 }
