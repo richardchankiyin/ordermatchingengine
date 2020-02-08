@@ -58,10 +58,22 @@ public class PriceOrderQueue {
 		return this.queueSize;
 	}
 	
+	
+	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
+		OrderValidationResult validationResult = validator.validate(oe);
+		if (!validationResult.isAccepted()) {
+			String rejectReason = validationResult.getRejectReason();
+			logger.debug("OrderEvent: {} validator: {} Rejected Reason: {}", oe, validator, rejectReason);
+			throw new IllegalArgumentException(rejectReason);
+		}
+	}
+	
+	/******* Add Order *********/
+	
 	private class AddOrderValidator extends AbstractOrderValidator {
 
-		private final OrderValidationRule CLORDIDCHECKING
-			= new OrderValidationRule("CLORDIDCHECKING", oe->{
+		private final OrderValidationRule ADDORDERCLORDIDCHECKING
+			= new OrderValidationRule("ADDORDERCLORDIDCHECKING", oe->{
 				Object clOrdId = oe.get(11);
 				if (clOrdId == null) {
 					return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
@@ -74,8 +86,8 @@ public class PriceOrderQueue {
 				return OrderValidationResult.getAcceptedInstance();
 			});
 		
-		private final OrderValidationRule MSGTYPECHECKING
-			= new OrderValidationRule("MSGTYPECHECKING", oe->{
+		private final OrderValidationRule ADDORDERMSGTYPECHECKING
+			= new OrderValidationRule("ADDORDERMSGTYPECHECKING", oe->{
 				Object msgType = oe.get(35);
 				if (msgType == null) {
 					return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
@@ -88,8 +100,8 @@ public class PriceOrderQueue {
 				return OrderValidationResult.getAcceptedInstance();
 			});
 		
-		private final OrderValidationRule QTYCHECKING
-			= new OrderValidationRule("QTYCHECKING", oe->{
+		private final OrderValidationRule ADDORDERQTYCHECKING
+			= new OrderValidationRule("ADDORDERQTYCHECKING", oe->{
 				Object qty = oe.get(38);
 				if (qty == null) {
 					return new OrderValidationResult("Tag 38: Qty cannot be missing. ");
@@ -110,8 +122,8 @@ public class PriceOrderQueue {
 				}
 			});
 		
-		private final OrderValidationRule PRICECHECKING
-			= new OrderValidationRule("PRICECHECKING", oe->{
+		private final OrderValidationRule ADDORDERPRICECHECKING
+			= new OrderValidationRule("ADDORDERPRICECHECKING", oe->{
 				Object price = oe.get(44);
 				if (price == null) {
 					return new OrderValidationResult("Tag 44: Price cannot be missing. ");
@@ -123,8 +135,8 @@ public class PriceOrderQueue {
 				return OrderValidationResult.getAcceptedInstance();
 			});
 		
-		private final OrderValidationRule SIDECHECKING
-			= new OrderValidationRule("SIDECHECKING", oe->{
+		private final OrderValidationRule ADDORDERSIDECHECKING
+			= new OrderValidationRule("ADDORDERSIDECHECKING", oe->{
 				Object side = oe.get(54);
 				if (side == null) {
 					return new OrderValidationResult("Tag 54: Side cannot be missing. ");
@@ -141,25 +153,15 @@ public class PriceOrderQueue {
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
-					CLORDIDCHECKING
-					, MSGTYPECHECKING
-					, QTYCHECKING
-					, PRICECHECKING
-					, SIDECHECKING
+					ADDORDERCLORDIDCHECKING
+					, ADDORDERMSGTYPECHECKING
+					, ADDORDERQTYCHECKING
+					, ADDORDERPRICECHECKING
+					, ADDORDERSIDECHECKING
 					);
 		}
 		
 	}
-	
-	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
-		OrderValidationResult validationResult = validator.validate(oe);
-		if (!validationResult.isAccepted()) {
-			String rejectReason = validationResult.getRejectReason();
-			logger.debug("OrderEvent: {} validator: {} Rejected Reason: {}", oe, validator, rejectReason);
-			throw new IllegalArgumentException(rejectReason);
-		}
-	}
-	
 	/**
 	 * This is to add a new order single to the order book
 	 * @param oe
@@ -170,9 +172,100 @@ public class PriceOrderQueue {
 		Object qty = oe.get(38);
 		long qtyLong = Long.parseLong(qty.toString());
 		this.totalOrderQuantity += qtyLong;
-		clOrdIdToOrderEvent.put(clOrdId.toString(), oe);
-		orderQueue.add(oe);
+		// new order event to separate from original reference
+		OrderEvent oeForOrderBook = new OrderEvent(oe);
+		// initialize fields
+		oeForOrderBook.put(14, 0);
+		clOrdIdToOrderEvent.put(clOrdId.toString(), oeForOrderBook);
+		orderQueue.add(oeForOrderBook);
 		++queueSize;
+	}
+	
+	/******* Update Order *********/
+	private class UpdateOrderValidator extends AbstractOrderValidator {
+
+		private final OrderValidationRule UPDATEORDERCLORDIDCHECKING
+		= new OrderValidationRule("UPDATEORDERCLORDIDCHECKING", oe->{
+			Object clOrdId = oe.get(11);
+			if (clOrdId == null) {
+				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
+			} else {
+				if (!clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
+					return new OrderValidationResult("Tag 11: ClOrdId does not exist. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERMSGTYPECHECKING
+		= new OrderValidationRule("UPDATEORDERMSGTYPECHECKING", oe->{
+			Object msgType = oe.get(35);
+			if (msgType == null) {
+				return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
+			} else {
+				if (!"G".equals(msgType)) {
+					return new OrderValidationResult("Tag 35: MsgType can only be G. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERQTYCHECKING
+		= new OrderValidationRule("UPDATEORDERQTYCHECKING", oe->{
+			Object qty = oe.get(38);
+			if (qty == null) {
+				return new OrderValidationResult("Tag 38: Qty cannot be missing. ");
+			} else {
+				long qtyLong = 0;
+				try {
+					qtyLong = Long.parseLong(qty.toString());
+				}
+				catch (Exception e) {
+					logger.debug("qty parsing issue", e);
+					return new OrderValidationResult("Tag 38: Qty must be integer. ");
+				}
+				if (qtyLong <= 0) {
+					return new OrderValidationResult("Tag 38: Qty must be positive. ");
+				}
+				
+				
+				try {
+					Object clOrdId = oe.get(11);
+					
+					OrderEvent originOrderEvent = clOrdIdToOrderEvent.get(clOrdId.toString());
+					// check original order qty
+					Object originalQty = originOrderEvent.get(38);
+					long originQtyLong = Long.parseLong(originalQty.toString());
+					if (qtyLong >= originQtyLong) {
+						return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to origin qty: %s. ",qty,originalQty));
+					}
+					// check new qty >= CumQty
+					Object originCumQty = originOrderEvent.get(14);
+					long originCumQtyLong = Long.parseLong(originCumQty.toString());
+					if (qtyLong >= originCumQtyLong) {
+						return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to cum qty (Tag 14): %s. ",qty,originCumQty));
+					}
+					
+				}
+				catch (Exception e) {
+					logger.error("issues happened at checking", e);
+					return new OrderValidationResult("Tag 38: Update Order validation failed. ");
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(
+					UPDATEORDERCLORDIDCHECKING
+					, UPDATEORDERMSGTYPECHECKING
+					, UPDATEORDERQTYCHECKING
+					);
+		}
+		
 	}
 	
 }
