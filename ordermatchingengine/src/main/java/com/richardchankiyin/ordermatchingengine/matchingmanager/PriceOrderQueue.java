@@ -59,6 +59,9 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		return this.queueSize;
 	}
 	
+	protected Map<String, OrderEvent> getOrderEventInternalMap() {
+		return this.clOrdIdToOrderEvent;
+	}
 	
 	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
 		OrderValidationResult validationResult = validator.validate(oe);
@@ -79,7 +82,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 				if (clOrdId == null) {
 					return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
 				} else {
-					if (clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
+					if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
 						return new OrderValidationResult("Tag 11: ClOrdId exists. ");
 					}
 				}
@@ -191,7 +194,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 			if (clOrdId == null) {
 				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
 			} else {
-				if (!clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
+				if (!getOrderEventInternalMap().containsKey(clOrdId.toString())) {
 					return new OrderValidationResult("Tag 11: ClOrdId does not exist. ");
 				}
 			}
@@ -234,8 +237,8 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 				
 				try {
 					Object clOrdId = oe.get(11);
-					if (clOrdIdToOrderEvent.containsKey(clOrdId.toString())) {
-						OrderEvent originOrderEvent = clOrdIdToOrderEvent.get(clOrdId.toString());
+					if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+						OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
 						// check original order qty
 						Object originalQty = originOrderEvent.get(38);
 						long originQtyLong = Long.parseLong(originalQty.toString());
