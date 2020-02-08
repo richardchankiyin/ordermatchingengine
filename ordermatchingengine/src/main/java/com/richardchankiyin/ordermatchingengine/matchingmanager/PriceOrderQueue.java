@@ -250,7 +250,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 						long originCumQtyLong = Long.parseLong(originCumQty.toString());
 						long remainQtyLong = originQtyLong - originCumQtyLong;
 						if (qtyLong >= remainQtyLong) {
-							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to remainingQty: %s. ",qty,remainQtyLong));
+							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger than/equals to remainingQty: %s. ",qty,remainQtyLong));
 						}
 					}
 					
