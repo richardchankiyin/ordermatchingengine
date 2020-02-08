@@ -86,8 +86,10 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 				if ("2".equals(status) || "4".equals(status) || status == null) {
 					OrderEvent oePolled = orderQueue.poll();
 					Object clOrdId = oePolled.get(11);
-					//clOrdIdToOrderEvent.remove(clOrdId);
+					clOrdIdToOrderEvent.remove(clOrdId);
 					logger.info("housekept order from book: {}", oePolled);
+					logger.debug("Queue\n-------------\n{}\n----------", orderQueue);
+					logger.debug("Map\n-------------\n{}\n----------", clOrdIdToOrderEvent);
 				} else {
 					isContinue = false;
 				}

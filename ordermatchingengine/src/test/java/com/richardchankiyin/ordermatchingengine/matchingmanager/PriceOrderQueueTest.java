@@ -1,7 +1,6 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -554,5 +553,120 @@ public class PriceOrderQueueTest {
 		oe.put(11, "1111");
 		oe.put(35, "F");
 		poq.cancelOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCancelOrderPriceOnFilledOrder() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
+			protected Map<String, OrderEvent> getOrderEventInternalMap() {
+				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 3000);
+				oe.put(39, "2");
+				oe.put(44, 30);
+				oe.put(54, "2");
+				oe.put(14, 3000);
+				map.put("1111", oe);
+				return map;
+			}
+		}; 
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
+	}
+	
+	@Test
+	public void testCancelOrderPriceOnNew() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
+		
+		assertEquals(0, poq.getTotalOrderQuantity());
+		assertEquals(0, poq.getQueueSize());
+		assertEquals(0, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("1111"));
+	}
+	
+	@Test
+	public void testCancelOrderPriceOnNewNotHousekept() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 5000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
+		
+		assertEquals(3000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertEquals(2, poq.getActualOrderQueueSize());
+		assertTrue(poq.getOrderEventInternalMap().containsKey("2222"));
+	}
+	
+	@Test
+	public void testCancelOrderPriceOn2NewHousekeptTogetherAtLast() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 5000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
+		
+		assertEquals(3000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertEquals(2, poq.getActualOrderQueueSize());
+		assertTrue(poq.getOrderEventInternalMap().containsKey("2222"));
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
+		
+		assertEquals(0, poq.getTotalOrderQuantity());
+		assertEquals(0, poq.getQueueSize());
+		assertEquals(0, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("2222"));
+		assertFalse(poq.getOrderEventInternalMap().containsKey("1111"));
 	}
 }
