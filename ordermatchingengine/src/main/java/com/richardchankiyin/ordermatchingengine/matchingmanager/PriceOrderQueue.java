@@ -25,6 +25,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 	private Queue<OrderEvent> orderQueue;
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	private UpdateOrderValidator updateOrderValidator = new UpdateOrderValidator();
+	private CancelOrderValidator cancelOrderValidator = new CancelOrderValidator();
 	private boolean isBuy;
 	private long totalOrderQuantity;
 	private double orderPrice;
@@ -63,12 +64,36 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		return this.clOrdIdToOrderEvent;
 	}
 	
+	protected long getActualOrderQueueSize() {
+		return this.orderQueue.size();
+	}
+	
 	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
 		OrderValidationResult validationResult = validator.validate(oe);
 		if (!validationResult.isAccepted()) {
 			String rejectReason = validationResult.getRejectReason();
 			logger.debug("OrderEvent: {} validator: {} Rejected Reason: {}", oe, validator, rejectReason);
 			throw new IllegalArgumentException(rejectReason);
+		}
+	}
+	
+	private void housekeepQueue() {
+		boolean isContinue = true;
+		while (isContinue) {
+			OrderEvent oe = orderQueue.peek();
+			if (oe != null) {
+				Object status = oe.get(39);
+				if ("2".equals(status) || "4".equals(status) || status == null) {
+					OrderEvent oePolled = orderQueue.poll();
+					Object clOrdId = oePolled.get(11);
+					//clOrdIdToOrderEvent.remove(clOrdId);
+					logger.info("housekept order from book: {}", oePolled);
+				} else {
+					isContinue = false;
+				}
+			} else {
+				isContinue = false;
+			}
 		}
 	}
 	
@@ -177,12 +202,19 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		long qtyLong = Long.parseLong(qty.toString());
 		this.totalOrderQuantity += qtyLong;
 		// new order event to separate from original reference
+		OrderEvent oeForOrderBook = initializeOrder(oe);
+		getOrderEventInternalMap().put(clOrdId.toString(), oeForOrderBook);
+		orderQueue.add(oeForOrderBook);
+		++queueSize;
+	}
+	
+	private OrderEvent initializeOrder(OrderEvent oe) {
 		OrderEvent oeForOrderBook = new OrderEvent(oe);
 		// initialize fields
 		oeForOrderBook.put(14, 0L);
-		clOrdIdToOrderEvent.put(clOrdId.toString(), oeForOrderBook);
-		orderQueue.add(oeForOrderBook);
-		++queueSize;
+		oeForOrderBook.put(39, "0");
+		oeForOrderBook.remove(35);
+		return oeForOrderBook;
 	}
 	
 	/******* Update Order *********/
@@ -263,6 +295,27 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 			}
 		});
 		
+		private final OrderValidationRule UPDATEORDERSTATUSCHECKING
+		= new OrderValidationRule("UPDATEORDERSTATUSCHECKING", oe->{
+			
+			try {
+				Object clOrdId = oe.get(11);
+				if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
+					Object status = originOrderEvent.get(39);
+					if (!("0".equals(status) || "1".equals(status))) {
+						return new OrderValidationResult("Tag 39: only order at status 0 or 1 can be updated. ");
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.error("issues happened at checking", e);
+				return new OrderValidationResult("Tag 39: Update Order validation failed. ");
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
 		private final OrderValidationRule UPDATEORDERPRICECHECKING
 		= new OrderValidationRule("UPDATEORDERPRICECHECKING", oe->{
 			Object price = oe.get(44);
@@ -297,6 +350,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 					UPDATEORDERCLORDIDCHECKING
 					, UPDATEORDERMSGTYPECHECKING
 					, UPDATEORDERQTYCHECKING
+					, UPDATEORDERSTATUSCHECKING
 					, UPDATEORDERPRICECHECKING
 					, UPDATEORDERSIDECHECKING
 					);
@@ -312,7 +366,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		handleValidationResult(oe, updateOrderValidator);
 		Object clOrdId = oe.get(11);
 		Object qty = oe.get(38);
-		OrderEvent originalOrder = clOrdIdToOrderEvent.get(clOrdId.toString());
+		OrderEvent originalOrder = getOrderEventInternalMap().get(clOrdId.toString());
 		Object originalQty = originalOrder.get(38);
 		long qtyLong = Long.parseLong(qty.toString());
 		long originalQtyLong = Long.parseLong(originalQty.toString());
@@ -322,4 +376,102 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		this.totalOrderQuantity -= diff;
 	}
 	
+	/******* Cancel Order *********/
+	private class CancelOrderValidator extends AbstractOrderValidator {
+
+		private final OrderValidationRule CANCELORDERCLORDIDCHECKING
+		= new OrderValidationRule("CANCELORDERCLORDIDCHECKING", oe->{
+			Object clOrdId = oe.get(11);
+			if (clOrdId == null) {
+				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
+			} else {
+				if (!getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					return new OrderValidationResult("Tag 11: ClOrdId does not exist. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule CANCELORDERMSGTYPECHECKING
+		= new OrderValidationRule("CANCELORDERMSGTYPECHECKING", oe->{
+			Object msgType = oe.get(35);
+			if (msgType == null) {
+				return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
+			} else {
+				if (!"F".equals(msgType)) {
+					return new OrderValidationResult("Tag 35: MsgType can only be F. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule CANCELORDERSTATUSCHECKING
+		= new OrderValidationRule("CANCELORDERSTATUSCHECKING", oe->{
+			
+			try {
+				Object clOrdId = oe.get(11);
+				if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
+					Object status = originOrderEvent.get(39);
+					if (!("0".equals(status) || "1".equals(status))) {
+						return new OrderValidationResult("Tag 39: only order at status 0 or 1 can be cancelled. ");
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.error("issues happened at checking", e);
+				return new OrderValidationResult("Tag 39: Update Order validation failed. ");
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(
+					CANCELORDERCLORDIDCHECKING
+					, CANCELORDERMSGTYPECHECKING
+					, CANCELORDERSTATUSCHECKING
+					);
+		}
+		
+	}
+	
+	/**
+	 * This is to add a new order single to the order book
+	 * @param oe
+	 */
+	public void cancelOrder(OrderEvent oe) {
+		handleValidationResult(oe, cancelOrderValidator);
+		Object clOrdId = oe.get(11);
+		OrderEvent originalOrder = getOrderEventInternalMap().get(clOrdId.toString());
+		Object cumQty = originalOrder.get(14);
+		Object qty = originalOrder.get(38);
+		long cumQtyLong = 0;
+		long qtyLong = 0;
+		long remainQtyLong = 0;
+		try {
+			cumQtyLong = Long.parseLong(cumQty.toString());
+			qtyLong = Long.parseLong(qty.toString());
+			remainQtyLong = qtyLong - cumQtyLong;
+		}
+		catch (Exception e) {
+			// issue happened above. However we cannot leave this doing nothing
+			// will cancel this order too.
+			logger.error("issue cancelling order", e);
+		}
+		// if partial filled -> filled; if new -> cancelled
+		if (cumQtyLong == 0) {
+			originalOrder.put(39, "4");
+		} else {
+			originalOrder.put(39, "2");
+		}
+		--queueSize;
+		totalOrderQuantity -= remainQtyLong;
+		
+		housekeepQueue();
+		
+	}
 }

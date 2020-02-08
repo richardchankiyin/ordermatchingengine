@@ -336,8 +336,8 @@ public class PriceOrderQueueTest {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
 				OrderEvent oe = new OrderEvent();
 				oe.put(11, "1111");
-				oe.put(35, "G");
 				oe.put(38, 3000);
+				oe.put(39, "1");
 				oe.put(44, 30);
 				oe.put(54, "1");
 				oe.put(14, 2000);
@@ -363,8 +363,8 @@ public class PriceOrderQueueTest {
 				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
 				OrderEvent oe = new OrderEvent();
 				oe.put(11, "1111");
-				oe.put(35, "G");
 				oe.put(38, 3000);
+				oe.put(39, "1");
 				oe.put(44, 30);
 				oe.put(54, "1");
 				oe.put(14, 2000);
@@ -425,6 +425,62 @@ public class PriceOrderQueueTest {
 		poq.updateOrder(oe);
 	}
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void testUpdateOrderPriceOnCancelledOrder() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
+			protected Map<String, OrderEvent> getOrderEventInternalMap() {
+				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 3000);
+				oe.put(39, "4");
+				oe.put(44, 30);
+				oe.put(54, "1");
+				oe.put(14, 0);
+				map.put("1111", oe);
+				return map;
+			}
+		};
+		
+		OrderEvent oe = new OrderEvent();
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		
+		poq.updateOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testUpdateOrderPriceOnFullyFilledOrder() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
+			protected Map<String, OrderEvent> getOrderEventInternalMap() {
+				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 3000);
+				oe.put(39, "4");
+				oe.put(44, 30);
+				oe.put(54, "2");
+				oe.put(14, 3000);
+				map.put("1111", oe);
+				return map;
+			}
+		};
+		
+		OrderEvent oe = new OrderEvent();
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		
+		poq.updateOrder(oe);
+	}
+	
 	@Test
 	public void testUpdateOrderPrice() {
 		PriceOrderQueue poq = new PriceOrderQueue(30, true);
@@ -447,5 +503,56 @@ public class PriceOrderQueueTest {
 		
 		assertEquals(1, poq.getQueueSize());
 		assertEquals(2000, poq.getTotalOrderQuantity());
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCancelOrderPriceClOrdIdNotFound() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(38, 2000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.cancelOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCancelOrderPriceMsgTypeNotAccepted() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		poq.cancelOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCancelOrderPriceOnCancelledOrder() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true) {
+			protected Map<String, OrderEvent> getOrderEventInternalMap() {
+				Map<String, OrderEvent> map = new HashMap<String, OrderEvent>();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 3000);
+				oe.put(39, "4");
+				oe.put(44, 30);
+				oe.put(54, "2");
+				oe.put(14, 3000);
+				map.put("1111", oe);
+				return map;
+			}
+		}; 
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		poq.cancelOrder(oe);
 	}
 }
