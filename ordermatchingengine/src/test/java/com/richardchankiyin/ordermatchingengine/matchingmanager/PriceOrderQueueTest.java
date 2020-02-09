@@ -933,4 +933,116 @@ public class PriceOrderQueueTest {
 		assertEquals(5000L,executedList.get(0).get(38));
 		assertEquals("2", executedList.get(0).get(39));
 	}
+	
+	@Test
+	public void testExecuteOrderAddThreeOrdersFirstCancelledAndExecutedFullyForSecondAndPartiallyForThird() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 4000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "3333");
+		oe.put(35, "D");
+		oe.put(38, 5000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		
+		poq.cancelOrder(oe);
+		
+		assertEquals(9000, poq.getTotalOrderQuantity());
+		assertEquals(2, poq.getQueueSize());
+		assertEquals(2, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("1111"));
+		
+		List<OrderEvent> executedList = poq.executeOrder(6000);
+		
+		assertEquals(3000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertEquals(1, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("2222"));
+		assertTrue(poq.getOrderEventInternalMap().containsKey("3333"));
+		assertEquals(4000L, executedList.get(0).get(14));
+		assertEquals(4000L,executedList.get(0).get(32));
+		assertEquals(4000L,executedList.get(0).get(38));
+		assertEquals("2", executedList.get(0).get(39));
+		assertEquals(2000L, executedList.get(1).get(14));
+		assertEquals(2000L,executedList.get(1).get(32));
+		assertEquals(5000L,executedList.get(1).get(38));
+		assertEquals("1", executedList.get(1).get(39));
+	}
+	
+	@Test
+	public void testExecuteOrderAddThreeOrdersSecondCancelledAndExecutedFullyForFirstAndPartiallyForThird() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 4000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "3333");
+		oe.put(35, "D");
+		oe.put(38, 5000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "F");
+		
+		poq.cancelOrder(oe);
+		
+		assertEquals(8000, poq.getTotalOrderQuantity());
+		assertEquals(2, poq.getQueueSize());
+		assertEquals(3, poq.getActualOrderQueueSize());
+		assertTrue(poq.getOrderEventInternalMap().containsKey("2222"));
+		
+		List<OrderEvent> executedList = poq.executeOrder(6000);
+		
+		assertEquals(2000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertEquals(1, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("1111"));
+		assertFalse(poq.getOrderEventInternalMap().containsKey("2222"));
+		assertTrue(poq.getOrderEventInternalMap().containsKey("3333"));
+		assertEquals(3000L, executedList.get(0).get(14));
+		assertEquals(3000L,executedList.get(0).get(32));
+		assertEquals(3000L,executedList.get(0).get(38));
+		assertEquals("2", executedList.get(0).get(39));
+		assertEquals(3000L, executedList.get(1).get(14));
+		assertEquals(3000L,executedList.get(1).get(32));
+		assertEquals(5000L,executedList.get(1).get(38));
+		assertEquals("1", executedList.get(1).get(39));
+		
+	}
 }

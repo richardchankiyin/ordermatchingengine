@@ -510,6 +510,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 	 */
 	public void cancelOrder(OrderEvent oe) {
 		handleValidationResult(oe, cancelOrderValidator);
+		logger.info("cancelling order: {}", oe);
 		Object clOrdId = oe.get(11);
 		OrderEvent originalOrder = getOrderEventInternalMap().get(clOrdId.toString());
 		Object cumQty = originalOrder.get(14);
@@ -533,6 +534,9 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		} else {
 			originalOrder.put(39, "2");
 		}
+		
+		logger.debug("cancelling order: {} with qty: {} cumQty: {} remaining: {}", oe, qtyLong, cumQtyLong, remainQtyLong);
+		
 		--queueSize;
 		totalOrderQuantity -= remainQtyLong;
 		
