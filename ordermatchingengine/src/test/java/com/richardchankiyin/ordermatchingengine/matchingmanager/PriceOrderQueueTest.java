@@ -1045,4 +1045,38 @@ public class PriceOrderQueueTest {
 		assertEquals("1", executedList.get(1).get(39));
 		
 	}
+	
+	@Test
+	public void testExecuteOrderAdd1000OrdersExecuted700Orders() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		int noOfOrderedAdded = 1000;
+		long quantityAddedPerOrder = 1000;
+		
+		for (int i = 0; i < noOfOrderedAdded; i++) {
+			OrderEvent oe = new OrderEvent();
+			oe.put(11, String.valueOf(i));
+			oe.put(35, "D");
+			oe.put(38, quantityAddedPerOrder);
+			oe.put(44, 30);
+			oe.put(54, "1");
+			poq.addOrder(oe);
+		}
+		
+		long quantityAdded = quantityAddedPerOrder * noOfOrderedAdded;
+		
+		assertEquals(quantityAdded, poq.getTotalOrderQuantity());
+		assertEquals(noOfOrderedAdded, poq.getQueueSize());
+		assertEquals(noOfOrderedAdded, poq.getActualOrderQueueSize());
+		
+		int noOfOrderExecuted = 700;
+		long quantityExecutedPerOrder = 700;
+		for (int i = 0; i < noOfOrderExecuted; i++) {
+			poq.executeOrder(quantityExecutedPerOrder);
+		}
+		
+		assertEquals(quantityAdded - noOfOrderExecuted * quantityExecutedPerOrder, poq.getTotalOrderQuantity());
+		long expectedRemainingQueue = ((noOfOrderedAdded * quantityAddedPerOrder) - (noOfOrderExecuted * quantityExecutedPerOrder))/quantityAddedPerOrder;
+		assertEquals(expectedRemainingQueue, poq.getQueueSize());
+		assertEquals(expectedRemainingQueue, poq.getActualOrderQueueSize());
+	}
 }
