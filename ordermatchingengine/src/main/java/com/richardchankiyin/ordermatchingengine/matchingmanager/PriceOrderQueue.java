@@ -1,5 +1,6 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -77,23 +78,37 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		}
 	}
 	
+	/**
+	 * This is to remove the first order from the queue
+	 * and get the clordid to remove entry from the map.
+	 * This method does not control the queue size and
+	 * total quantity which are logical figures
+	 */
+	private void removeOrder() {
+		OrderEvent oe = orderQueue.poll();
+		logger.info("removed order: {} from the queue", oe);
+		if (oe != null) {
+			Object clOrdId = oe.get(11);
+			clOrdIdToOrderEvent.remove(clOrdId);
+			logger.info("removed order: {} from the map", oe);
+		}
+		logger.debug("\nQueue\n-------------\n{}\n-------------", orderQueue);
+		logger.debug("\nMap\n-------------\n{}\n-------------", clOrdIdToOrderEvent);
+	}
+	
 	private boolean canHouseKeep(OrderEvent oe) {
 		Object status = oe.get(39);
 		return "2".equals(status) || "4".equals(status) || status == null;
 	}
 	
-	private void housekeepQueue() {
+	private void housekeepQueueAndMap() {
 		boolean isContinue = true;
 		while (isContinue) {
 			OrderEvent oe = orderQueue.peek();
 			if (oe != null) {
 				if (canHouseKeep(oe)) {
-					OrderEvent oePolled = orderQueue.poll();
-					Object clOrdId = oePolled.get(11);
-					clOrdIdToOrderEvent.remove(clOrdId);
-					logger.info("housekept order from book: {}", oePolled);
-					logger.debug("Queue\n-------------\n{}\n----------", orderQueue);
-					logger.debug("Map\n-------------\n{}\n----------", clOrdIdToOrderEvent);
+					logger.info("housekeeping order: {}", oe);
+					removeOrder();
 				} else {
 					isContinue = false;
 				}
@@ -521,7 +536,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		--queueSize;
 		totalOrderQuantity -= remainQtyLong;
 		
-		housekeepQueue();
+		housekeepQueueAndMap();
 		
 	}
 	
@@ -535,33 +550,89 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		}
 		
 	}
+	
 	public List<OrderEvent> executeOrder(long quantity) {
 		validateExecuteOrderQuantity(quantity);
 		
 		boolean isContinue = true;
 		long unExecutedQuantity = quantity;
+		List<OrderEvent> result = new ArrayList<>();
 		while (isContinue) {
 			OrderEvent oe = orderQueue.peek();
 			if (oe != null) {
 				if (canHouseKeep(oe)) {
-					OrderEvent oeTobeHousekept = orderQueue.poll();
-					Object clOrdId = oeTobeHousekept.get(11);
-					clOrdIdToOrderEvent.remove(clOrdId);
-					
+					logger.info("housekeeping order during execution: {}", oe);
+					removeOrder();
 				} else {
 					//TODO to be implemented
+					long cumQtyLong = 0;
+					long qtyLong = 0;
+					long remainQtyLong = 0;
 					
+					Object cumQty = oe.get(14);
+					Object qty = oe.get(38);
+					try {
+						cumQtyLong = Long.parseLong(cumQty.toString());
+						qtyLong = Long.parseLong(qty.toString());
+						remainQtyLong = qtyLong - cumQtyLong;
+					}
+					catch (Exception e) {
+						// issue happened above. However we cannot leave this doing nothing
+						// will cancel this order too.
+						logger.error("issue executing order", e);
+					}
+					
+					if (remainQtyLong <= 0) {
+						logger.error("remainQty should not be less than zero. {}", oe);
+						oe.put(39, cumQtyLong > 0 ? "2" : "4");
+						removeOrder();
+						// only remove queue size here
+						--queueSize;
+					} else {
+						// deduct quantity here
+						long quantityToBeExecuted = 0;
+						boolean isFullyFilled = true;
+						if (remainQtyLong > quantity) {
+							quantityToBeExecuted = quantity;
+							isFullyFilled = false;
+						} else {
+							quantityToBeExecuted = remainQtyLong;
+						}
+						
+						cumQtyLong += quantityToBeExecuted;
+						oe.put(14, cumQtyLong);
+						oe.put(39, isFullyFilled ? "2" : "1");
+						OrderEvent orderToBeReturned = new OrderEvent(oe);
+						// put lastshare tag 32 with quantityExecuted here
+						orderToBeReturned.put(32, quantityToBeExecuted);
+						result.add(orderToBeReturned);
+						
+						
+						unExecutedQuantity -= quantityToBeExecuted;
+						this.totalOrderQuantity -= quantityToBeExecuted;
+						if (isFullyFilled) {
+							logger.info("remove order after fully filled: {}", oe);
+							removeOrder();
+							--queueSize;
+						}
+
+						if (unExecutedQuantity <= 0) {
+							isContinue = false;
+						}
+					}
 				}
 			} else {
 				isContinue = false;
 			}			
-		}
+		} //end while
 		
 		if (unExecutedQuantity != 0) {
 			logger.error("unExecutedQuantity not zero, should have some issues....");
 		}
 		
-		return null;
+		logger.debug("order execution result: {}", result);
+		
+		return result;
 	}
 	
 }
