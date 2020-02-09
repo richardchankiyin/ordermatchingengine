@@ -135,10 +135,47 @@ public class OrderBook implements IOrderBook {
 			if (side == null) {
 				return new OrderValidationResult("Tag 54: Side cannot be missing. ");
 			} else {
-				if (!"1".equals(side) || "2".equals(side)) {
+				if (!("1".equals(side) || "2".equals(side))) {
 					return new OrderValidationResult("Tag 54: Side can only be 1 or 2. ");
 				}
 			}			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule ADDORDERPRICERANGECHECKING
+		= new OrderValidationRule("ADDORDERPRICERANGECHECKING", oe->{
+			Object price = oe.get(44);
+			Object side = oe.get(54);
+			try {
+				if (price != null && side != null) {
+					double pricedouble = Double.parseDouble(price.toString());
+					if (("1".equals(side) || "2".equals(side))) {
+						if (side == "1") {
+							boolean isValid = SpreadRanges.getInstance().isValidPrice(pricedouble, false);
+							logger.debug("price: {} isValid: {} lowestBid: {}", pricedouble, isValid, lowestBid);							
+							if (!isValid) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for bid. ", price));
+							}
+							if (pricedouble < lowestBid) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid. ", price, lowestBid));
+							}
+
+						} else {
+							boolean isValid = SpreadRanges.getInstance().isValidPrice(pricedouble, true);
+							logger.debug("price: {} isValid: {} highestAsk: {}", pricedouble, isValid, highestAsk);
+							if (!isValid) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for ask. ", price));
+							}
+							if (pricedouble > highestAsk) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask. ", price, highestAsk));
+							}
+
+						}
+					}
+				}
+			} catch (Exception e) {
+				logger.debug("issue when validating price range", e);
+			}
 			return OrderValidationResult.getAcceptedInstance();
 		});
 		
@@ -164,6 +201,7 @@ public class OrderBook implements IOrderBook {
 					, OrderValidationRuleUtil.getAddOrderCumQtyChecking()
 					, ADDORDERPRICECHECKING
 					, ADDORDERSIDECHECKING
+					, ADDORDERPRICERANGECHECKING
 					, ADDORDERSYMBOLCHECKING
 					);
 		}
@@ -174,8 +212,14 @@ public class OrderBook implements IOrderBook {
 	
 	@Override
 	public void addOrder(OrderEvent oe) {
-		// TODO Auto-generated method stub
 		handleValidationResult(oe, addOrderValidator);
+		//TODO to be implemented
+		// 1. add order to internal map for clordid duplication checking
+		// 2. from Map<Double,IPriceOrderQueue> retrieving IPriceOrderQueue object from price tag 44
+		// 3. if null from 2, create IPriceOrderQueue and add
+		// 4. Before adding, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity, then IPriceOrderQueue.addOrder
+		// 5. retrieving again the IPriceOrderQueue.getQueueSize and getTotalQuantity, from the differences, update internal
+		// 6. update bid size 
 	}
 	
 	/********* Update Order *********/
