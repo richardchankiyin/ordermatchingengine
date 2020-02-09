@@ -1,7 +1,9 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.slf4j.Logger;
@@ -33,7 +35,12 @@ public class OrderBook implements IOrderBook {
 	private double highestAsk = Double.MAX_VALUE;
 	private String symbol = null;
 	private long bidQueueSize = 0;
+	private long totalBidQuantity = 0;
 	private long askQueueSize = 0;
+	private long totalAskQuantity = 0;
+	private Map<String, OrderEvent> orderEventInternalMap = new HashMap<>();
+	private Map<Double, IPriceOrderQueue> bidPriceQueueMap = new HashMap<>();
+	private Map<Double, IPriceOrderQueue> askPriceQueueMap = new HashMap<>();
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	
 	public OrderBook(String symbol, double initPrice) {
@@ -49,7 +56,6 @@ public class OrderBook implements IOrderBook {
 		
 		this.symbol = symbol;
 		initBidAsk(this.initPrice);
-		
 	}
 	
 	private void initBidAsk(double initPrice) {
@@ -62,6 +68,9 @@ public class OrderBook implements IOrderBook {
 		logger.debug("ask: {} highest ask: {} bid: {} lowest bid: {}", this.ask, this.highestAsk, this.bid, this.lowestBid);
 	}
 	
+	protected Map<String, OrderEvent> getOrderEventInternalMap() {
+		return this.orderEventInternalMap;
+	}
 	
 	@Override
 	public double getBid() {
@@ -116,7 +125,11 @@ public class OrderBook implements IOrderBook {
 			Object clOrdId = oe.get(11);
 			if (clOrdId == null) {
 				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
-			}			
+			} else {
+				if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					return new OrderValidationResult("Tag 11: ClOrdId exists. ");
+				}
+			}
 			return OrderValidationResult.getAcceptedInstance();
 		});
 
@@ -214,12 +227,34 @@ public class OrderBook implements IOrderBook {
 	public void addOrder(OrderEvent oe) {
 		handleValidationResult(oe, addOrderValidator);
 		//TODO to be implemented
-		// 1. add order to internal map for clordid duplication checking
-		// 2. from Map<Double,IPriceOrderQueue> retrieving IPriceOrderQueue object from price tag 44
-		// 3. if null from 2, create IPriceOrderQueue and add
-		// 4. Before adding, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity, then IPriceOrderQueue.addOrder
-		// 5. retrieving again the IPriceOrderQueue.getQueueSize and getTotalQuantity, from the differences, update internal
-		// 6. update bid size 
+		Object clOrdId = oe.get(11);
+		Object price = oe.get(44);
+		double priceDouble = Double.parseDouble(price.toString());
+		Object side = oe.get(54);
+		boolean isBuy = "1".equals(side.toString());
+		// 1. from Map<Double,IPriceOrderQueue> retrieving IPriceOrderQueue object from price tag 44
+		// 2. if null from 2, create IPriceOrderQueue and add
+		Map<Double, IPriceOrderQueue> priceOrderQueue = isBuy ? bidPriceQueueMap : askPriceQueueMap;
+		IPriceOrderQueue queue = priceOrderQueue.computeIfAbsent(priceDouble, p->new PriceOrderQueue(p, isBuy));
+		// 3. Before adding, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity, then IPriceOrderQueue.addOrder
+		long beforeQueueSize = queue.getQueueSize();
+		long beforeTotalQuantity = queue.getTotalOrderQuantity();
+		queue.addOrder(oe);
+		// 4. retrieving again the IPriceOrderQueue.getQueueSize and getTotalQuantity, from the differences, update internal
+		long afterQueueSize = queue.getQueueSize();
+		long afterTotalQuantity = queue.getTotalOrderQuantity();
+		long queueSizeDiff = afterQueueSize - beforeQueueSize;
+		long totalQuantityDiff = afterTotalQuantity - beforeTotalQuantity;
+		if (isBuy) {
+			this.bidQueueSize += queueSizeDiff;
+			this.totalBidQuantity += totalQuantityDiff;
+		} else {
+			this.askQueueSize += queueSizeDiff;
+			this.totalAskQuantity += totalQuantityDiff;
+		}
+		// 5. update bid size 
+		// 6. add order to internal map for clordid duplication checking
+		getOrderEventInternalMap().put(clOrdId.toString(), oe);
 	}
 	
 	/********* Update Order *********/

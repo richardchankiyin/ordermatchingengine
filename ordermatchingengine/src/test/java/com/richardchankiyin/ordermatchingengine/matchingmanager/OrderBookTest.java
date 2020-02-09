@@ -2,6 +2,9 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
@@ -42,6 +45,32 @@ public class OrderBookTest {
 	public void testOrderBookAddOrderClOrdIdMissing() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 20);
 		OrderEvent oe = new OrderEvent();
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookAddOrderDuplicateClOrdId() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20) {
+			protected Map<String, OrderEvent> getOrderEventInternalMap() {
+				Map<String, OrderEvent> map = new HashMap<>();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(35, "D");
+				oe.put(38, 3000L);
+				oe.put(44, 30);
+				oe.put(54, "1");
+				oe.put(55, "0005.HK");
+				map.put("1111", oe);
+				return map;				
+			}
+		};
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
 		oe.put(35, "D");
 		oe.put(38, 3000L);
 		oe.put(44, 30);

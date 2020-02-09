@@ -9,7 +9,7 @@
 		</filter>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss,SSS} %-5level - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -19,7 +19,7 @@
 		<file>${DEV_HOME}/app-error.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss,SSS} %-5level - %msg%n
 			</Pattern>
 		</encoder>
 
@@ -45,7 +45,7 @@
 		<file>${DEV_HOME}/app-info.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss,SSS} %-5level - %msg%n
 			</Pattern>
 		</encoder>
 
@@ -74,7 +74,7 @@
 		<file>${DEV_HOME}/app-debug.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss,SSS} [%thread] %-5level %logger{36} - %msg%n
 			</Pattern>
 		</encoder>
 
@@ -101,7 +101,7 @@
 		<file>${DEV_HOME}/app.log</file>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+				%d{yyyy-MM-dd HH:mm:ss,SSS} [%thread] %-5level %logger{36} - %msg%n
 			</Pattern>
 		</encoder>
 
