@@ -564,7 +564,6 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 					logger.info("housekeeping order during execution: {}", oe);
 					removeOrder();
 				} else {
-					//TODO to be implemented
 					long cumQtyLong = 0;
 					long qtyLong = 0;
 					long remainQtyLong = 0;
@@ -592,12 +591,14 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 						// deduct quantity here
 						long quantityToBeExecuted = 0;
 						boolean isFullyFilled = true;
-						if (remainQtyLong > quantity) {
-							quantityToBeExecuted = quantity;
+						if (remainQtyLong > unExecutedQuantity) {
+							quantityToBeExecuted = unExecutedQuantity;
 							isFullyFilled = false;
 						} else {
 							quantityToBeExecuted = remainQtyLong;
 						}
+						
+						logger.debug("quantity: {} remaining: {} To be exe: {} unExe: {} isFullyFilled: {}", quantity, remainQtyLong, quantityToBeExecuted, unExecutedQuantity, isFullyFilled);
 						
 						cumQtyLong += quantityToBeExecuted;
 						oe.put(14, cumQtyLong);
@@ -627,7 +628,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		} //end while
 		
 		if (unExecutedQuantity != 0) {
-			logger.error("unExecutedQuantity not zero, should have some issues....");
+			logger.error("unExecutedQuantity not zero ({}), should have some issues....", unExecutedQuantity);
 		}
 		
 		logger.debug("order execution result: {}", result);
