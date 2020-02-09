@@ -1,5 +1,5 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
-public interface IOrderBook {
+public interface IOrderBook extends IPriceOrderQueue{
 
 }

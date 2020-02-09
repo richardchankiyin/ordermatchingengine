@@ -9,4 +9,6 @@ public interface IPriceOrderQueue {
 	public void updateOrder(OrderEvent oe);
 	public void cancelOrder(OrderEvent oe);
 	public List<OrderEvent> executeOrder(long quantity);
+	public long getQueueSize();
+	public long getTotalOrderQuantity();
 }
