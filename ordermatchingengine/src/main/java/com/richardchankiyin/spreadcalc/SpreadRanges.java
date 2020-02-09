@@ -121,7 +121,12 @@ public class SpreadRanges {
 	
 	public double getSingleSpreadPrice(double spot, boolean isGoUp, int noOfSpreads) {
 		double[] result = getSpreadPrices(spot, isGoUp, noOfSpreads);
-		return result[noOfSpreads - 1];
+		int targetIndex = noOfSpreads - 1;
+		if (noOfSpreads > result.length) {
+			targetIndex = result.length - 1;
+		}
+		
+		return result[targetIndex];
 	}
 	
 	public boolean isValidPrice(double price, boolean isGoUp) {

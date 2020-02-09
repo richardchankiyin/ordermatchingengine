@@ -25,9 +25,12 @@ import com.richardchankiyin.utils.NumericUtils;
 public class OrderBook implements IOrderBook {
 	private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
 	private final static int ROUND_SCALE = 10;
+	private final static int MAX_SPREAD = 24;
 	private final double initPrice;
 	private double bid = SpreadRanges.getInstance().getMinPrice();
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
+	private double lowestBid = Double.MIN_VALUE;
+	private double highestAsk = Double.MAX_VALUE;
 	private String symbol = null;
 	private long bidQueueSize = 0;
 	private long askQueueSize = 0;
@@ -53,7 +56,10 @@ public class OrderBook implements IOrderBook {
 		// ask price = init price
 		// bid price = ask price - 1 spread
 		this.ask = initPrice;
+		this.highestAsk = getHighestAsk(this.ask, MAX_SPREAD);
 		this.bid = SpreadRanges.getInstance().getSingleSpreadPrice(this.ask, false, 1);
+		this.lowestBid = getLowestBid(this.bid, MAX_SPREAD);
+		logger.debug("ask: {} highest ask: {} bid: {} lowest bid: {}", this.ask, this.highestAsk, this.bid, this.lowestBid);
 	}
 	
 	
@@ -61,15 +67,45 @@ public class OrderBook implements IOrderBook {
 	public double getBid() {
 		return bid;
 	}
-
+	
 	@Override
 	public double getAsk() {
 		return ask;
+	}
+	
+	@Override
+	public double getLowestBid() {
+		return lowestBid;
+	}
+	
+	@Override
+	public double getHighestAsk() {
+		return highestAsk;
 	}
 
 	@Override
 	public String getSymbol() {
 		return symbol;
+	}
+	
+	private double getLowestBid(double bid, int spread) {
+		double result = SpreadRanges.getInstance().getMinPrice();
+		try {
+			result = SpreadRanges.getInstance().getSingleSpreadPrice(bid, false, 24);
+		} catch (Exception e) {
+			logger.error("error found when getting lowest bid: {} spread: {}", bid, spread, e);	
+		}
+		return result;
+	}
+	
+	private double getHighestAsk(double ask, int spread) {
+		double result = SpreadRanges.getInstance().getMaxPrice();
+		try {
+			result = SpreadRanges.getInstance().getSingleSpreadPrice(ask, true, 24);
+		} catch (Exception e) {
+			logger.error("error found when getting highest ask: {} spread: {}", ask, spread, e);	
+		}
+		return result;
 	}
 	
 	/********* Add Order *********/
@@ -133,12 +169,16 @@ public class OrderBook implements IOrderBook {
 		}
 		
 	}
+	
+	
+	
 	@Override
 	public void addOrder(OrderEvent oe) {
 		// TODO Auto-generated method stub
 		handleValidationResult(oe, addOrderValidator);
 	}
-
+	
+	/********* Update Order *********/
 	@Override
 	public void updateOrder(OrderEvent oe) {
 		// TODO Auto-generated method stub
