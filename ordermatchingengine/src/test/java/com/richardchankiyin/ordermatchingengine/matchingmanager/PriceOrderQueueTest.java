@@ -899,4 +899,38 @@ public class PriceOrderQueueTest {
 		assertEquals(5000L,executedList.get(1).get(38));
 		assertEquals("1", executedList.get(1).get(39));
 	}
+	
+	@Test
+	public void testExecuteOrderOneOrderAddedOneFilledByTwoExecutionFully() {
+		PriceOrderQueue poq = new PriceOrderQueue(30, true);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 5000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		poq.addOrder(oe);
+		
+		List<OrderEvent> executedList = poq.executeOrder(3000);
+		
+		assertEquals(2000, poq.getTotalOrderQuantity());
+		assertEquals(1, poq.getQueueSize());
+		assertEquals(1, poq.getActualOrderQueueSize());
+		assertTrue(poq.getOrderEventInternalMap().containsKey("1111"));
+		assertEquals(3000L, executedList.get(0).get(14));
+		assertEquals(3000L,executedList.get(0).get(32));
+		assertEquals(5000L,executedList.get(0).get(38));
+		assertEquals("1", executedList.get(0).get(39));
+		
+		executedList = poq.executeOrder(2000);
+		
+		assertEquals(0, poq.getTotalOrderQuantity());
+		assertEquals(0, poq.getQueueSize());
+		assertEquals(0, poq.getActualOrderQueueSize());
+		assertFalse(poq.getOrderEventInternalMap().containsKey("1111"));
+		assertEquals(5000L, executedList.get(0).get(14));
+		assertEquals(2000L,executedList.get(0).get(32));
+		assertEquals(5000L,executedList.get(0).get(38));
+		assertEquals("2", executedList.get(0).get(39));
+	}
 }

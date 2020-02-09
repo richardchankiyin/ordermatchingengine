@@ -579,10 +579,13 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 						// issue happened above. However we cannot leave this doing nothing
 						// will cancel this order too.
 						logger.error("issue executing order", e);
+						oe.put(39, "4");
 					}
 					
 					if (remainQtyLong <= 0) {
-						logger.error("remainQty should not be less than zero. {}", oe);
+						// this part should not be reached. Just in case there is any issue
+						// the execution will not be blocked
+						logger.error("remainQty should not be less than zero. order: {} remainQty: {}", oe, remainQtyLong);
 						oe.put(39, cumQtyLong > 0 ? "2" : "4");
 						removeOrder();
 						// only remove queue size here
