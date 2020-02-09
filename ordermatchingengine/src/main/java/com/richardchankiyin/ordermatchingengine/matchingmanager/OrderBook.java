@@ -2,6 +2,7 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRuleUtil;
 import com.richardchankiyin.spreadcalc.SpreadRanges;
+import com.richardchankiyin.utils.NumericUtils;
 /**
  * Collection of IPriceOrderQueue to form
  * an order book, i.e. different buy and sell
@@ -22,12 +24,38 @@ import com.richardchankiyin.spreadcalc.SpreadRanges;
  */
 public class OrderBook implements IOrderBook {
 	private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
+	private final static int ROUND_SCALE = 10;
+	private final double initPrice;
 	private double bid = SpreadRanges.getInstance().getMinPrice();
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
 	private String symbol = null;
-	private long getBidQueueSize = 0;
-	private long getAskQueueSize = 0;
+	private long bidQueueSize = 0;
+	private long askQueueSize = 0;
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
+	
+	public OrderBook(String symbol, double initPrice) {
+		Objects.requireNonNull(symbol, "symbol cannot be missing. ");
+		
+		if (initPrice <= 0) {
+			throw new IllegalArgumentException("init price cannot be non-positive. ");
+		}
+		this.initPrice = NumericUtils.roundDouble(initPrice, ROUND_SCALE);
+		if (!SpreadRanges.getInstance().isValidPrice(this.initPrice, false)) {
+			throw new IllegalArgumentException("not a valid init price. ");
+		}
+		
+		this.symbol = symbol;
+		initBidAsk(this.initPrice);
+		
+	}
+	
+	private void initBidAsk(double initPrice) {
+		// ask price = init price
+		// bid price = ask price - 1 spread
+		this.ask = initPrice;
+		this.bid = SpreadRanges.getInstance().getSingleSpreadPrice(this.ask, false, 1);
+	}
+	
 	
 	@Override
 	public double getBid() {
@@ -108,7 +136,7 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public void addOrder(OrderEvent oe) {
 		// TODO Auto-generated method stub
-
+		handleValidationResult(oe, addOrderValidator);
 	}
 
 	@Override

@@ -18,6 +18,12 @@ public class SpreadRangesTest {
 	}
 	
 	@Test
+	public void testGetSingleSpreadPrice() {
+		assertTrue(19.98 == SpreadRanges.getInstance().getSingleSpreadPrice(20, false, 1));
+		assertTrue(20.05 == SpreadRanges.getInstance().getSingleSpreadPrice(20, true, 1));
+	}
+	
+	@Test
 	public void testIsValidFirstRangeMidValuesGoUp() {
 		assertTrue(SpreadRanges.getInstance().isValidPrice(0.011, true));
 		assertTrue(SpreadRanges.getInstance().isValidPrice(0.012, true));

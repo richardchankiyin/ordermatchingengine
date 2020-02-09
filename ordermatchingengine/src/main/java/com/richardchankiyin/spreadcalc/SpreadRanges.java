@@ -119,6 +119,10 @@ public class SpreadRanges {
 		
 	}
 	
+	public double getSingleSpreadPrice(double spot, boolean isGoUp, int noOfSpreads) {
+		double[] result = getSpreadPrices(spot, isGoUp, noOfSpreads);
+		return result[noOfSpreads - 1];
+	}
 	
 	public boolean isValidPrice(double price, boolean isGoUp) {
 		return getSpreadRangeNode(price, isGoUp) != null;
