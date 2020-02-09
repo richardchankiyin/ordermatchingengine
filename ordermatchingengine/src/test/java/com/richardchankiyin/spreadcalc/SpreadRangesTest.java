@@ -7,6 +7,12 @@ import org.junit.Test;
 public class SpreadRangesTest {
 
 	@Test
+	public void testGetMinMax() {
+		assertTrue(0.01 == SpreadRanges.getInstance().getMinPrice());
+		assertTrue(10000.00 == SpreadRanges.getInstance().getMaxPrice());
+	}
+	
+	@Test
 	public void testIsValidFirstRangeStartingGoUp() {
 		assertTrue(SpreadRanges.getInstance().isValidPrice(0.01, true));
 	}

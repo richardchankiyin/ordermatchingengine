@@ -5,6 +5,8 @@ public class SpreadRanges {
 	SpreadRangeNode[] srn = null;
 	SpreadRangeNode firstNode = null;
 	SpreadRangeNode lastNode = null;
+	private double minPrice = Double.MIN_VALUE;
+	private double maxPrice = Double.MAX_VALUE;
 	private class SpreadRangeNode {
 		SpreadRange sr = null;
 		SpreadRangeNode prev = null;
@@ -47,6 +49,9 @@ public class SpreadRanges {
 		
 		firstNode = srn[0];
 		lastNode = srn[10];
+		
+		minPrice = firstNode.getSpreadRange().getStartFrom();
+		maxPrice = lastNode.getSpreadRange().getEndWith();
 		
 		for (int i = 0; i < srn.length; i++) {
 			int before = i - 1;
@@ -117,6 +122,14 @@ public class SpreadRanges {
 	
 	public boolean isValidPrice(double price, boolean isGoUp) {
 		return getSpreadRangeNode(price, isGoUp) != null;
+	}
+	
+	public double getMinPrice() {
+		return this.minPrice;
+	}
+	
+	public double getMaxPrice() {
+		return this.maxPrice;
 	}
 	
 	private SpreadRangeNode getSpreadRangeNode(double price, boolean isGoUp) {
