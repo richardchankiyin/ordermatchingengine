@@ -70,15 +70,6 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		return this.orderQueue.size();
 	}
 	
-	private void handleValidationResult(OrderEvent oe, AbstractOrderValidator validator) {
-		OrderValidationResult validationResult = validator.validate(oe);
-		if (!validationResult.isAccepted()) {
-			String rejectReason = validationResult.getRejectReason();
-			logger.debug("OrderEvent: {} validator: {} Rejected Reason: {}", oe, validator, rejectReason);
-			throw new IllegalArgumentException(rejectReason);
-		}
-	}
-	
 	/**
 	 * This is to remove the first order from the queue
 	 * and get the clordid to remove entry from the map.
