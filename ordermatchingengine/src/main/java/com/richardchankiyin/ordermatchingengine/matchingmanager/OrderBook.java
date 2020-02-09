@@ -13,7 +13,6 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRuleUtil;
 import com.richardchankiyin.spreadcalc.SpreadRanges;
-import com.richardchankiyin.utils.NumericUtils;
 /**
  * Collection of IPriceOrderQueue to form
  * an order book, i.e. different buy and sell
@@ -25,9 +24,25 @@ public class OrderBook implements IOrderBook {
 	private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
 	private double bid = SpreadRanges.getInstance().getMinPrice();
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
+	private String symbol = null;
 	private long getBidQueueSize = 0;
 	private long getAskQueueSize = 0;
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
+	
+	@Override
+	public double getBid() {
+		return bid;
+	}
+
+	@Override
+	public double getAsk() {
+		return ask;
+	}
+
+	@Override
+	public String getSymbol() {
+		return symbol;
+	}
 	
 	/********* Add Order *********/
 	private class AddOrderValidator extends AbstractOrderValidator {
@@ -63,6 +78,20 @@ public class OrderBook implements IOrderBook {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 		
+		private final OrderValidationRule ADDORDERSYMBOLCHECKING
+		= new OrderValidationRule("ADDORDERSYMBOLCHECKING", oe->{
+			Object symbol = oe.get(55);
+			if (symbol == null) {
+				return new OrderValidationResult("Tag 55: Symbol cannot be missing. ");
+			} else {
+				String originalSymbol = getSymbol();
+				if (!symbol.equals(originalSymbol)) {
+					return new OrderValidationResult(String.format("Tag 55: %s is not the same as expected %s. ",symbol,originalSymbol));
+				}
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(ADDORDERCLORDIDCHECKING
@@ -71,6 +100,7 @@ public class OrderBook implements IOrderBook {
 					, OrderValidationRuleUtil.getAddOrderCumQtyChecking()
 					, ADDORDERPRICECHECKING
 					, ADDORDERSIDECHECKING
+					, ADDORDERSYMBOLCHECKING
 					);
 		}
 		
@@ -91,23 +121,12 @@ public class OrderBook implements IOrderBook {
 	public void cancelOrder(OrderEvent oe) {
 		// TODO Auto-generated method stub
 
-	}
+	}	
 
 	@Override
-	public double getBid() {
-		return bid;
-	}
-
-	@Override
-	public double getAsk() {
-		return ask;
-	}
-
-	@Override
-	public List<OrderEvent> executeOrder(long quantity) {
+	public List<OrderEvent> executeOrder(boolean isBid, long quantity) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 
 }
