@@ -11,7 +11,9 @@ import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderVa
 import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRuleUtil;
 import com.richardchankiyin.spreadcalc.SpreadRanges;
+import com.richardchankiyin.utils.NumericUtils;
 /**
  * Collection of IPriceOrderQueue to form
  * an order book, i.e. different buy and sell
@@ -25,6 +27,7 @@ public class OrderBook implements IOrderBook {
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
 	private long getBidQueueSize = 0;
 	private long getAskQueueSize = 0;
+	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	
 	/********* Add Order *********/
 	private class AddOrderValidator extends AbstractOrderValidator {
@@ -38,10 +41,37 @@ public class OrderBook implements IOrderBook {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 
+		private final OrderValidationRule ADDORDERPRICECHECKING
+		= new OrderValidationRule("ADDORDERPRICECHECKING", oe->{
+			Object price = oe.get(44);
+			if (price == null) {
+				return new OrderValidationResult("Tag 44: Price cannot be missing. ");
+			} 
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule ADDORDERSIDECHECKING
+		= new OrderValidationRule("ADDORDERSIDECHECKING", oe->{
+			Object side = oe.get(54);
+			if (side == null) {
+				return new OrderValidationResult("Tag 54: Side cannot be missing. ");
+			} else {
+				if (!"1".equals(side) || "2".equals(side)) {
+					return new OrderValidationResult("Tag 54: Side can only be 1 or 2. ");
+				}
+			}			
+			return OrderValidationResult.getAcceptedInstance();
+		});
 		
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
-			return Arrays.asList(ADDORDERCLORDIDCHECKING);
+			return Arrays.asList(ADDORDERCLORDIDCHECKING
+					, OrderValidationRuleUtil.getAddOrderMsgTypeChecking()
+					, OrderValidationRuleUtil.getAddOrderQtyChecking()
+					, OrderValidationRuleUtil.getAddOrderCumQtyChecking()
+					, ADDORDERPRICECHECKING
+					, ADDORDERSIDECHECKING
+					);
 		}
 		
 	}
