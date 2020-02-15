@@ -61,10 +61,21 @@ public class OrderBook implements IOrderBook {
 	private void initBidAsk(double initPrice) {
 		// ask price = init price
 		// bid price = ask price - 1 spread
-		this.ask = initPrice;
-		this.highestAsk = getHighestAsk(this.ask, MAX_SPREAD);
-		this.bid = SpreadRanges.getInstance().getSingleSpreadPrice(this.ask, false, 1);
+		double ask = initPrice;
+		double bid = SpreadRanges.getInstance().getSingleSpreadPrice(ask, false, 1);
+		updateBidPrices(bid);
+		updateAskPrices(ask);
+	}
+	
+	private void updateBidPrices(double bidprice) {
+		this.bid = bidprice;
 		this.lowestBid = getLowestBid(this.bid, MAX_SPREAD);
+		logger.debug("ask: {} highest ask: {} bid: {} lowest bid: {}", this.ask, this.highestAsk, this.bid, this.lowestBid);
+	}
+	
+	private void updateAskPrices(double askprice) {
+		this.ask = askprice;
+		this.highestAsk = getHighestAsk(this.ask, MAX_SPREAD);
 		logger.debug("ask: {} highest ask: {} bid: {} lowest bid: {}", this.ask, this.highestAsk, this.bid, this.lowestBid);
 	}
 	
@@ -252,7 +263,7 @@ public class OrderBook implements IOrderBook {
 			this.askQueueSize += queueSizeDiff;
 			this.totalAskQuantity += totalQuantityDiff;
 		}
-		// 5. update bid size 
+		// 5. update bid/ask price 
 		// 6. add order to internal map for clordid duplication checking
 		getOrderEventInternalMap().put(clOrdId.toString(), oe);
 	}
