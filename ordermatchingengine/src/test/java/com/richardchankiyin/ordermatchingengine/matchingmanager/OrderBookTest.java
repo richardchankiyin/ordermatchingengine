@@ -157,7 +157,7 @@ public class OrderBookTest {
 	}
 	
 	@Test
-	public void testOrderBookAddOrderBuy() {
+	public void testOrderBookAddOrderBuyLowerThanInit() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -171,10 +171,107 @@ public class OrderBookTest {
 	}
 	
 	@Test
-	public void testOrderBookAddOrderSell() {
+	public void testOrderBookAddOrderSellHigherThanInit() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.25);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.25 == orderBook.getAsk());
+	}
+	
+	@Test
+	public void testOrderBookAddOrderBuyHigherThanInit() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.1);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.1 == orderBook.getBid());
+	}
+	
+	@Test
+	public void testOrderBookAddOrderSellLowerThanInit() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 59.95);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(59.95 == orderBook.getAsk());
+	}
+	
+	@Test
+	public void testOrderBookAddMultipleBuyOrders() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 59.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(59.5 == orderBook.getBid());
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 59.25);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(59.5 == orderBook.getBid());
+		
+		oe = new OrderEvent();
+		oe.put(11, "3333");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 59.75);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(59.75 == orderBook.getBid());
+		
+	}
+	
+	@Test
+	public void testOrderBookAddMultipleSellOrders() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.95);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.95 == orderBook.getAsk());
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 61.25);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.95 == orderBook.getAsk());
+		
+		oe = new OrderEvent();
+		oe.put(11, "3333");
 		oe.put(35, "D");
 		oe.put(38, 3000L);
 		oe.put(44, 60.25);
