@@ -2,9 +2,12 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +42,8 @@ public class OrderBook implements IOrderBook {
 	private long askQueueSize = 0;
 	private long totalAskQuantity = 0;
 	private Map<String, OrderEvent> orderEventInternalMap = new HashMap<>();
-	private Map<Double, IPriceOrderQueue> bidPriceQueueMap = new HashMap<>();
-	private Map<Double, IPriceOrderQueue> askPriceQueueMap = new HashMap<>();
+	private TreeMap<Double, IPriceOrderQueue> bidPriceQueueMap = new TreeMap<>();
+	private TreeMap<Double, IPriceOrderQueue> askPriceQueueMap = new TreeMap<>();
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	
 	public OrderBook(String symbol, double initPrice) {
@@ -63,6 +66,10 @@ public class OrderBook implements IOrderBook {
 		// bid price = ask price - 1 spread
 		double ask = initPrice;
 		double bid = SpreadRanges.getInstance().getSingleSpreadPrice(ask, false, 1);
+		// add price queue
+		bidPriceQueueMap.put(bid, new PriceOrderQueue(bid, true));
+		askPriceQueueMap.put(ask, new PriceOrderQueue(ask, false));
+		
 		updateBidPrices(bid);
 		updateAskPrices(ask);
 	}
@@ -77,6 +84,34 @@ public class OrderBook implements IOrderBook {
 		this.ask = askprice;
 		this.highestAsk = getHighestAsk(this.ask, MAX_SPREAD);
 		logger.debug("ask: {} highest ask: {} bid: {} lowest bid: {}", this.ask, this.highestAsk, this.bid, this.lowestBid);
+	}
+	
+	protected double getCurrentHighestBid() {
+		double result = SpreadRanges.getInstance().getMinPrice();
+		Iterator<Entry<Double, IPriceOrderQueue>> iterator = bidPriceQueueMap.descendingMap().entrySet().iterator();
+		boolean isContinue = true;
+		while (iterator.hasNext() && isContinue) {
+			Entry<Double, IPriceOrderQueue> entry = iterator.next();
+			if (entry.getValue().getQueueSize() > 0) {
+				result = entry.getKey();
+				isContinue = false;
+			}
+		}
+		return result;
+	}
+	
+	protected double getCurrentLowestAsk() {
+		double result = SpreadRanges.getInstance().getMaxPrice();
+		Iterator<Entry<Double, IPriceOrderQueue>> iterator = askPriceQueueMap.entrySet().iterator();
+		boolean isContinue = true;
+		while (iterator.hasNext() && isContinue) {
+			Entry<Double, IPriceOrderQueue> entry = iterator.next();
+			if (entry.getValue().getQueueSize() > 0) {
+				result = entry.getKey();
+				isContinue = false;
+			}
+		}
+		return result;
 	}
 	
 	protected Map<String, OrderEvent> getOrderEventInternalMap() {
@@ -264,8 +299,41 @@ public class OrderBook implements IOrderBook {
 			this.totalAskQuantity += totalQuantityDiff;
 		}
 		// 5. update bid/ask price 
+		updateBidAskPriceDueToAddOrder(isBuy, priceDouble);
 		// 6. add order to internal map for clordid duplication checking
 		getOrderEventInternalMap().put(clOrdId.toString(), oe);
+	}
+	
+	private void updateBidAskPriceDueToAddOrder(boolean isBuy, double orderPrice) {
+		if (isBuy) {
+			double bidPriceToBeUpdated = this.bid;
+			if (orderPrice > this.bid) {
+				bidPriceToBeUpdated = orderPrice; 
+			} else {
+				IPriceOrderQueue bidQueue = bidPriceQueueMap.get(this.bid);
+				if (bidQueue.getQueueSize() == 0) {
+					bidPriceToBeUpdated = this.getCurrentHighestBid();
+				}
+			}
+			
+			if (bidPriceToBeUpdated != this.bid) {
+				updateBidPrices(bidPriceToBeUpdated);
+			}
+		} else {
+			double askPriceToBeUpdated = this.ask;
+			if (orderPrice < this.ask) {
+				askPriceToBeUpdated = orderPrice;
+			} else {
+				IPriceOrderQueue askQueue = askPriceQueueMap.get(this.ask);
+				if (askQueue.getQueueSize() == 0) {
+					askPriceToBeUpdated = this.getCurrentLowestAsk();
+				}
+			}
+			
+			if (askPriceToBeUpdated != this.ask) {
+				updateAskPrices(askPriceToBeUpdated);
+			}
+		}
 	}
 	
 	/********* Update Order *********/
