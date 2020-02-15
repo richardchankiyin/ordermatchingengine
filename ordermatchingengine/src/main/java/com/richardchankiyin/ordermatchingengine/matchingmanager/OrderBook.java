@@ -289,7 +289,6 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public void addOrder(OrderEvent oe) {
 		handleValidationResult(oe, addOrderValidator);
-		//TODO to be implemented
 		Object clOrdId = oe.get(11);
 		Object price = oe.get(44);
 		double priceDouble = Double.parseDouble(price.toString());
