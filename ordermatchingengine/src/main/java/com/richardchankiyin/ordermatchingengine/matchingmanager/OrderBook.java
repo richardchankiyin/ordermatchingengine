@@ -36,6 +36,7 @@ public class OrderBook implements IOrderBook {
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
 	private double lowestBid = Double.MIN_VALUE;
 	private double highestAsk = Double.MAX_VALUE;
+
 	private String symbol = null;
 	private long bidQueueSize = 0;
 	private long totalBidQuantity = 0;
@@ -141,6 +142,22 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public String getSymbol() {
 		return symbol;
+	}
+	
+	public long getBidQueueSize() {
+		return bidQueueSize;
+	}
+
+	public long getTotalBidQuantity() {
+		return totalBidQuantity;
+	}
+
+	public long getAskQueueSize() {
+		return askQueueSize;
+	}
+
+	public long getTotalAskQuantity() {
+		return totalAskQuantity;
 	}
 	
 	private double getLowestBid(double bid, int spread) {
