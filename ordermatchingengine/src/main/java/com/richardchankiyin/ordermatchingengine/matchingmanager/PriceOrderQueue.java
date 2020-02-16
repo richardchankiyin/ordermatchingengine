@@ -219,20 +219,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 			
 			return OrderValidationResult.getAcceptedInstance();
 		});
-		
-		private final OrderValidationRule UPDATEORDERMSGTYPECHECKING
-		= new OrderValidationRule("UPDATEORDERMSGTYPECHECKING", oe->{
-			Object msgType = oe.get(35);
-			if (msgType == null) {
-				return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
-			} else {
-				if (!"G".equals(msgType)) {
-					return new OrderValidationResult("Tag 35: MsgType can only be G. ");
-				}
-			}
-			
-			return OrderValidationResult.getAcceptedInstance();
-		});
+
 		
 		private final OrderValidationRule UPDATEORDERQTYCHECKING
 		= new OrderValidationRule("UPDATEORDERQTYCHECKING", oe->{
@@ -334,7 +321,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					UPDATEORDERCLORDIDCHECKING
-					, UPDATEORDERMSGTYPECHECKING
+					, OrderValidationRuleUtil.getUpdateOrderMsgTypeChecking()
 					, UPDATEORDERQTYCHECKING
 					, UPDATEORDERSTATUSCHECKING
 					, UPDATEORDERPRICECHECKING
