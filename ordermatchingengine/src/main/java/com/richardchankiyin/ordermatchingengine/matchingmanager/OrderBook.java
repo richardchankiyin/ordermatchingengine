@@ -49,6 +49,7 @@ public class OrderBook implements IOrderBook {
 	/****** validation logic *******/
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	private UpdateOrderValidator updateOrderValidator = new UpdateOrderValidator();
+	private CancelOrderValidator cancelOrderValidator = new CancelOrderValidator();
 
 	
 	public OrderBook(String symbol, double initPrice) {
@@ -529,8 +530,33 @@ public class OrderBook implements IOrderBook {
 	}
 	
 	/********* Cancel Order *********/
+	private class CancelOrderValidator extends AbstractOrderValidator  {
+		private final OrderValidationRule CANCELORDERCLORDIDCHECKING
+		= new OrderValidationRule("CANCELORDERCLORDIDCHECKING", oe->{
+			Object clOrdId = oe.get(11);
+			if (clOrdId == null) {
+				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
+			} else {
+				if (!getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					return new OrderValidationResult("Tag 11: ClOrdId does not exist. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(CANCELORDERCLORDIDCHECKING
+					, OrderValidationRuleUtil.getCancelOrderMsgTypeChecking());
+		}
+		
+	}
+	
+	
 	@Override
 	public void cancelOrder(OrderEvent oe) {
+		handleValidationResult(oe, cancelOrderValidator);
 		// TODO Auto-generated method stub
 
 	}	

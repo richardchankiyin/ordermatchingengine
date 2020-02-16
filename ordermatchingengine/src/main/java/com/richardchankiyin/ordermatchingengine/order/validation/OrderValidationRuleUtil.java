@@ -91,6 +91,20 @@ public class OrderValidationRuleUtil {
 		return OrderValidationResult.getAcceptedInstance();
 	});
 	
+	private static final OrderValidationRule CANCELORDERMSGTYPECHECKING
+	= new OrderValidationRule("CANCELORDERMSGTYPECHECKING", oe->{
+		Object msgType = oe.get(35);
+		if (msgType == null) {
+			return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
+		} else {
+			if (!"F".equals(msgType)) {
+				return new OrderValidationResult("Tag 35: MsgType can only be F. ");
+			}
+		}
+		
+		return OrderValidationResult.getAcceptedInstance();
+	});
+	
 	public static OrderValidationRule getAddOrderMsgTypeChecking() {
 		return ADDORDERMSGTYPECHECKING;
 	}
@@ -105,5 +119,9 @@ public class OrderValidationRuleUtil {
 	
 	public static OrderValidationRule getUpdateOrderMsgTypeChecking() {
 		return UPDATEORDERMSGTYPECHECKING;
+	}
+	
+	public static OrderValidationRule getCancelOrderMsgTypeChecking() {
+		return CANCELORDERMSGTYPECHECKING;
 	}
 }

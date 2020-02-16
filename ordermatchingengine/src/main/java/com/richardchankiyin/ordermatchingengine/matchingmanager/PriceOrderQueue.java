@@ -366,20 +366,6 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 			return OrderValidationResult.getAcceptedInstance();
 		});
 		
-		private final OrderValidationRule CANCELORDERMSGTYPECHECKING
-		= new OrderValidationRule("CANCELORDERMSGTYPECHECKING", oe->{
-			Object msgType = oe.get(35);
-			if (msgType == null) {
-				return new OrderValidationResult("Tag 35: MsgType cannot be missing. ");
-			} else {
-				if (!"F".equals(msgType)) {
-					return new OrderValidationResult("Tag 35: MsgType can only be F. ");
-				}
-			}
-			
-			return OrderValidationResult.getAcceptedInstance();
-		});
-		
 		private final OrderValidationRule CANCELORDERSTATUSCHECKING
 		= new OrderValidationRule("CANCELORDERSTATUSCHECKING", oe->{
 			
@@ -405,7 +391,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					CANCELORDERCLORDIDCHECKING
-					, CANCELORDERMSGTYPECHECKING
+					, OrderValidationRuleUtil.getCancelOrderMsgTypeChecking()
 					, CANCELORDERSTATUSCHECKING
 					);
 		}
