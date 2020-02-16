@@ -359,4 +359,111 @@ public class OrderBookTest {
 		orderBook.updateOrder(oe);
 	}
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderPriceMissing() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderPriceChanged() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 19.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderSideMissing() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 20);
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderSideChanged() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 20);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderSymbolChanged() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0006.HK");
+		orderBook.updateOrder(oe);
+	}
 }
