@@ -4,10 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.OrderEventView;
 
 public class OrderRepository implements IOrderUpdateable{
+	private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
 	private static final int[] fixtagnotsaved = {35};
 	private Map<String, OrderEvent> orderMap = null;
 	private OrderModel orderModel = null;
@@ -23,10 +27,14 @@ public class OrderRepository implements IOrderUpdateable{
 		Object okey = oe.get(11);
 		Objects.requireNonNull(okey, "Tag 11 Key missing");
 		OrderEvent existing = orderMap.get(okey.toString());
+		boolean isNewEvent = false;
 		if (existing == null) {
+			isNewEvent = true;
 			existing = new OrderEvent();
 		}
-		existing.putAll(copyOrderEvent(oe));
+		OrderEvent updatedAs = copyOrderEvent(oe);
+		logger.debug("[isNewEvent: {}][original event: {}][to be updated as: {}]", isNewEvent, existing, updatedAs);
+		existing.putAll(updatedAs);		
 		orderMap.put(okey.toString(), existing);
 	}
 	
