@@ -314,4 +314,27 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.updateOrder(oe);
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderMsgTypeNotAccepted() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 2000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
+	
 }

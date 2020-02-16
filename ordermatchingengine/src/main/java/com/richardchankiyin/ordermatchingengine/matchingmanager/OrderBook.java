@@ -402,13 +402,6 @@ public class OrderBook implements IOrderBook {
 						if (qtyLong >= originQtyLong) {
 							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to origin qty: %s. ",qty,originalQty));
 						}
-						// check new qty >= CumQty
-						Object originCumQty = originOrderEvent.get(14);
-						long originCumQtyLong = Long.parseLong(originCumQty.toString());
-						long remainQtyLong = originQtyLong - originCumQtyLong;
-						if (qtyLong >= remainQtyLong) {
-							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger than/equals to remainingQty: %s. ",qty,remainQtyLong));
-						}
 					}
 					
 				}
@@ -490,6 +483,7 @@ public class OrderBook implements IOrderBook {
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					UPDATEORDERCLORDIDCHECKING
+					, OrderValidationRuleUtil.getUpdateOrderMsgTypeChecking()
 					, UPDATEORDERQTYCHECKING
 					, UPDATEORDERPRICECHECKING
 					, UPDATEORDERSIDECHECKING
