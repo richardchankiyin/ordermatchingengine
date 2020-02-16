@@ -164,6 +164,12 @@ public class OrderBook implements IOrderBook {
 		return totalAskQuantity;
 	}
 	
+	private void updateOrderInternalMap(OrderEvent oe) {
+		OrderEvent copiedOe = new OrderEvent(oe);
+		copiedOe.remove(35);
+		getOrderEventInternalMap().put(copiedOe.get(11).toString(), copiedOe);
+	}
+	
 	private double getLowestBid(double bid, int spread) {
 		double result = SpreadRanges.getInstance().getMinPrice();
 		try {
@@ -293,7 +299,6 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public void addOrder(OrderEvent oe) {
 		handleValidationResult(oe, addOrderValidator);
-		Object clOrdId = oe.get(11);
 		Object price = oe.get(44);
 		double priceDouble = Double.parseDouble(price.toString());
 		Object side = oe.get(54);
@@ -321,7 +326,7 @@ public class OrderBook implements IOrderBook {
 		// 5. update bid/ask price 
 		updateBidAskPriceDueToAddOrder(isBuy, priceDouble);
 		// 6. add order to internal map for clordid duplication checking
-		getOrderEventInternalMap().put(clOrdId.toString(), oe);
+		updateOrderInternalMap(oe);
 	}
 	
 	private void updateBidAskPriceDueToAddOrder(boolean isBuy, double orderPrice) {
@@ -494,8 +499,33 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public void updateOrder(OrderEvent oe) {
 		handleValidationResult(oe, updateOrderValidator);
-		// TODO Auto-generated method stub
+		Object price = oe.get(44);
+		double priceDouble = Double.parseDouble(price.toString());
+		Object side = oe.get(54);
+		boolean isBuy = "1".equals(side.toString());
 
+		// 1. from Map<Double,IPriceOrderQueue> retrieving IPriceOrderQueue object from price tag 44 and tag 54
+		Map<Double, IPriceOrderQueue> priceOrderQueue = isBuy ? bidPriceQueueMap : askPriceQueueMap;
+		IPriceOrderQueue queue = priceOrderQueue.get(priceDouble);
+		// 2. Before updating, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity
+		long beforeQueueSize = queue.getQueueSize();
+		long beforeTotalQuantity = queue.getTotalOrderQuantity();
+		// 3. retrieving again the IPriceOrderQueue.getQueueSize and getTotalQuantity, from the differences, update internal
+		queue.updateOrder(oe);
+		long afterQueueSize = queue.getQueueSize();
+		long afterTotalQuantity = queue.getTotalOrderQuantity();
+		long queueSizeDiff = afterQueueSize - beforeQueueSize;
+		long totalQuantityDiff = afterTotalQuantity - beforeTotalQuantity;
+		if (isBuy) {
+			this.bidQueueSize += queueSizeDiff;
+			this.totalBidQuantity += totalQuantityDiff;
+		} else {
+			this.askQueueSize += queueSizeDiff;
+			this.totalAskQuantity += totalQuantityDiff;
+		}
+		// 4. updating bid/ask price is not required as updateOrder will not remove an order completely from a queue
+		// 5. update order to internal map for clordid duplication checking
+		updateOrderInternalMap(oe);
 	}
 	
 	/********* Cancel Order *********/

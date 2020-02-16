@@ -466,4 +466,64 @@ public class OrderBookTest {
 		oe.put(55, "0006.HK");
 		orderBook.updateOrder(oe);
 	}
+	
+	@Test
+	public void testOrderBookUpdateOrderBuyOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		assertTrue(60 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000L, orderBook.getTotalBidQuantity());
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+		
+		assertTrue(60 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(2000L, orderBook.getTotalBidQuantity());
+	}
+	
+	@Test
+	public void testOrderBookUpdateOrderSellOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		assertTrue(60 == orderBook.getAsk());
+		assertEquals(1, orderBook.getAskQueueSize());
+		assertEquals(3000L, orderBook.getTotalAskQuantity());
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 2000L);
+		oe.put(44, 60);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+		
+		assertTrue(60 == orderBook.getAsk());
+		assertEquals(1, orderBook.getAskQueueSize());
+		assertEquals(2000L, orderBook.getTotalAskQuantity());
+	}
 }
