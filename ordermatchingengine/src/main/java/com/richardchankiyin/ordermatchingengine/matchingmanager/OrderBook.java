@@ -1,14 +1,18 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +54,7 @@ public class OrderBook implements IOrderBook {
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
 	private UpdateOrderValidator updateOrderValidator = new UpdateOrderValidator();
 	private CancelOrderValidator cancelOrderValidator = new CancelOrderValidator();
+	private ExecuteOrderValidator executeOrderValidator = new ExecuteOrderValidator();
 
 	
 	public OrderBook(String symbol, double initPrice) {
@@ -577,7 +582,6 @@ public class OrderBook implements IOrderBook {
 	@Override
 	public void cancelOrder(OrderEvent oe) {
 		handleValidationResult(oe, cancelOrderValidator);
-		// TODO Auto-generated method stub
 		// 1. from orderEventInternalMap retrieve the order from tag 11
 		Object clOrdId = oe.get(11);
 		// 2. get the event and extract tag 44 and tag 54
@@ -612,9 +616,94 @@ public class OrderBook implements IOrderBook {
 	}	
 	
 	/********* Execute Order *********/
+	// input (quantity, bestprice) -> listof price/quantity
+	private BiFunction<Long, Double, List<Pair<Double,Long>>> buyOrderExecutedQuantities = (quantity,bestPrice)-> {
+		if (bestPrice < bid) {
+			throw new IllegalStateException(String.format("best price: %s is lower than bid: %s for buy order", bestPrice, bid));
+		}
+		TreeMap<Double,IPriceOrderQueue> map = bidPriceQueueMap;
+		double startPrice = bid;
+		double endPrice = bestPrice;
+		long quantityUnreserved = quantity;
+		boolean isContinue = true;
+		List<Pair<Double,Long>> result = new ArrayList<>();
+		while (isContinue) {
+			IPriceOrderQueue queue = map.get(startPrice);
+			long quantityReservedForThisRound = 0;
+			if (queue != null) {
+				long quantityAvailable = queue.getTotalOrderQuantity();				
+				if (quantityUnreserved > quantityAvailable) {
+					quantityReservedForThisRound = quantityAvailable;
+				} else {
+					quantityReservedForThisRound = quantityUnreserved;
+				}
+				result.add(Pair.with(startPrice, quantityReservedForThisRound));
+				quantityUnreserved -= quantityReservedForThisRound;
+			}
+			
+			if (quantityUnreserved <= 0) {
+				isContinue = false;
+			} else {
+				double newStartPrice = map.lowerKey(startPrice);
+				if (newStartPrice < endPrice) {
+					isContinue = false;
+				} else {
+					startPrice = newStartPrice;
+				}
+			}
+		}
+		
+		if (quantityUnreserved != 0) {
+			throw new IllegalStateException(String.format("quantityUnreserved :%s != 0, some issues happened", quantityUnreserved));
+		}
+		
+		return result;
+	};
+	
+	
+	private class ExecuteOrderValidator extends AbstractOrderValidator  {
+		private final OrderValidationRule EXEORDERCLORDIDCHECKING
+		= new OrderValidationRule("EXEORDERCLORDIDCHECKING", oe->{
+			try {
+				double price = Double.parseDouble(oe.get(44).toString());
+				long quantity = Long.parseLong(oe.get(38).toString());
+				boolean isBuy = "1".equals(oe.get(54));
+				long availableQuantity = isBuy ? totalBidQuantity : totalAskQuantity;
+				if (price <= 0) {
+					return new OrderValidationResult("price cannot be non-positive");
+				}
+				if (quantity <= 0) {
+					return new OrderValidationResult("quantity cannot be non-positive");
+				}
+				if (availableQuantity < quantity) {
+					return new OrderValidationResult(String.format("Not enough available quantity. isBuy: %s available quantity: %s quantity request: %s. "
+							, isBuy, availableQuantity, quantity));
+				}
+			} catch (Exception e) {
+				logger.error("issue happens when running execute order checking. ", e);
+				return new OrderValidationResult("issue happens when running execute order checking");
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(EXEORDERCLORDIDCHECKING);
+		}
+		
+	}
 	@Override
-	public List<OrderEvent> executeOrder(boolean isBid, long quantity) {
+	public List<OrderEvent> executeOrders(boolean isBid, long quantity, double bestPrice) {
+		OrderEvent oe = new OrderEvent();
+		oe.put(38, quantity);
+		oe.put(44, bestPrice);
+		oe.put(54, isBid ? "1" : "2");		
+		handleValidationResult(oe, executeOrderValidator);
 		// TODO Auto-generated method stub
+		
+		
 		return null;
 	}
 
