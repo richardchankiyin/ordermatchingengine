@@ -399,7 +399,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 	}
 	
 	/**
-	 * This is to add a new order single to the order book
+	 * This is to cancel an order in the order book
 	 * @param oe
 	 */
 	public void cancelOrder(OrderEvent oe) {

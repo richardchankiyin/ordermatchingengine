@@ -103,6 +103,11 @@ public class OrderBook implements IOrderBook {
 				isContinue = false;
 			}
 		}
+		
+		if (result == SpreadRanges.getInstance().getMinPrice()) {
+			throw new IllegalStateException("cannot determine price for higest bid");
+		}
+		
 		return result;
 	}
 	
@@ -117,6 +122,10 @@ public class OrderBook implements IOrderBook {
 				isContinue = false;
 			}
 		}
+		if (result == SpreadRanges.getInstance().getMaxPrice()) {
+			throw new IllegalStateException("cannot determine price for lowest ask");
+		}
+		
 		return result;
 	}
 	
@@ -189,6 +198,49 @@ public class OrderBook implements IOrderBook {
 			logger.error("error found when getting highest ask: {} spread: {}", ask, spread, e);	
 		}
 		return result;
+	}
+	
+	private void updateBidAskPriceAfterOrderProcessing(boolean isBuy, double orderPrice) {
+		if (isBuy) {
+			double bidPriceToBeUpdated = this.bid;
+			if (orderPrice > this.bid) {
+				bidPriceToBeUpdated = orderPrice; 
+			} else {
+				IPriceOrderQueue bidQueue = bidPriceQueueMap.get(this.bid);
+				if (bidQueue.getQueueSize() == 0) {
+					try {
+						bidPriceToBeUpdated = this.getCurrentHighestBid();
+					}
+					catch (Exception e) {
+						logger.debug("no bid price obtained as no queue anymore.", e);
+						logger.info("no bid price obtained as no queue anymore.");
+					}
+				}
+			}
+			
+			if (bidPriceToBeUpdated != this.bid) {
+				updateBidPrices(bidPriceToBeUpdated);
+			}
+		} else {
+			double askPriceToBeUpdated = this.ask;
+			if (orderPrice < this.ask) {
+				askPriceToBeUpdated = orderPrice;
+			} else {
+				IPriceOrderQueue askQueue = askPriceQueueMap.get(this.ask);
+				if (askQueue.getQueueSize() == 0) {
+					try {
+						askPriceToBeUpdated = this.getCurrentLowestAsk();
+					} catch (Exception e) {
+						logger.debug("no ask price obtained as no queue anymore.", e);
+						logger.info("no ask price obtained as no queue anymore.");
+					}
+				}
+			}
+			
+			if (askPriceToBeUpdated != this.ask) {
+				updateAskPrices(askPriceToBeUpdated);
+			}
+		}
 	}
 	
 	/********* Add Order *********/
@@ -325,41 +377,9 @@ public class OrderBook implements IOrderBook {
 			this.totalAskQuantity += totalQuantityDiff;
 		}
 		// 5. update bid/ask price 
-		updateBidAskPriceDueToAddOrder(isBuy, priceDouble);
+		updateBidAskPriceAfterOrderProcessing(isBuy, priceDouble);
 		// 6. add order to internal map for clordid duplication checking
 		updateOrderInternalMap(oe);
-	}
-	
-	private void updateBidAskPriceDueToAddOrder(boolean isBuy, double orderPrice) {
-		if (isBuy) {
-			double bidPriceToBeUpdated = this.bid;
-			if (orderPrice > this.bid) {
-				bidPriceToBeUpdated = orderPrice; 
-			} else {
-				IPriceOrderQueue bidQueue = bidPriceQueueMap.get(this.bid);
-				if (bidQueue.getQueueSize() == 0) {
-					bidPriceToBeUpdated = this.getCurrentHighestBid();
-				}
-			}
-			
-			if (bidPriceToBeUpdated != this.bid) {
-				updateBidPrices(bidPriceToBeUpdated);
-			}
-		} else {
-			double askPriceToBeUpdated = this.ask;
-			if (orderPrice < this.ask) {
-				askPriceToBeUpdated = orderPrice;
-			} else {
-				IPriceOrderQueue askQueue = askPriceQueueMap.get(this.ask);
-				if (askQueue.getQueueSize() == 0) {
-					askPriceToBeUpdated = this.getCurrentLowestAsk();
-				}
-			}
-			
-			if (askPriceToBeUpdated != this.ask) {
-				updateAskPrices(askPriceToBeUpdated);
-			}
-		}
 	}
 	
 	/********* Update Order *********/
@@ -558,9 +578,39 @@ public class OrderBook implements IOrderBook {
 	public void cancelOrder(OrderEvent oe) {
 		handleValidationResult(oe, cancelOrderValidator);
 		// TODO Auto-generated method stub
-
+		// 1. from orderEventInternalMap retrieve the order from tag 11
+		Object clOrdId = oe.get(11);
+		// 2. get the event and extract tag 44 and tag 54
+		OrderEvent originalEvent = getOrderEventInternalMap().get(clOrdId);
+		Object price = originalEvent.get(44);
+		double priceDouble = Double.parseDouble(price.toString());
+		Object side = originalEvent.get(54);
+		boolean isBuy = "1".equals(side.toString());
+		// 3. Map<Double,IPriceOrderQueue> retrieve IPriceOrderQueue
+		Map<Double, IPriceOrderQueue> priceOrderQueue = isBuy ? bidPriceQueueMap : askPriceQueueMap;
+		IPriceOrderQueue queue = priceOrderQueue.get(priceDouble);
+		// 4. Before cancel, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity
+		long beforeQueueSize = queue.getQueueSize();
+		long beforeTotalQuantity = queue.getTotalOrderQuantity();
+		// 5. cancel the order, retrieve IPriceOrderQueue.getQueueSize and getTotalQuantity and calc the diff
+		queue.cancelOrder(oe);
+		long afterQueueSize = queue.getQueueSize();
+		long afterTotalQuantity = queue.getTotalOrderQuantity();
+		long queueSizeDiff = afterQueueSize - beforeQueueSize;
+		long totalQuantityDiff = afterTotalQuantity - beforeTotalQuantity;
+		if (isBuy) {
+			this.bidQueueSize += queueSizeDiff;
+			this.totalBidQuantity += totalQuantityDiff;
+		} else {
+			this.askQueueSize += queueSizeDiff;
+			this.totalAskQuantity += totalQuantityDiff;
+		}
+		// 6. update bid/ask price 
+		updateBidAskPriceAfterOrderProcessing(isBuy, priceDouble);
+		// 7. add order to internal map for clordid duplication checking
+		updateOrderInternalMap(oe);
 	}	
-
+	
 	/********* Execute Order *********/
 	@Override
 	public List<OrderEvent> executeOrder(boolean isBid, long quantity) {

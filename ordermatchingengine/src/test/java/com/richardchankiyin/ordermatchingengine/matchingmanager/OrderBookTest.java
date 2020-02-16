@@ -526,4 +526,146 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getAskQueueSize());
 		assertEquals(2000L, orderBook.getTotalAskQuantity());
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookCancelOrderClOrdIdMissing() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "F");
+		oe.put(38, 3000L);
+		oe.put(44, 60);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.cancelOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookCancelOrderClOrdIdNotFound() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		oe.put(38, 3000L);
+		oe.put(44, 60);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.cancelOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookCancelOrderMsgTypeNotAccepted() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		orderBook.cancelOrder(oe);
+	}
+	
+	@Test
+	public void testOrderBookCancelOrderBuyOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 59.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(59.5 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000L, orderBook.getTotalBidQuantity());
+		
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		orderBook.cancelOrder(oe);
+		assertTrue(59.5 == orderBook.getBid());
+		assertEquals(0, orderBook.getBidQueueSize());
+		assertEquals(0L, orderBook.getTotalBidQuantity());
+	}
+	
+	@Test
+	public void testOrderBookCancelOrderSellOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.5 == orderBook.getAsk());
+		assertEquals(1, orderBook.getAskQueueSize());
+		assertEquals(3000L, orderBook.getTotalAskQuantity());
+		
+		
+		oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "F");
+		orderBook.cancelOrder(oe);
+		assertTrue(60.5 == orderBook.getAsk());
+		assertEquals(0, orderBook.getAskQueueSize());
+		assertEquals(0L, orderBook.getTotalAskQuantity());
+	}
+	
+	@Test
+	public void testOrderBookCancelOrderMultipleBuyOrders() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.5 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000L, orderBook.getTotalBidQuantity());
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 4000L);
+		oe.put(44, 60.0);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.5 == orderBook.getBid());
+		assertEquals(2, orderBook.getBidQueueSize());
+		assertEquals(7000L, orderBook.getTotalBidQuantity());
+		
+		
+		oe = new OrderEvent();
+		oe.put(11, "3333");
+		oe.put(35, "D");
+		oe.put(38, 6000L);
+		oe.put(44, 60.55);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.55 == orderBook.getBid());
+		assertEquals(3, orderBook.getBidQueueSize());
+		assertEquals(13000L, orderBook.getTotalBidQuantity());
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "F");
+		orderBook.cancelOrder(oe);
+		assertTrue(60.55 == orderBook.getBid());
+		assertEquals(2, orderBook.getBidQueueSize());
+		assertEquals(9000L, orderBook.getTotalBidQuantity());
+	}
 }
