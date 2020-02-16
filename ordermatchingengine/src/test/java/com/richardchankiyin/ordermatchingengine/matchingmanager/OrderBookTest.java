@@ -301,4 +301,17 @@ public class OrderBookTest {
 		assertEquals(3, orderBook.getAskQueueSize());
 		assertEquals(12000L, orderBook.getTotalAskQuantity());
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookUpdateOrderClOrdIdNotFound() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 20);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.updateOrder(oe);
+	}
 }

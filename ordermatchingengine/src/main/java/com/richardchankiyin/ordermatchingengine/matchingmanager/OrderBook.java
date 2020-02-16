@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,10 @@ import com.richardchankiyin.utils.NumericUtils;
  *
  */
 public class OrderBook implements IOrderBook {
-	private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
+	private final static Logger logger = LoggerFactory.getLogger(OrderBook.class);
 	private final static int ROUND_SCALE = 10;
 	private final static int MAX_SPREAD = 24;
+	
 	private final double initPrice;
 	private double bid = SpreadRanges.getInstance().getMinPrice();
 	private double ask = SpreadRanges.getInstance().getMaxPrice();
@@ -45,7 +47,10 @@ public class OrderBook implements IOrderBook {
 	private Map<String, OrderEvent> orderEventInternalMap = new HashMap<>();
 	private TreeMap<Double, IPriceOrderQueue> bidPriceQueueMap = new TreeMap<>();
 	private TreeMap<Double, IPriceOrderQueue> askPriceQueueMap = new TreeMap<>();
+	/****** validation logic *******/
 	private AddOrderValidator addOrderValidator = new AddOrderValidator();
+	private UpdateOrderValidator updateOrderValidator = new UpdateOrderValidator();
+
 	
 	public OrderBook(String symbol, double initPrice) {
 		Objects.requireNonNull(symbol, "symbol cannot be missing. ");
@@ -353,18 +358,161 @@ public class OrderBook implements IOrderBook {
 	}
 	
 	/********* Update Order *********/
+	private class UpdateOrderValidator extends AbstractOrderValidator {
+		private final OrderValidationRule UPDATEORDERCLORDIDCHECKING
+		= new OrderValidationRule("UPDATEORDERCLORDIDCHECKING", oe->{
+			Object clOrdId = oe.get(11);
+			if (clOrdId == null) {
+				return new OrderValidationResult("Tag 11: ClOrdId cannot be missing. ");
+			} else {
+				if (!getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+					return new OrderValidationResult("Tag 11: ClOrdId does not exist. ");
+				}
+			}
+			
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERQTYCHECKING
+		= new OrderValidationRule("UPDATEORDERQTYCHECKING", oe->{
+			Object qty = oe.get(38);
+			if (qty == null) {
+				return new OrderValidationResult("Tag 38: Qty cannot be missing. ");
+			} else {
+				long qtyLong = 0;
+				try {
+					qtyLong = Long.parseLong(qty.toString());
+				}
+				catch (Exception e) {
+					logger.debug("qty parsing issue", e);
+					return new OrderValidationResult("Tag 38: Qty must be integer. ");
+				}
+				if (qtyLong <= 0) {
+					return new OrderValidationResult("Tag 38: Qty must be positive. ");
+				}
+				
+				
+				try {
+					Object clOrdId = oe.get(11);
+					if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+						OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
+						// check original order qty
+						Object originalQty = originOrderEvent.get(38);
+						long originQtyLong = Long.parseLong(originalQty.toString());
+						if (qtyLong >= originQtyLong) {
+							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger/equals to origin qty: %s. ",qty,originalQty));
+						}
+						// check new qty >= CumQty
+						Object originCumQty = originOrderEvent.get(14);
+						long originCumQtyLong = Long.parseLong(originCumQty.toString());
+						long remainQtyLong = originQtyLong - originCumQtyLong;
+						if (qtyLong >= remainQtyLong) {
+							return new OrderValidationResult(String.format("Tag 38: qty %s cannot be larger than/equals to remainingQty: %s. ",qty,remainQtyLong));
+						}
+					}
+					
+				}
+				catch (Exception e) {
+					logger.error("issues happened at checking", e);
+					return new OrderValidationResult("Tag 38: Update Order validation failed. ");
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			}
+		});
+		
+		private final OrderValidationRule UPDATEORDERPRICECHECKING
+		= new OrderValidationRule("UPDATEORDERPRICECHECKING", oe->{
+			Object price = oe.get(44);
+			if (price == null) {
+				return new OrderValidationResult("Tag 44: Price cannot be missing. ");
+			} else {
+				Object clOrdId = oe.get(11);
+				try {
+					if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+						OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
+						Object orderPrice = originOrderEvent.get(44);
+						double orderPriceDouble = Double.parseDouble(orderPrice.toString());
+						if (orderPriceDouble != NumericUtils.roundDouble(Double.parseDouble(price.toString()), ROUND_SCALE)) {
+							return new OrderValidationResult(String.format("Tag 44: Price %s is not the same as expected: %s. ", price, orderPrice));
+						}
+					}
+				}
+				catch (Exception e) {
+					logger.error("issues happened at checking", e);
+					return new OrderValidationResult("Tag 38: Update Order validation failed. ");
+				}				
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERSIDECHECKING
+		= new OrderValidationRule("UPDATEORDERSIDECHECKING", oe->{
+			Object side = oe.get(54);
+			if (side == null) {
+				return new OrderValidationResult("Tag 54: Side cannot be missing. ");
+			} else {
+				Object clOrdId = oe.get(11);
+				try {
+					if (getOrderEventInternalMap().containsKey(clOrdId.toString())) {
+						OrderEvent originOrderEvent = getOrderEventInternalMap().get(clOrdId.toString());
+						Object orderSide = originOrderEvent.get(54);
+						boolean isBuy = "1".equals(orderSide);
+						
+						boolean isSideValid = isBuy ? "1".equals(side) : "2".equals(side);
+						if (!isSideValid) {
+							return new OrderValidationResult(String.format("Tag 54: Side %s is not valid. ", side));
+						}
+					}
+				}
+				catch (Exception e) {
+					logger.error("issues happened at checking", e);
+					return new OrderValidationResult("Tag 38: Update Order validation failed. ");
+				}			
+			}	
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		private final OrderValidationRule UPDATEORDERSYMBOLCHECKING
+		= new OrderValidationRule("UPDATEORDERSYMBOLCHECKING", oe->{
+			Object symbol = oe.get(55);
+			if (symbol == null) {
+				return new OrderValidationResult("Tag 55: Symbol cannot be missing. ");
+			} else {
+				String originalSymbol = getSymbol();
+				if (!symbol.equals(originalSymbol)) {
+					return new OrderValidationResult(String.format("Tag 55: %s is not the same as expected %s. ",symbol,originalSymbol));
+				}
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+		
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(
+					UPDATEORDERCLORDIDCHECKING
+					, UPDATEORDERQTYCHECKING
+					, UPDATEORDERPRICECHECKING
+					, UPDATEORDERSIDECHECKING
+					, UPDATEORDERSYMBOLCHECKING);
+		}
+
+	}
+	
 	@Override
 	public void updateOrder(OrderEvent oe) {
+		handleValidationResult(oe, updateOrderValidator);
 		// TODO Auto-generated method stub
 
 	}
-
+	
+	/********* Cancel Order *********/
 	@Override
 	public void cancelOrder(OrderEvent oe) {
 		// TODO Auto-generated method stub
 
 	}	
 
+	/********* Execute Order *********/
 	@Override
 	public List<OrderEvent> executeOrder(boolean isBid, long quantity) {
 		// TODO Auto-generated method stub
