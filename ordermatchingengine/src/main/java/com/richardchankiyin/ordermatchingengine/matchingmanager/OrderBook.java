@@ -644,7 +644,7 @@ public class OrderBook implements IOrderBook {
 				isContinue = false;
 			} else {
 				double newStartPrice = map.lowerKey(startPrice);
-				if (newStartPrice < endPrice) {
+				if (newStartPrice > endPrice) {
 					isContinue = false;
 				} else {
 					startPrice = newStartPrice;

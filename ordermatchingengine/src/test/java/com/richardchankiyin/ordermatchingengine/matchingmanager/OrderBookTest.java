@@ -823,6 +823,7 @@ public class OrderBookTest {
 		assertEquals(1, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
+		assertEquals(3000L,result.get(0).get(14));
 		assertEquals(60.5,result.get(0).get(44));
 		assertEquals("1",result.get(0).get(54));
 		assertEquals("0005.HK",result.get(0).get(55));
@@ -857,4 +858,46 @@ public class OrderBookTest {
 		assertTrue(60.5 == orderBook.getBid());
 	}
 
+	@Test
+	public void testOrderBookExecuteOrderBuyTwoOneCompleteOneIncomplete() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		oe = new OrderEvent();
+		oe.put(11, "2222");
+		oe.put(35, "D");
+		oe.put(38, 5000L);
+		oe.put(44, 60.3);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		List<OrderEvent> result = orderBook.executeOrders(true, 5000L, 61);
+		assertEquals(2, result.size());
+		assertEquals("1111",result.get(0).get(11));
+		assertEquals(3000L,result.get(0).get(38));
+		assertEquals(3000L,result.get(0).get(14));
+		assertEquals(60.5,result.get(0).get(44));
+		assertEquals("1",result.get(0).get(54));
+		assertEquals("0005.HK",result.get(0).get(55));
+		
+		assertEquals("2222",result.get(1).get(11));
+		assertEquals(5000L,result.get(1).get(38));
+		assertEquals(2000L,result.get(1).get(14));
+		assertEquals(60.3,result.get(1).get(44));
+		assertEquals("1",result.get(1).get(54));
+		assertEquals("0005.HK",result.get(1).get(55));
+		
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000, orderBook.getTotalBidQuantity());
+		assertTrue(60.3 == orderBook.getBid());
+		
+	}
 }
