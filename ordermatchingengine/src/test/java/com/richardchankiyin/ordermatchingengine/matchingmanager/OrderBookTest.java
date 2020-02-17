@@ -3,6 +3,7 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -789,6 +790,71 @@ public class OrderBookTest {
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 		
 		orderBook.executeOrders(false, 5000, 60);
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void testOrderBookExecuteOrderBuyBestPriceLowerThanBid() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		orderBook.executeOrders(true, 3000L, 58);
+	}
+	
+	@Test
+	public void testOrderBookExecuteOrderBuyOneCompleteOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		List<OrderEvent> result = orderBook.executeOrders(true, 3000L, 61);
+		assertEquals(1, result.size());
+		assertEquals("1111",result.get(0).get(11));
+		assertEquals(3000L,result.get(0).get(38));
+		assertEquals(60.5,result.get(0).get(44));
+		assertEquals("1",result.get(0).get(54));
+		assertEquals("0005.HK",result.get(0).get(55));
+		
+		assertEquals(0, orderBook.getBidQueueSize());
+		assertEquals(0, orderBook.getTotalBidQuantity());
+	}
+	
+	@Test
+	public void testOrderBookExecuteOrderBuyOneIncompleteOrder() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		
+		List<OrderEvent> result = orderBook.executeOrders(true, 2000L, 61);
+		assertEquals(1, result.size());
+		assertEquals("1111",result.get(0).get(11));
+		assertEquals(3000L,result.get(0).get(38));
+		assertEquals(2000L,result.get(0).get(14));
+		assertEquals(60.5,result.get(0).get(44));
+		assertEquals("1",result.get(0).get(54));
+		assertEquals("0005.HK",result.get(0).get(55));
+		
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(1000, orderBook.getTotalBidQuantity());
+		assertTrue(60.5 == orderBook.getBid());
 	}
 
 }

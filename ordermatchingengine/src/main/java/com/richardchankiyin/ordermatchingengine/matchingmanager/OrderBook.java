@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
@@ -617,7 +616,7 @@ public class OrderBook implements IOrderBook {
 	
 	/********* Execute Order *********/
 	// input (quantity, bestprice) -> listof price/quantity
-	private BiFunction<Long, Double, List<Pair<Double,Long>>> buyOrderExecutedQuantities = (quantity,bestPrice)-> {
+	private BiFunction<Long, Double, List<Pair<Double,Long>>> findBuyOrderExecutedQuantities = (quantity,bestPrice)-> {
 		if (bestPrice < bid) {
 			throw new IllegalStateException(String.format("best price: %s is lower than bid: %s for buy order", bestPrice, bid));
 		}
@@ -660,6 +659,11 @@ public class OrderBook implements IOrderBook {
 		return result;
 	};
 	
+	// input (quantity, bestprice) -> listof price/quantity
+	private BiFunction<Long, Double, List<Pair<Double,Long>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
+		//TODO to be implemented
+		return null;
+	};
 	
 	private class ExecuteOrderValidator extends AbstractOrderValidator  {
 		private final OrderValidationRule EXEORDERCLORDIDCHECKING
@@ -694,6 +698,31 @@ public class OrderBook implements IOrderBook {
 		}
 		
 	}
+	
+	private List<OrderEvent> executeOrders(boolean isBid, List<Pair<Double,Long>> quantitiesToBeExecuted) {
+		Map<Double,IPriceOrderQueue> map = isBid ? bidPriceQueueMap : askPriceQueueMap;
+		List<OrderEvent> result = new ArrayList<>();
+		for (Pair<Double,Long> priceQuantity: quantitiesToBeExecuted) {
+			IPriceOrderQueue queue = map.get(priceQuantity.getValue0());
+			long beforeQueueSize = queue.getQueueSize();
+			long beforeTotalQuantity = queue.getTotalOrderQuantity();
+			List<OrderEvent> interimExecution = queue.executeOrder(priceQuantity.getValue1());
+			long afterQueueSize = queue.getQueueSize();
+			long afterTotalQuantity = queue.getTotalOrderQuantity();
+			long queueSizeDiff = afterQueueSize - beforeQueueSize;
+			long totalQuantityDiff = afterTotalQuantity - beforeTotalQuantity;
+			if (isBid) {
+				this.bidQueueSize += queueSizeDiff;
+				this.totalBidQuantity += totalQuantityDiff;
+			} else {
+				this.askQueueSize += queueSizeDiff;
+				this.totalAskQuantity += totalQuantityDiff;
+			}
+			result.addAll(interimExecution);
+		}		
+		return result;
+	}
+	
 	@Override
 	public List<OrderEvent> executeOrders(boolean isBid, long quantity, double bestPrice) {
 		OrderEvent oe = new OrderEvent();
@@ -701,10 +730,16 @@ public class OrderBook implements IOrderBook {
 		oe.put(44, bestPrice);
 		oe.put(54, isBid ? "1" : "2");		
 		handleValidationResult(oe, executeOrderValidator);
-		// TODO Auto-generated method stub
+		BiFunction<Long, Double, List<Pair<Double,Long>>> findExecutedQuantities = isBid ? findBuyOrderExecutedQuantities : findSellOrderExecutedQuantities;
 		
+		List<Pair<Double,Long>> quantitiesToBeExecuted = findExecutedQuantities.apply(quantity, bestPrice);
+		List<OrderEvent> result = executeOrders(isBid, quantitiesToBeExecuted);
 		
-		return null;
+		logger.debug("executeOrders -- isBid: {} quantity: {} bestPrice: {} result: {}", isBid, quantity, bestPrice, result);
+
+		updateBidAskPriceAfterOrderProcessing(isBid, isBid ? this.bid : this.ask);
+		
+		return result;
 	}
 
 }
