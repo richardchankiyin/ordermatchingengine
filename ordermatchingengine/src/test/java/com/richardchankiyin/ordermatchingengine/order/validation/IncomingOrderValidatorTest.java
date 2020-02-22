@@ -151,14 +151,16 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleSkippingNonNOS() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = 
 		OrderEvent oe = new OrderEvent();
+		IOrderValidator r = validator.getNosOrderValidator();
 		assertTrue(r.validate(oe).isAccepted());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderValid() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -171,7 +173,8 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderValid() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -185,7 +188,8 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingClOrdId() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
 		oe.put(38, 100);
@@ -194,12 +198,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ", result.getRejectReason());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. |", result.getRejectReason());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingClOrdId() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
 		oe.put(38, 100);
@@ -209,12 +214,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. |", result.getRejectReason());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingOrderQty() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -223,12 +229,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ", result.getRejectReason());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. |", result.getRejectReason());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingOrderQty() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -238,12 +245,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. |", result.getRejectReason());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingPrice() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "11111");
 		oe.put(35, "D");
@@ -253,12 +261,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. |", result.getRejectReason());
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSide() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -267,13 +276,14 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ", result.getRejectReason());		
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. |", result.getRejectReason());		
 	}
 	
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSide() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -283,12 +293,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());		
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSymbol() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -297,12 +308,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(54, "1");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. ", result.getRejectReason());		
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 54: Side and Tag 55: Symbol cannot be missing for market order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSymbol() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -312,12 +324,13 @@ public class IncomingOrderValidatorTest {
 		oe.put(54, "1");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. ", result.getRejectReason());		
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty, Tag 44: Price, Tag 54: Side and Tag 55: Symbol cannot be missing for limit order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingNotMarketNotLimitOrder() {
-		OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
@@ -327,7 +340,7 @@ public class IncomingOrderValidatorTest {
 		oe.put(54, "1");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 40: 3 is not supported. Only Market(1) and Limit(2) are being supported. ", result.getRejectReason());		
+		assertEquals("NEWORDERSINGLECOMPULSORYFIELDCHECKING->Tag 40: 3 is not supported. Only Market(1) and Limit(2) are being supported. |", result.getRejectReason());		
 	}
 	
 	@Test
@@ -383,10 +396,15 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleClientOrderId() {
-		OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
+		//OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
+		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(40, "1");
+		oe.put(54, "0005.HK");
+		oe.put(55, "1");
 		assertTrue(r.validate(oe).isAccepted());
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
@@ -398,10 +416,11 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		OrderValidationRule r2 = validator2.getNewOrderSingleClientOrderIdIsNewChecking();
+		IOrderValidator r2 = validator2.getNosOrderValidator();
+		//OrderValidationRule r2 = validator2.getNewOrderSingleClientOrderIdIsNewChecking();
 		OrderValidationResult result2 = r2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is being used in other order. ", result2.getRejectReason());		
+		assertEquals("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is being used in other order. |", result2.getRejectReason());		
 		
 	}
 	
