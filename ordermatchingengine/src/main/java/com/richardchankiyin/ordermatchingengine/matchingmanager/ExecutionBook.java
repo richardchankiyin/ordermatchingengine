@@ -1,5 +1,6 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class ExecutionBook implements IExecutionBook {
 			executionByExecIdMap.put(execId, execItemToBePut);
 			executionByOrderIdMap.compute(activeOrderId, (k,v)-> {
 				if (v == null) {
-					return Arrays.asList(execItemToBePut);
+					return new ArrayList<OrderEvent>(Arrays.asList(execItemToBePut));
 				} else {
 					v.add(execItemToBePut);
 					return v;
@@ -70,7 +71,7 @@ public class ExecutionBook implements IExecutionBook {
 			});
 			executionByOrderIdMap.compute(passiveOrderId, (k,v)-> {
 				if (v == null) {
-					return Arrays.asList(execItemToBePut);
+					return new ArrayList<OrderEvent>(Arrays.asList(execItemToBePut));
 				} else {
 					v.add(execItemToBePut);
 					return v;
