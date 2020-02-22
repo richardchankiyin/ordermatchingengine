@@ -79,10 +79,9 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		logger.warn("incoming event {} has no proper handling function", oe);
 	};
 	private Consumer<OrderEvent> handleNewOrderSingleEvent = oe -> {
-		// change the incoming order to pending new
+		// 1. change the incoming order to pending new
 		oe.put(39, "A");
 		om.handleEvent(oe);
-		
 		
 		
 	};
