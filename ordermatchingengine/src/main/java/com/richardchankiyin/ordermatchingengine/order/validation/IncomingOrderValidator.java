@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
+
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
@@ -27,11 +27,15 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	private IOrderModel orderModel;
 
 	private NewOrderSingleOrderValidator nosOrderValidator = null;
-	
+	private RequestRequestOrderValidator replaceRequestOrderValidator = null;
+	private CancelOrderValidator cancelOrderValidator = null;
+
 	public IncomingOrderValidator(IOrderModel orderModel) {
 		Objects.requireNonNull(orderModel, "orderModel is null");
 		this.orderModel = orderModel;
 		this.nosOrderValidator = new NewOrderSingleOrderValidator();
+		this.replaceRequestOrderValidator = new RequestRequestOrderValidator();
+		this.cancelOrderValidator = new CancelOrderValidator();
 	}
 
 	private final OrderValidationRule DATATYPECHECKING = new OrderValidationRule(
@@ -120,7 +124,36 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			return Arrays.asList(NEWORDERSINGLECOMPULSORYFIELDCHECKING,
 					NEWORDERSINGLECLIENTORDERIDISNEWCHECKING);
 		}
+	}
 
+	private final class RequestRequestOrderValidator extends
+			AbstractPreconditionOrderValidator {
+
+		public RequestRequestOrderValidator() {
+			super(oe -> "G".equals(oe.get(35)));
+		}
+
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(REPLACEREQUESTCOMPULSORYFIELDCHECKING,
+					REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING,
+					REPLACEREQUESTAMENDDOWNCHECKING,
+					REPLACEREQUESTOTHERFIELDCHANGECHECKING);
+		}
+	}
+
+	private final class CancelOrderValidator extends
+			AbstractPreconditionOrderValidator {
+
+		public CancelOrderValidator() {
+			super(oe -> "F".equals(oe.get(35)));
+		}
+
+		@Override
+		protected List<IOrderValidator> getListOfOrderValidators() {
+			return Arrays.asList(CANCELREQUESTCOMPULSORYFIELDCHECKING
+				, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING);
+		}
 	}
 
 	private final OrderValidationRule NEWORDERSINGLECOMPULSORYFIELDCHECKING = new OrderValidationRule(
@@ -170,7 +203,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 					Object orderQtyValue = oe.get(38);
 					if (clOrdIdValue == null || orderQtyValue == null) {
 						return new OrderValidationResult(
-								"Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order");
+								"Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order. ");
 					} else {
 						return OrderValidationResult.getAcceptedInstance();
 					}
@@ -183,19 +216,14 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	private final OrderValidationRule CANCELREQUESTCOMPULSORYFIELDCHECKING = new OrderValidationRule(
 			"CANCELREQUESTCOMPULSORYFIELDCHECKING",
 			oe -> {
-				Object msgTypeValue = oe.get(35);
-				if (msgTypeValue != null && "F".equals(msgTypeValue.toString())) {
-					Object clOrdIdValue = oe.get(11);
-					if (clOrdIdValue == null) {
-						return new OrderValidationResult(
-								"Tag 11: ClOrdId cannot be missed in a cancel request order. ");
-					} else {
-						return OrderValidationResult.getAcceptedInstance();
-					}
+				Object clOrdIdValue = oe.get(11);
+				if (clOrdIdValue == null) {
+					return new OrderValidationResult(
+							"Tag 11: ClOrdId cannot be missed in a cancel request order. ");
 				} else {
-					// non cancel request skip validation
 					return OrderValidationResult.getAcceptedInstance();
 				}
+
 			});
 
 	private final OrderValidationRule NEWORDERSINGLECLIENTORDERIDISNEWCHECKING = new OrderValidationRule(
@@ -224,24 +252,18 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	private final OrderValidationRule REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING = new OrderValidationRule(
 			"REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING",
 			oe -> {
-				Object msgTypeValue = oe.get(35);
-				if (msgTypeValue != null
-						&& ("F".equals(msgTypeValue.toString()) || "G"
-								.equals(msgTypeValue.toString()))) {
-					Object clOrdIdValue = oe.get(11);
-					if (clOrdIdValue != null) {
-						boolean isIdFound = this.orderModel
-								.isClientOrderIdFound(clOrdIdValue.toString());
-						if (!isIdFound) {
-							return new OrderValidationResult(String.format(
-									"Tag 11: %s is not found. ",
-									clOrdIdValue.toString()));
-						}
+				Object clOrdIdValue = oe.get(11);
+				if (clOrdIdValue != null) {
+					boolean isIdFound = this.orderModel
+							.isClientOrderIdFound(clOrdIdValue.toString());
+					if (!isIdFound) {
+						return new OrderValidationResult(String.format(
+								"Tag 11: %s is not found. ",
+								clOrdIdValue.toString()));
 					}
-					return OrderValidationResult.getAcceptedInstance();
-				} else {
-					return OrderValidationResult.getAcceptedInstance();
 				}
+				return OrderValidationResult.getAcceptedInstance();
+
 			});
 
 	private final OrderValidationRule REPLACEREQUESTAMENDDOWNCHECKING = new OrderValidationRule(
@@ -346,28 +368,26 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(
-		// rule 1 datatype checking
+				// rule 1 datatype checking
 				DATATYPECHECKING
 				// rule 2 msg type checking
 				, MSGTYPECHECKING
 				// rule 3 side checking
 				, SIDECHECKING
-				, new NewOrderSingleOrderValidator()
 				// rule 4a new order single compulsory field checking
-				//, NEWORDERSINGLECOMPULSORYFIELDCHECKING
-				// rule 4b replace request compulsory field checking
-				, REPLACEREQUESTCOMPULSORYFIELDCHECKING
-				// rule 4c cancel request compulsory field checking
-				, CANCELREQUESTCOMPULSORYFIELDCHECKING
 				// rule 5a new order single client order id checking
-				//, NEWORDERSINGLECLIENTORDERIDISNEWCHECKING
+				, nosOrderValidator
+
+				// rule 4b replace request compulsory field checking
 				// rule 5b replace request/cancel request client order id
-				// checking
-				, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
 				// rule 6a replace request amend down checking
-				, REPLACEREQUESTAMENDDOWNCHECKING
 				// rule 7a replace request other field change checking
-				, REPLACEREQUESTOTHERFIELDCHANGECHECKING);
+				, replaceRequestOrderValidator
+
+				// rule 4c cancel request compulsory field checking
+				// rule 5b replace request/cancel request client order id
+				, cancelOrderValidator
+				);
 	}
 
 	protected OrderValidationRule getDataTypeCheckingRule() {
@@ -385,33 +405,15 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 	protected NewOrderSingleOrderValidator getNosOrderValidator() {
 		return nosOrderValidator;
 	}
+
+	protected RequestRequestOrderValidator getReplaceRequestOrderValidator() {
+		return replaceRequestOrderValidator;
+	}
 	
-//	protected OrderValidationRule getNewOrderSingleCompulsoryFieldChecking() {
-//		return NEWORDERSINGLECOMPULSORYFIELDCHECKING;
-//	}
-//	
-//	protected OrderValidationRule getNewOrderSingleClientOrderIdIsNewChecking() {
-//		return NEWORDERSINGLECLIENTORDERIDISNEWCHECKING;
-//	}
-
-	protected OrderValidationRule getReplaceRequestCompulsoryFieldChecking() {
-		return REPLACEREQUESTCOMPULSORYFIELDCHECKING;
+	protected CancelOrderValidator getCancelOrderValidator() {
+		return cancelOrderValidator;
 	}
 
-	protected OrderValidationRule getCancelRequestCompulsoryFieldChecking() {
-		return CANCELREQUESTCOMPULSORYFIELDCHECKING;
-	}
 
-	protected OrderValidationRule getRequestRequestAndCancelRequestClientOrderIdIsNewChecking() {
-		return REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING;
-	}
-
-	protected OrderValidationRule getReplaceRequestAmendDownChecking() {
-		return REPLACEREQUESTAMENDDOWNCHECKING;
-	}
-
-	protected OrderValidationRule getReplaceRequestOtherFieldChangeChecking() {
-		return REPLACEREQUESTOTHERFIELDCHANGECHECKING;
-	}
 
 }

@@ -151,7 +151,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleSkippingNonNOS() {
-		//OrderValidationRule r = 
 		OrderEvent oe = new OrderEvent();
 		IOrderValidator r = validator.getNosOrderValidator();
 		assertTrue(r.validate(oe).isAccepted());
@@ -159,7 +158,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderValid() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -173,7 +171,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderValid() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -188,7 +185,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingClOrdId() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
@@ -203,7 +199,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingClOrdId() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "D");
@@ -219,7 +214,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingOrderQty() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -234,7 +228,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingOrderQty() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -250,7 +243,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingPrice() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "11111");
@@ -266,7 +258,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSide() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -282,7 +273,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSide() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -298,7 +288,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleMarketOrderMissingSymbol() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -313,7 +302,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingRuleLimitOrderMissingSymbol() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -329,7 +317,6 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testNewOrderSingleCompulsoryFieldCheckingNotMarketNotLimitOrder() {
-		//OrderValidationRule r = validator.getNewOrderSingleCompulsoryFieldChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -345,39 +332,89 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testReplaceRequestCompulsoryFieldCheckingValid() {
-		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 2);
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		IOrderValidator r = validator2.getReplaceRequestOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
-		oe.put(38, 100);
+		oe.put(38, 3000);
+		oe.put(40, 2);
+		oe.put(44, 58);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
 		assertTrue(r.validate(oe).isAccepted());
 	}
 	
 	@Test
 	public void testReplaceRequestCompulsoryFieldCheckingMissingOrderQty() {
-		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 2);
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		
+		IOrderValidator r = validator2.getReplaceRequestOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order", result.getRejectReason());		
+		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testReplaceRequestCompulsoryFieldCheckingMissingClOrdId() {
-		OrderValidationRule r = validator.getReplaceRequestCompulsoryFieldChecking();
+		IOrderValidator r = validator.getReplaceRequestOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "G");
 		oe.put(38, 100);
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order", result.getRejectReason());		
+		assertEquals("REPLACEREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId, Tag 38: OrderQty cannot be missed in a replace request order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testCancelRequestCompulsoryFieldCheckingValid() {
-		OrderValidationRule r = validator.getCancelRequestCompulsoryFieldChecking();
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, 2);
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		IOrderValidator r = validator2.getCancelOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "F");
@@ -386,38 +423,44 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testCancelRequestCompulsoryFieldCheckingMissingClOrdId() {
-		OrderValidationRule r = validator.getCancelRequestCompulsoryFieldChecking();
+		IOrderValidator r = validator.getCancelOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "F");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("CANCELREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId cannot be missed in a cancel request order. ", result.getRejectReason());		
+		assertEquals("CANCELREQUESTCOMPULSORYFIELDCHECKING->Tag 11: ClOrdId cannot be missed in a cancel request order. |", result.getRejectReason());		
 	}
 	
 	@Test
 	public void testNewOrderSingleClientOrderId() {
-		//OrderValidationRule r = validator.getNewOrderSingleClientOrderIdIsNewChecking();
 		IOrderValidator r = validator.getNosOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "D");
 		oe.put(38, 3000L);
 		oe.put(40, "1");
+		oe.put(44, 58);
 		oe.put(54, "0005.HK");
 		oe.put(55, "1");
 		assertTrue(r.validate(oe).isAccepted());
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
-				return true;
+				return "1111".equals(clientOrderId);
 			}
 			public OrderEvent getOrder(String clientOrderId) {
-				return new OrderEvent();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, "1");
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
 			}
 		});
 		
 		IOrderValidator r2 = validator2.getNosOrderValidator();
-		//OrderValidationRule r2 = validator2.getNewOrderSingleClientOrderIdIsNewChecking();
 		OrderValidationResult result2 = r2.validate(oe);
 		assertFalse(result2.isAccepted());
 		assertEquals("NEWORDERSINGLECLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is being used in other order. |", result2.getRejectReason());		
@@ -426,34 +469,47 @@ public class IncomingOrderValidatorTest {
 	
 	@Test
 	public void testReplaceRequestClientOrderId() {
-		OrderValidationRule r = validator.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking();
+		IOrderValidator r = validator.getReplaceRequestOrderValidator();
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
+		oe.put(38, 3000L);
+		oe.put(40, "1");
+		oe.put(44, 58);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ", result.getRejectReason());
+		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. |", result.getRejectReason());
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
-				return true;
+				return "1111".equals(clientOrderId);
 			}
 			public OrderEvent getOrder(String clientOrderId) {
-				return new OrderEvent();
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(38, 4000);
+				oe.put(40, "1");
+				oe.put(44, 58);
+				oe.put(54, 1);
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
 			}
 		});
-		assertTrue(validator2.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking().validate(oe).isAccepted());		
+		assertTrue(validator2.validate(oe).isAccepted());		
 	}
 	
 	@Test
 	public void testCancelRequestClientOrderId() {
-		OrderValidationRule r = validator.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking();
+		IOrderValidator r = validator.getCancelOrderValidator();
+		
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "F");
 		OrderValidationResult result = r.validate(oe);
 		assertFalse(result.isAccepted());
-		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ", result.getRejectReason());
+		assertEquals("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. |", result.getRejectReason());
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
@@ -463,7 +519,7 @@ public class IncomingOrderValidatorTest {
 				return new OrderEvent();
 			}
 		});
-		assertTrue(validator2.getRequestRequestAndCancelRequestClientOrderIdIsNewChecking().validate(oe).isAccepted());		
+		assertTrue(validator2.validate(oe).isAccepted());		
 	}
 	
 	@Test
@@ -472,6 +528,10 @@ public class IncomingOrderValidatorTest {
 		oe.put(11, "1111");
 		oe.put(35, "G");
 		oe.put(38, 1000);
+		oe.put(40, "2");
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
@@ -481,19 +541,28 @@ public class IncomingOrderValidatorTest {
 				OrderEvent oe = new OrderEvent();
 				oe.put(11, "1111");
 				oe.put(38, 2000);
+				oe.put(39, "0");
+				oe.put(40, "2");
+				oe.put(44, 60);
+				oe.put(54, "1");
+				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
 		});
 		
-		assertTrue(validator2.getReplaceRequestAmendDownChecking().validate(oe).isAccepted());
+		assertTrue(validator2.validate(oe).isAccepted());
 	}
 	
 	@Test
-	public void testReplaceRequestAmendUpValid() {
+	public void testReplaceRequestAmendUpInvalid() {
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
 		oe.put(38, 3000);
+		oe.put(40, "2");
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
 		
 		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
 			public boolean isClientOrderIdFound(String clientOrderId) {
@@ -503,13 +572,18 @@ public class IncomingOrderValidatorTest {
 				OrderEvent oe = new OrderEvent();
 				oe.put(11, "1111");
 				oe.put(38, 2000);
+				oe.put(39, "0");
+				oe.put(40, "2");
+				oe.put(44, 60);
+				oe.put(54, "1");
+				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
 		});
 		
-		OrderValidationResult result2 = validator2.getReplaceRequestAmendDownChecking().validate(oe);
+		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 3000 is larger/equal to 2000 which is not amend down for replace request order. ", result2.getRejectReason());		
+		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 3000 is larger/equal to 2000 which is not amend down for replace request order. ||", result2.getRejectReason());		
 		
 	}
 	
@@ -538,7 +612,7 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		assertTrue(validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe).isAccepted());
+		assertTrue(validator2.validate(oe).isAccepted());
 	}
 	
 	@Test
@@ -568,7 +642,7 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		assertTrue(validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe).isAccepted());
+		assertTrue(validator2.validate(oe).isAccepted());
 	}
 	
 	@Test
@@ -598,9 +672,9 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		OrderValidationResult result2 = validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe);
+		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ", result2.getRejectReason());
+		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ||", result2.getRejectReason());
 	}
 	
 	@Test
@@ -630,9 +704,9 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		OrderValidationResult result2 = validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe);
+		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ", result2.getRejectReason());
+		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ||", result2.getRejectReason());
 	}
 	
 	@Test
@@ -662,9 +736,9 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		OrderValidationResult result2 = validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe);
+		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ", result2.getRejectReason());
+		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ||", result2.getRejectReason());
 	}
 	
 	@Test
@@ -694,9 +768,9 @@ public class IncomingOrderValidatorTest {
 			}
 		});
 		
-		OrderValidationResult result2 = validator2.getReplaceRequestOtherFieldChangeChecking().validate(oe);
+		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ", result2.getRejectReason());
+		assertEquals("REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price. ||", result2.getRejectReason());
 	}
 	
 	@Test
