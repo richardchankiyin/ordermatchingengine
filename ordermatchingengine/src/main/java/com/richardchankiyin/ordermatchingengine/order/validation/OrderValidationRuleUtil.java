@@ -77,6 +77,19 @@ public class OrderValidationRuleUtil {
 		}
 	});
 	
+	private static final OrderValidationRule ADDORDERSIDECHECKING
+	= new OrderValidationRule("ADDORDERSIDECHECKING", oe->{
+		Object side = oe.get(54);
+		if (side == null) {
+			return new OrderValidationResult("Tag 54: Side cannot be missing. ");
+		} else {
+			if (!("1".equals(side) || "2".equals(side))) {
+				return new OrderValidationResult("Tag 54: Side can only be 1 or 2. ");
+			}
+		}			
+		return OrderValidationResult.getAcceptedInstance();
+	});
+	
 	private static final OrderValidationRule UPDATEORDERMSGTYPECHECKING
 	= new OrderValidationRule("UPDATEORDERMSGTYPECHECKING", oe->{
 		Object msgType = oe.get(35);
@@ -115,6 +128,10 @@ public class OrderValidationRuleUtil {
 	
 	public static OrderValidationRule getAddOrderCumQtyChecking() {
 		return ADDORDERCUMQTYCHECKING;
+	}
+	
+	public static OrderValidationRule getAddOrderSideChecking() {
+		return ADDORDERSIDECHECKING;
 	}
 	
 	public static OrderValidationRule getUpdateOrderMsgTypeChecking() {

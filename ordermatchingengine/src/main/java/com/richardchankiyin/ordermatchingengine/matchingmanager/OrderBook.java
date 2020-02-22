@@ -272,19 +272,6 @@ public class OrderBook implements IOrderBook {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 		
-		private final OrderValidationRule ADDORDERSIDECHECKING
-		= new OrderValidationRule("ADDORDERSIDECHECKING", oe->{
-			Object side = oe.get(54);
-			if (side == null) {
-				return new OrderValidationResult("Tag 54: Side cannot be missing. ");
-			} else {
-				if (!("1".equals(side) || "2".equals(side))) {
-					return new OrderValidationResult("Tag 54: Side can only be 1 or 2. ");
-				}
-			}			
-			return OrderValidationResult.getAcceptedInstance();
-		});
-		
 		private final OrderValidationRule ADDORDERPRICERANGECHECKING
 		= new OrderValidationRule("ADDORDERPRICERANGECHECKING", oe->{
 			Object price = oe.get(44);
@@ -343,7 +330,7 @@ public class OrderBook implements IOrderBook {
 					, OrderValidationRuleUtil.getAddOrderQtyChecking()
 					, OrderValidationRuleUtil.getAddOrderCumQtyChecking()
 					, ADDORDERPRICECHECKING
-					, ADDORDERSIDECHECKING
+					, OrderValidationRuleUtil.getAddOrderSideChecking()
 					, ADDORDERPRICERANGECHECKING
 					, ADDORDERSYMBOLCHECKING
 					);
