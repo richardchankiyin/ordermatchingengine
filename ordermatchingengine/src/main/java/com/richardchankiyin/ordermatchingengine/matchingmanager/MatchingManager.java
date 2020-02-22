@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +18,10 @@ import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMa
 import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.AbstractPreconditionOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.IncomingOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
-import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRuleUtil;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
-import com.richardchankiyin.spreadcalc.SpreadRanges;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
 	private static final Logger logger = LoggerFactory.getLogger(MatchingManager.class);
@@ -129,7 +127,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 					// rule 3 order after logged on checking
 					, MATCHMGRCANACCEPTORDERCHECKING
 					// rule 4 NOS order validation
-					, new NOSOrderValidator(oe-> "D".equals(oe.get(35)))
+					, new IncomingMatchingOrderValidator()
 			);
 		}
 		
@@ -230,47 +228,21 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 	
-	private class NOSOrderValidator extends AbstractPreconditionOrderValidator {
+	private final class IncomingMatchingOrderValidator extends AbstractPreconditionOrderValidator {
 
-		public NOSOrderValidator(Function<OrderEvent, Boolean> function) {
-			super(function);
+		public IncomingMatchingOrderValidator() {
+			super(oe->{
+				if (oe == null)
+					return false;
+				Set<String> acceptedMsgTypes = new HashSet<String>(Arrays.asList("D","F","G"));
+				return acceptedMsgTypes.contains(oe.get(35));
+			});			
 		}
 
-		private final OrderValidationRule NOSORDERPRICECHECKING
-		= new OrderValidationRule("NOSORDERPRICECHECKING", oe->{
-			Object price = oe.get(44);
-			if (price == null) {
-				return new OrderValidationResult("Tag 44: Price cannot be missing. ");
-			} 
-			return OrderValidationResult.getAcceptedInstance();
-		});
-		
-		private final OrderValidationRule NOSORDERSYMBOLCHECKING
-		= new OrderValidationRule("NOSORDERSYMBOLCHECKING", oe->{
-			Object symbol = oe.get(55);
-			if (symbol == null) {
-				return new OrderValidationResult("Tag 55: Symbol cannot be missing. ");
-			} else {
-				String originalSymbol = getSymbol();
-				if (!symbol.equals(originalSymbol)) {
-					return new OrderValidationResult(String.format("Tag 55: %s is not the same as expected %s. ",symbol,originalSymbol));
-				}
-			}
-			return OrderValidationResult.getAcceptedInstance();
-		});
-		
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
-			return Arrays.asList(
-					NOSORDERPRICECHECKING
-					, OrderValidationRuleUtil.getAddOrderMsgTypeChecking()
-					, OrderValidationRuleUtil.getAddOrderQtyChecking()
-					, OrderValidationRuleUtil.getAddOrderCumQtyChecking()
-					, OrderValidationRuleUtil.getAddOrderSideChecking()
-					, NOSORDERSYMBOLCHECKING
-					);
+			return Arrays.asList(new IncomingOrderValidator(om.getOrderModel()));
 		}
 		
 	}
-	
 }

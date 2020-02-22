@@ -116,7 +116,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			AbstractPreconditionOrderValidator {
 
 		public NewOrderSingleOrderValidator() {
-			super(oe -> "D".equals(oe.get(35)));
+			super(oe -> oe!=null && "D".equals(oe.get(35)));
 		}
 
 		@Override
@@ -130,7 +130,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			AbstractPreconditionOrderValidator {
 
 		public RequestRequestOrderValidator() {
-			super(oe -> "G".equals(oe.get(35)));
+			super(oe -> oe!=null && "G".equals(oe.get(35)));
 		}
 
 		@Override
@@ -146,7 +146,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			AbstractPreconditionOrderValidator {
 
 		public CancelOrderValidator() {
-			super(oe -> "F".equals(oe.get(35)));
+			super(oe -> oe!=null && "F".equals(oe.get(35)));
 		}
 
 		@Override
