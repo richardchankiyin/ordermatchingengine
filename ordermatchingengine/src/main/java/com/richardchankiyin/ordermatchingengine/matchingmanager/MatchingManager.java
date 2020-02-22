@@ -78,11 +78,18 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private Consumer<OrderEvent> handleOthers = oe -> {
 		logger.warn("incoming event {} has no proper handling function", oe);
 	};
+	private Consumer<OrderEvent> handleNewOrderSingleEvent = oe -> {
+		
+	};
+	
 	
 	protected Consumer<OrderEvent> getHandleLogonEvent() {
 		return this.handleLogonEvent;
 	}
 	
+	protected Consumer<OrderEvent> getHandleLogoffEvent() {
+		return this.handleLogoutEvent;
+	}
 	
 	@Override
 	public void onEvent(OrderEvent oe) {
