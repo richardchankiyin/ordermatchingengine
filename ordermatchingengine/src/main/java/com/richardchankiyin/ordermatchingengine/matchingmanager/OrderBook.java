@@ -661,8 +661,45 @@ public class OrderBook implements IOrderBook {
 	
 	// input (quantity, bestprice) -> listof price/quantity
 	private BiFunction<Long, Double, List<Pair<Double,Long>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
-		//TODO to be implemented
-		return null;
+		if (bestPrice > ask) {
+			throw new IllegalStateException(String.format("best price: %s is higher than ask: %s for sell order", bestPrice, bid));
+		}
+		TreeMap<Double,IPriceOrderQueue> map = askPriceQueueMap;
+		double startPrice = ask;
+		double endPrice = bestPrice;
+		long quantityUnreserved = quantity;
+		boolean isContinue = true;
+		List<Pair<Double,Long>> result = new ArrayList<>();
+		while (isContinue) {
+			IPriceOrderQueue queue = map.get(startPrice);
+			long quantityReservedForThisRound = 0;
+			if (queue != null) {
+				long quantityAvailable = queue.getTotalOrderQuantity();				
+				if (quantityUnreserved > quantityAvailable) {
+					quantityReservedForThisRound = quantityAvailable;
+				} else {
+					quantityReservedForThisRound = quantityUnreserved;
+				}
+				result.add(Pair.with(startPrice, quantityReservedForThisRound));
+				quantityUnreserved -= quantityReservedForThisRound;
+			}
+			
+			if (quantityUnreserved <= 0) {
+				isContinue = false;
+			} else {
+				double newStartPrice = map.higherKey(startPrice);
+				if (newStartPrice < endPrice) {
+					isContinue = false;
+				} else {
+					startPrice = newStartPrice;
+				}
+			}
+		}
+		if (quantityUnreserved != 0) {
+			throw new IllegalStateException(String.format("quantityUnreserved :%s != 0, some issues happened", quantityUnreserved));
+		}
+		
+		return result;
 	};
 	
 	private class ExecuteOrderValidator extends AbstractOrderValidator  {
