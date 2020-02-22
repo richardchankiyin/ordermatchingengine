@@ -32,12 +32,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private MatchingManagerIncomingEventValidator validator = null;
 	private Map<String, Consumer<OrderEvent>> eventHandlerMap = null;
 	
-	public MatchingManager(IOrderStateMachine om, IOrderBook orderbook, IPublisher publisher) {
+	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
 		Objects.requireNonNull(om, "OrderStateMachine cannot be null");
-		Objects.requireNonNull(orderbook, "OrderBook cannot be null");
 		Objects.requireNonNull(publisher, "Publisher cannot be null");
 		this.om = om;
-		this.orderbook = orderbook;
 		this.publisher = publisher;
 		this.validator = new MatchingManagerIncomingEventValidator();
 		initHandlers();
@@ -61,6 +59,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.isLoggedOn = true;
 		this.symbol = oe.get(55).toString();
 		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
+		this.orderbook = new OrderBook(symbol, lastTradedPriceWhenStarted);
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol
 		OrderEvent news = new OrderEvent();
