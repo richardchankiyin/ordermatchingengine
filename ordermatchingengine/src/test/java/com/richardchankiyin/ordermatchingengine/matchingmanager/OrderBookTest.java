@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.javatuples.Pair;
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
@@ -734,7 +735,7 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getBidQueueSize());
 		assertEquals(3000L, orderBook.getTotalBidQuantity());
 		
-		orderBook.executeOrders(true, 5000, -10);
+		orderBook.executeOrders(true, 5000, -10, false);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -752,11 +753,11 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getBidQueueSize());
 		assertEquals(3000L, orderBook.getTotalBidQuantity());
 		
-		orderBook.executeOrders(true, -5000, 70);
+		orderBook.executeOrders(true, -5000, 70, false);
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testOrderBookExecuteOrderBuyNotEnoughAvailableQuantity() {
+	@Test
+	public void testOrderBookExecuteOrderBuyNotEnoughAvailableQuantityIsAllFalse() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -770,12 +771,52 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getBidQueueSize());
 		assertEquals(3000L, orderBook.getTotalBidQuantity());
 		
-		orderBook.executeOrders(true, 5000, 61);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000, 61, false);
+		long quantityUnexe = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(2000L, quantityUnexe);
+		assertEquals(1, result.size());
+		assertEquals("1111", result.get(0).get(11));
+		assertEquals(3000L, result.get(0).get(38));
+		assertEquals(3000L, result.get(0).get(14));
+		assertEquals(60.5, result.get(0).get(44));
+		assertEquals("1", result.get(0).get(54));
+		assertEquals("0005.HK", result.get(0).get(55));
+		assertTrue(60.5 == orderBook.getBid());
+		assertEquals(0, orderBook.getBidQueueSize());
+		assertEquals(0, orderBook.getTotalBidQuantity());
+	}
+	
+	@Test
+	public void testOrderBookExecuteOrderBuyNotEnoughAvailableQuantityIsAllTrue() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.5 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000L, orderBook.getTotalBidQuantity());
+		
+		try {
+			orderBook.executeOrders(true, 5000, 61, true);
+			fail("should not reach here");
+		}
+		catch (IllegalStateException ie) {
+			
+		}
+		assertTrue(60.5 == orderBook.getBid());
+		assertEquals(1, orderBook.getBidQueueSize());
+		assertEquals(3000L, orderBook.getTotalBidQuantity());
 	}
 	
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testOrderBookExecuteOrderSellNotEnoughAvailableQuantity() {
+	@Test
+	public void testOrderBookExecuteOrderSellNotEnoughAvailableQuantityIsAllFalse() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -789,7 +830,47 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getAskQueueSize());
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 		
-		orderBook.executeOrders(false, 5000, 60);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000, 60, false);
+		long quantityUnexe = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(2000L, quantityUnexe);
+		assertEquals(1, result.size());
+		assertEquals("1111", result.get(0).get(11));
+		assertEquals(3000L, result.get(0).get(38));
+		assertEquals(3000L, result.get(0).get(14));
+		assertEquals(60.5, result.get(0).get(44));
+		assertEquals("2", result.get(0).get(54));
+		assertEquals("0005.HK", result.get(0).get(55));
+		assertTrue(60.5 == orderBook.getAsk());
+		assertEquals(0, orderBook.getAskQueueSize());
+		assertEquals(0, orderBook.getTotalAskQuantity());
+
+	}
+	
+	@Test
+	public void testOrderBookExecuteOrderSellNotEnoughAvailableQuantityIsAllTrue() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 60);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 60.5);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+		assertTrue(60.5 == orderBook.getAsk());
+		assertEquals(1, orderBook.getAskQueueSize());
+		assertEquals(3000L, orderBook.getTotalAskQuantity());
+		try {
+			orderBook.executeOrders(false, 5000, 60, true);
+			fail("should not reach here");
+		}
+		catch (IllegalStateException ie) {
+			
+		}
+		assertTrue(60.5 == orderBook.getAsk());
+		assertEquals(1, orderBook.getAskQueueSize());
+		assertEquals(3000L, orderBook.getTotalAskQuantity());
 	}
 	
 	@Test(expected=IllegalStateException.class)
@@ -804,7 +885,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(true, 3000L, 58);
+		orderBook.executeOrders(true, 3000L, 58, false);
 	}
 	
 	@Test
@@ -819,7 +900,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(true, 3000L, 61);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 3000L, 61, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(1, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
@@ -844,7 +928,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(true, 2000L, 61);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 2000L, 61, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(1, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
@@ -879,7 +966,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(true, 5000L, 61);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000L, 61, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(2, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
@@ -913,7 +1003,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(false, 3000L, 62);
+		orderBook.executeOrders(false, 3000L, 62, false);
 	}
 	
 	@Test
@@ -928,7 +1018,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(false, 3000L, 60);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 3000L, 60, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(1, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
@@ -953,7 +1046,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(false, 2000L, 60);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 2000L, 60, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(1, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));
@@ -989,7 +1085,10 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		List<OrderEvent> result = orderBook.executeOrders(false, 5000L, 60);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000L, 60, false);
+		long quantityUnexec = resultValues.getValue0();
+		List<OrderEvent> result = resultValues.getValue1();
+		assertEquals(0L, quantityUnexec);
 		assertEquals(2, result.size());
 		assertEquals("1111",result.get(0).get(11));
 		assertEquals(3000L,result.get(0).get(38));

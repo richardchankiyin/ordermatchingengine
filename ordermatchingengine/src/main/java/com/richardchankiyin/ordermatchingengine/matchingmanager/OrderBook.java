@@ -602,8 +602,8 @@ public class OrderBook implements IOrderBook {
 	}	
 	
 	/********* Execute Order *********/
-	// input (quantity, bestprice) -> listof price/quantity
-	private BiFunction<Long, Double, List<Pair<Double,Long>>> findBuyOrderExecutedQuantities = (quantity,bestPrice)-> {
+	// input (quantity, bestprice) -> (quantityUnreserved,listof price/quantity)
+	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findBuyOrderExecutedQuantities = (quantity,bestPrice)-> {
 		if (bestPrice < bid) {
 			throw new IllegalStateException(String.format("best price: %s is lower than bid: %s for buy order", bestPrice, bid));
 		}
@@ -616,38 +616,41 @@ public class OrderBook implements IOrderBook {
 		while (isContinue) {
 			IPriceOrderQueue queue = map.get(startPrice);
 			long quantityReservedForThisRound = 0;
-			if (queue != null) {
-				long quantityAvailable = queue.getTotalOrderQuantity();				
-				if (quantityUnreserved > quantityAvailable) {
-					quantityReservedForThisRound = quantityAvailable;
-				} else {
-					quantityReservedForThisRound = quantityUnreserved;
-				}
-				result.add(Pair.with(startPrice, quantityReservedForThisRound));
-				quantityUnreserved -= quantityReservedForThisRound;
+			if (queue != null) {				
+				long quantityAvailable = queue.getTotalOrderQuantity();	
+				if (quantityAvailable > 0) {
+					if (quantityUnreserved > quantityAvailable) {
+						quantityReservedForThisRound = quantityAvailable;
+					} else {
+						quantityReservedForThisRound = quantityUnreserved;
+					}
+					result.add(Pair.with(startPrice, quantityReservedForThisRound));
+					quantityUnreserved -= quantityReservedForThisRound;
+				}				
 			}
 			
 			if (quantityUnreserved <= 0) {
 				isContinue = false;
 			} else {
-				double newStartPrice = map.lowerKey(startPrice);
-				if (newStartPrice > endPrice) {
+				Double newStartPrice = map.lowerKey(startPrice);
+				if (newStartPrice == null || newStartPrice.doubleValue() > endPrice) {
 					isContinue = false;
 				} else {
-					startPrice = newStartPrice;
+					startPrice = newStartPrice.doubleValue();
 				}
 			}
 		}
 		
-		if (quantityUnreserved != 0) {
+		if (quantityUnreserved < 0) {
 			throw new IllegalStateException(String.format("quantityUnreserved :%s != 0, some issues happened", quantityUnreserved));
 		}
 		
-		return result;
+		
+		return Pair.with(quantityUnreserved, result);
 	};
 	
-	// input (quantity, bestprice) -> listof price/quantity
-	private BiFunction<Long, Double, List<Pair<Double,Long>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
+	// input (quantity, bestprice) -> (quantityUnreserved, listof price/quantity)
+	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
 		if (bestPrice > ask) {
 			throw new IllegalStateException(String.format("best price: %s is higher than ask: %s for sell order", bestPrice, bid));
 		}
@@ -661,32 +664,37 @@ public class OrderBook implements IOrderBook {
 			IPriceOrderQueue queue = map.get(startPrice);
 			long quantityReservedForThisRound = 0;
 			if (queue != null) {
-				long quantityAvailable = queue.getTotalOrderQuantity();				
-				if (quantityUnreserved > quantityAvailable) {
-					quantityReservedForThisRound = quantityAvailable;
-				} else {
-					quantityReservedForThisRound = quantityUnreserved;
+				long quantityAvailable = queue.getTotalOrderQuantity();	
+				
+				if (quantityAvailable > 0) {
+					if (quantityUnreserved > quantityAvailable) {
+						quantityReservedForThisRound = quantityAvailable;
+					} else {
+						quantityReservedForThisRound = quantityUnreserved;
+					}
+					result.add(Pair.with(startPrice, quantityReservedForThisRound));
+					quantityUnreserved -= quantityReservedForThisRound;
 				}
-				result.add(Pair.with(startPrice, quantityReservedForThisRound));
-				quantityUnreserved -= quantityReservedForThisRound;
 			}
 			
 			if (quantityUnreserved <= 0) {
 				isContinue = false;
 			} else {
-				double newStartPrice = map.higherKey(startPrice);
-				if (newStartPrice < endPrice) {
+				Double newStartPrice = map.higherKey(startPrice);
+				if (newStartPrice == null || newStartPrice.doubleValue() < endPrice) {
 					isContinue = false;
 				} else {
-					startPrice = newStartPrice;
+					startPrice = newStartPrice.doubleValue();
 				}
 			}
 		}
-		if (quantityUnreserved != 0) {
+		
+		if (quantityUnreserved < 0) {
 			throw new IllegalStateException(String.format("quantityUnreserved :%s != 0, some issues happened", quantityUnreserved));
 		}
 		
-		return result;
+		
+		return Pair.with(quantityUnreserved, result);
 	};
 	
 	private class ExecuteOrderValidator extends AbstractOrderValidator  {
@@ -695,17 +703,12 @@ public class OrderBook implements IOrderBook {
 			try {
 				double price = Double.parseDouble(oe.get(44).toString());
 				long quantity = Long.parseLong(oe.get(38).toString());
-				boolean isBuy = "1".equals(oe.get(54));
-				long availableQuantity = isBuy ? totalBidQuantity : totalAskQuantity;
+				
 				if (price <= 0) {
 					return new OrderValidationResult("price cannot be non-positive");
 				}
 				if (quantity <= 0) {
 					return new OrderValidationResult("quantity cannot be non-positive");
-				}
-				if (availableQuantity < quantity) {
-					return new OrderValidationResult(String.format("Not enough available quantity. isBuy: %s available quantity: %s quantity request: %s. "
-							, isBuy, availableQuantity, quantity));
 				}
 			} catch (Exception e) {
 				logger.error("issue happens when running execute order checking. ", e);
@@ -748,22 +751,29 @@ public class OrderBook implements IOrderBook {
 	}
 	
 	@Override
-	public List<OrderEvent> executeOrders(boolean isBid, long quantity, double bestPrice) {
+	public Pair<Long,List<OrderEvent>> executeOrders(boolean isBid, long quantity, double bestPrice, boolean isAllOnly) {
 		OrderEvent oe = new OrderEvent();
 		oe.put(38, quantity);
 		oe.put(44, bestPrice);
 		oe.put(54, isBid ? "1" : "2");		
 		handleValidationResult(oe, executeOrderValidator);
-		BiFunction<Long, Double, List<Pair<Double,Long>>> findExecutedQuantities = isBid ? findBuyOrderExecutedQuantities : findSellOrderExecutedQuantities;
+		BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findExecutedQuantities = isBid ? findBuyOrderExecutedQuantities : findSellOrderExecutedQuantities;
 		
-		List<Pair<Double,Long>> quantitiesToBeExecuted = findExecutedQuantities.apply(quantity, bestPrice);
+		Pair<Long,List<Pair<Double,Long>>> unreservedQuantityAndquantitiesToBeExecuted = findExecutedQuantities.apply(quantity, bestPrice);
+		
+		long quantityUnreserved = unreservedQuantityAndquantitiesToBeExecuted.getValue0();
+		if (isAllOnly && quantityUnreserved > 0) {
+			throw new IllegalStateException("do not have enough quantity. quantity unreserved: " + quantityUnreserved);
+		}
+		List<Pair<Double,Long>> quantitiesToBeExecuted = unreservedQuantityAndquantitiesToBeExecuted.getValue1();
+		
 		List<OrderEvent> result = executeOrders(isBid, quantitiesToBeExecuted);
 		
 		logger.debug("executeOrders -- isBid: {} quantity: {} bestPrice: {} result: {}", isBid, quantity, bestPrice, result);
 
 		updateBidAskPriceAfterOrderProcessing(isBid, isBid ? this.bid : this.ask);
 		
-		return result;
+		return Pair.with(quantityUnreserved, result);
 	}
 
 }

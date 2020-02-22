@@ -2,6 +2,8 @@ package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
 import java.util.List;
 
+import org.javatuples.Pair;
+
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
 public interface IOrderBook extends IOrderHandler{
@@ -24,10 +26,14 @@ public interface IOrderBook extends IOrderHandler{
 	 * price for selling.
 	 * for isBid = false, => buying and best price is for sell (as high as possible) and is worst
 	 * price for buying
+	 * 
+	 * isAll -> true means All or Nothing, do not accept partial.
+	 * 
 	 * @param isBid
 	 * @param quantity
-	 * @param worstPrice
+	 * @param bestPrice
+	 * @param isAll
 	 * @return
 	 */
-	public List<OrderEvent> executeOrders(boolean isBid, long quantity, double bestPrice);
+	public Pair<Long,List<OrderEvent>> executeOrders(boolean isBid, long quantity, double bestPrice, boolean isAll);
 }
