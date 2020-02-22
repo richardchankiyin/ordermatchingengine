@@ -37,7 +37,7 @@ Order book
 
 Execution book
 --------------
-1. An execution consists of: 1. ExecID (FIX Tag 17), Active Order ID (FIX Tag 11), Passive Order ID (FIX Tag 37), Execution Report (Tag 35: 8), Quantity (FIX Tag 38), Price (Tag 44), Symbol (Tag 55), execution time (FIX Tag 60)
+1. An execution consists of: 1. ExecID (FIX Tag 17), Active Order ID (FIX Tag 11), Passive Order ID (FIX Tag 37), Execution Report (Tag 35: 8), Quantity (FIX Tag 38), Price (Tag 44), Side for Active order (Tag 54), Symbol (Tag 55), execution time (FIX Tag 60)
 
 Order Status Publishing
 -----------------------
