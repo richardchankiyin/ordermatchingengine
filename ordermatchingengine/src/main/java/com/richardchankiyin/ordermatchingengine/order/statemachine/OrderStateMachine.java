@@ -68,8 +68,8 @@ public class OrderStateMachine implements IOrderStateMachine{
 				}
 	});
 	
-	private final OrderValidationRule NOSFROMPENDINGNEWTONEW
-		= new OrderValidationRule("NOSFROMPENDINGNEWTONEW", oe->{
+	private final OrderValidationRule NOSFROMPENDINGNEWTONEWORREJ
+		= new OrderValidationRule("NOSFROMPENDINGNEWTONEWORREJ", oe->{
 			Object clOrdId = oe.get(11);
 			Object msgType = oe.get(35);
 			if (clOrdId != null && "D".equals(msgType)) {
@@ -78,11 +78,11 @@ public class OrderStateMachine implements IOrderStateMachine{
 				if (isOrderExist) {
 					OrderEvent oldOe = model.getOrder(clOrdId.toString());
 					Object oldOrdStatus = oldOe.get(39);
-					if ("0".equals(ordStatus) && "A".equals(oldOrdStatus)) {
+					if (("0".equals(ordStatus) || "8".equals(ordStatus)) && "A".equals(oldOrdStatus)) {
 						return OrderValidationResult.getAcceptedInstance();
 					} else {
-						// reject as only from A->0
-						return new OrderValidationResult(String.format("Tag 39: from %s to %s not accepted. Only A to 0. ", oldOrdStatus, ordStatus));
+						// reject as only from A->0 or A->8
+						return new OrderValidationResult(String.format("Tag 39: from %s to %s not accepted. Only A to 0/8. ", oldOrdStatus, ordStatus));
 					}
 				} else {
 					return OrderValidationResult.getAcceptedInstance();
@@ -173,8 +173,8 @@ public class OrderStateMachine implements IOrderStateMachine{
 		return NOSFROMNONEXISTINGTOPENDINGNEW;		
 	}
 	
-	protected OrderValidationRule getNosFromPendingNewToNew() {
-		return NOSFROMPENDINGNEWTONEW;
+	protected OrderValidationRule getNosFromPendingNewToNewOrRej() {
+		return NOSFROMPENDINGNEWTONEWORREJ;
 	}
 	
 	protected OrderValidationRule getReplaceRequestStatusChange() {
@@ -191,7 +191,7 @@ public class OrderStateMachine implements IOrderStateMachine{
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(
 					NOSFROMNONEXISTINGTOPENDINGNEW
-					, NOSFROMPENDINGNEWTONEW
+					, NOSFROMPENDINGNEWTONEWORREJ
 					, REPLACEREQUESTSTATUSCHANGE
 					, CANCELREQUESTSTATUSCHANGE
 					);
