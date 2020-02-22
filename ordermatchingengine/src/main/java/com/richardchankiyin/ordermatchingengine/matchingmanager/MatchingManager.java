@@ -24,6 +24,7 @@ import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 public class MatchingManager implements IOrderMessageQueueReceiver {
 	private static final Logger logger = LoggerFactory.getLogger(MatchingManager.class);
 	private IOrderStateMachine om = null;
+	private IOrderBook orderbook = null;
 	private IPublisher publisher = null;
 	private String symbol = null;
 	private boolean isLoggedOn = false;
@@ -31,10 +32,12 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private MatchingManagerIncomingEventValidator validator = null;
 	private Map<String, Consumer<OrderEvent>> eventHandlerMap = null;
 	
-	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
+	public MatchingManager(IOrderStateMachine om, IOrderBook orderbook, IPublisher publisher) {
 		Objects.requireNonNull(om, "OrderStateMachine cannot be null");
+		Objects.requireNonNull(orderbook, "OrderBook cannot be null");
 		Objects.requireNonNull(publisher, "Publisher cannot be null");
 		this.om = om;
+		this.orderbook = orderbook;
 		this.publisher = publisher;
 		this.validator = new MatchingManagerIncomingEventValidator();
 		initHandlers();

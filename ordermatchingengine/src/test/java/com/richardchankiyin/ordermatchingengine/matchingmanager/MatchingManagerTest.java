@@ -24,9 +24,11 @@ public class MatchingManagerTest {
 	private static final Logger logger = LoggerFactory.getLogger(MatchingManagerTest.class);
 	
 	private MatchingManager matchingMgr = null; 
+	private IOrderBook orderBook = null;
 
 	@Before
 	public void setup() {
+		orderBook = new OrderBook("0005.HK",60);
 		matchingMgr = new MatchingManager(new IOrderStateMachine() {
 
 			@Override
@@ -39,12 +41,16 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
 			
 		});
+		
+		
 	}
 	
 	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
@@ -146,7 +152,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
@@ -180,7 +188,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
@@ -208,7 +218,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
@@ -237,7 +249,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
@@ -274,7 +288,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 			}
@@ -322,7 +338,9 @@ public class MatchingManagerTest {
 				return null;
 			}
 			
-		}, new IPublisher() {
+		}
+		, orderBook
+		, new IPublisher() {
 			@Override
 			public void publish(OrderEvent oe) {
 				publishedOrderEvent.add(oe);
