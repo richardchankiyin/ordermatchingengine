@@ -211,7 +211,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	private double getNosWorstPrice(boolean isNosBid, boolean isNosMarketOrder, OrderEvent oe, IOrderBook ob) {
 		if (isNosMarketOrder) {
-			return isNosBid ? ob.getLowestBid() : ob.getHighestAsk();				
+			return isNosBid ? ob.getHighestAsk() : ob.getLowestBid();				
 		} else {
 			return Double.parseDouble(oe.get(44).toString());
 		}
