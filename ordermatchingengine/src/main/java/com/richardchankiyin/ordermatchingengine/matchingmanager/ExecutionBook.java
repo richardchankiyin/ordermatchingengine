@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.OrderEventView;
+import com.richardchankiyin.utils.TimeUtils;
 
 public class ExecutionBook implements IExecutionBook {
 	private static final Logger logger = LoggerFactory.getLogger(ExecutionBook.class);
@@ -56,7 +57,7 @@ public class ExecutionBook implements IExecutionBook {
 			execItem.put(44, passiveOrder.get(44));
 			execItem.put(54, activeOrder.get(54));
 			execItem.put(55, passiveOrder.get(55));
-			execItem.put(60, System.currentTimeMillis());
+			execItem.put(60, TimeUtils.getCurrentTimestamp());
 			// add a deep view-only copy for external reference
 			OrderEvent execItemToBePut = new OrderEventView(execItem);
 			executionByExecIdMap.put(execId, execItemToBePut);

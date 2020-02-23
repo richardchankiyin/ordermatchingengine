@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueueForTest;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
+import com.richardchankiyin.ordermatchingengine.order.model.OrderRepository;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
+import com.richardchankiyin.ordermatchingengine.order.statemachine.OrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
@@ -355,6 +357,43 @@ public class MatchingManagerTest {
 		assertTrue(testLogonMatchingManager.isLoggedOn());
 		assertEquals(1, publishedOrderEvent.size());
 		
+	}
+	
+	@Test
+	public void testNosSymbolNotCorrect() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(1);
+		MatchingManager testNosManager = new MatchingManager(new OrderStateMachine(orderRepo.getOrderModel(), orderRepo), 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosSymbolNotCorrectQueue", testNosManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0001.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "1");
+		oe2.put(54, "1");
+		oe2.put(55, "0005.HK");
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		Thread.sleep(1000);
+		queue.stop();
+		//queue.join();
+		
+		assertTrue(testNosManager.isLoggedOn());
+		assertEquals(2, publishedOrderEvent.size());
+		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("INCOMINGORDERSYMBOLCHECKING->Symbol: 0005.HK not match with one assigned by login: 0001.HK"));
 	}
 
 }

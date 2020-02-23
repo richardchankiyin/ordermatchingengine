@@ -59,6 +59,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		eventHandlerMap = new HashMap<>();
 		eventHandlerMap.put("A", handleLogonEvent);
 		eventHandlerMap.put("5", handleLogoutEvent);
+		eventHandlerMap.put("D", handleNewOrderSingleEvent);
 	}
 
 	private Consumer<OrderEvent> handleLogonEvent = oe -> {
@@ -130,10 +131,8 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			om.handleEvent(oe);
 			
 			// 2.2.2 create reject execution report
-			oe.put(35, "8");
-			oe.put(60, TimeUtils.getCurrentTimestamp());
 			// 2.2.3 publish reject execution report
-			publisher.publish(oe);
+			handleRejectMessage(oe,rejectReason);
 		}
 	};
 	
@@ -154,6 +153,15 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	}
 	
+	private void handleRejectMessage(OrderEvent oe, String message) {
+		if (oe != null) {
+			oe.put(35, "8");
+			oe.put(58, message);
+			oe.put(60, TimeUtils.getCurrentTimestamp());
+			publisher.publish(oe);
+		}
+	}
+	
 	@Override
 	public void onEvent(OrderEvent oe) {
 		logger.info("incoming order: {}", oe);
@@ -164,10 +172,12 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			} else {
 				//validation failure
 				logger.debug("validation failed: {}", validationResult);
+				handleRejectMessage(oe, validationResult.getRejectReason());
 			}
 		}
 		catch (Throwable t) {
 			logger.error("Something wrong happened at event handling", t);
+			handleRejectMessage(oe, "We are unable to process your order!");
 		}
 	}
 	
@@ -298,6 +308,18 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			return OrderValidationResult.getAcceptedInstance();
 		});
 	
+	private final OrderValidationRule INCOMINGORDERSYMBOLCHECKING
+		= new OrderValidationRule("INCOMINGORDERSYMBOLCHECKING", oe->{
+			Object symbolInThisOrder = oe.get(55);
+			if (this.symbol != null) {
+				if (!this.symbol.equals(symbolInThisOrder)) {
+					return new OrderValidationResult(
+							String.format("Symbol: %s not match with one assigned by login: %s", symbolInThisOrder, this.symbol));
+				}
+			}
+			return OrderValidationResult.getAcceptedInstance();
+		});
+	
 	private final class IncomingMatchingOrderValidator extends AbstractPreconditionOrderValidator {
 
 		public IncomingMatchingOrderValidator() {
@@ -311,7 +333,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
-			return Arrays.asList(new IncomingOrderValidator(om.getOrderModel()));
+			return Arrays.asList(INCOMINGORDERSYMBOLCHECKING, new IncomingOrderValidator(om.getOrderModel()));
 		}
 		
 	}
