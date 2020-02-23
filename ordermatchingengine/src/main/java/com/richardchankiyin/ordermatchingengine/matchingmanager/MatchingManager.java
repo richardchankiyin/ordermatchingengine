@@ -27,6 +27,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private static final Logger logger = LoggerFactory.getLogger(MatchingManager.class);
 	private IOrderStateMachine om = null;
 	private IOrderBook orderbook = null;
+	private IExecutionBook executionBook = null;
 	private IPublisher publisher = null;
 	private String symbol = null;
 	private boolean isLoggedOn = false;
@@ -62,6 +63,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.symbol = oe.get(55).toString();
 		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
 		this.orderbook = new OrderBook(symbol, lastTradedPriceWhenStarted);
+		this.executionBook = new ExecutionBook();
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol
 		OrderEvent news = new OrderEvent();
@@ -84,6 +86,20 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		om.handleEvent(oe);
 		// 2. if orderbook execution ok, become new, else become reject
 		
+		// getting nos side, then execute the reverse side in the orderbook
+		// i.e. NOS bid -> ask, NOS ask -> bid
+		boolean isNosBid = "1".equals(oe.get(54));
+		Object qty = oe.get(38);
+		long qtyLong = Long.parseLong(qty.toString());
+		boolean isNosMarketOrder = "1".equals(oe.get(40));
+		// NOS worst price = counterparty best price
+		double nosWorstPrice = getNosWorstPrice(isNosBid, isNosMarketOrder, oe, orderbook);
+		// market order will be All or nothing order (also known as Immediate Or Cancel)
+		boolean isAllOrNothing = isNosMarketOrder;
+		//TODO handle exception here to reject
+		orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);
+		
+		
 		// 3. mark suspended before execution book process
 		
 		// 4. filled/partially filled based on difference of tag 38 and tag 14
@@ -101,6 +117,14 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	protected Consumer<OrderEvent> getHandleLogoffEvent() {
 		return this.handleLogoutEvent;
+	}
+	
+	private double getNosWorstPrice(boolean isNosBid, boolean isNosMarketOrder, OrderEvent oe, IOrderBook ob) {
+		if (isNosMarketOrder) {
+			return isNosBid ? ob.getHighestAsk() : ob.getLowestBid();			
+		} else {
+			return Double.parseDouble(oe.get(44).toString());
+		}
 	}
 	
 	@Override
