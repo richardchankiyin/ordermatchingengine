@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotProceedToFoundCounterpartyException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
@@ -24,7 +25,6 @@ import com.richardchankiyin.ordermatchingengine.order.validation.IncomingOrderVa
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
-import com.richardchankiyin.spreadcalc.SpreadRanges;
 import com.richardchankiyin.utils.TimeUtils;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
@@ -109,6 +109,9 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			result = orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);
 			isNosSuccess = true;
 		}
+		catch (NotProceedToFoundCounterpartyException npe) {
+			logger.debug("NotProceedToFoundCounterpartyException found. ", npe);
+		}
 		catch (NotEnoughQuantityException ne) {
 			rejectReason = ne.getMessage();
 		}
@@ -164,11 +167,29 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			}
 			
 			// 2.1.3. for partially filled NOS order, add to orderbook
-			oe.put(35, "D");
-			orderbook.addOrder(oe);
-			handleNosExecutionReportMessage(oe);
+			if (!"2".equals(nosPostExecStatus)) {
+				oe.put(35, "D");
+				orderbook.addOrder(oe);				
+			}
+			// send out order execution report
+			handleExecutionReportMessage(oe);
 			// 2.1.4. DFD for filled orders
-			//TODO to be implemented
+			if ("2".equals(nosPostExecStatus)) {
+				// Nos Fully Filled, DFD for the order
+				oe.put(35, "G");
+				oe.put(39, "3");
+				om.handleEvent(oe);
+				handleExecutionReportMessage(oe);
+			}
+			
+			for (OrderEvent counterpartyOrder: listOfCounterpartyOrders) {
+				if ("2".equals(counterpartyOrder.get(39))) {
+					counterpartyOrder.put(35, "G");
+					counterpartyOrder.put(39, "3");
+					om.handleEvent(counterpartyOrder);
+					handleExecutionReportMessage(counterpartyOrder);
+				}				
+			}
 		}
 		else {
 			// 2.2.1 update order as rejected in om
@@ -207,7 +228,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	}
 	
-	private void handleNosExecutionReportMessage(OrderEvent oe) {
+	private void handleExecutionReportMessage(OrderEvent oe) {
 		if (oe != null) {
 			oe.put(35, "8");
 			oe.put(60, TimeUtils.getCurrentTimestamp());

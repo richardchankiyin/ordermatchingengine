@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotProceedToFoundCounterpartyException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
@@ -605,8 +606,8 @@ public class OrderBook implements IOrderBook {
 	/********* Execute Order *********/
 	// input (quantity, bestprice) -> (quantityUnreserved,listof price/quantity)
 	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findBuyOrderExecutedQuantities = (quantity,bestPrice)-> {
-		if (bestPrice < bid) {
-			throw new IllegalStateException(String.format("best price: %s is lower than bid: %s for buy order", bestPrice, bid));
+		if (bestPrice > bid) {
+			throw new NotProceedToFoundCounterpartyException(String.format("best price: %s is higher than bid: %s for buy order", bestPrice, bid));
 		}
 		TreeMap<Double,IPriceOrderQueue> map = bidPriceQueueMap;
 		double startPrice = bid;
@@ -634,7 +635,7 @@ public class OrderBook implements IOrderBook {
 				isContinue = false;
 			} else {
 				Double newStartPrice = map.lowerKey(startPrice);
-				if (newStartPrice == null || newStartPrice.doubleValue() > endPrice) {
+				if (newStartPrice == null || newStartPrice.doubleValue() < endPrice) {
 					isContinue = false;
 				} else {
 					startPrice = newStartPrice.doubleValue();
@@ -652,8 +653,8 @@ public class OrderBook implements IOrderBook {
 	
 	// input (quantity, bestprice) -> (quantityUnreserved, listof price/quantity)
 	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
-		if (bestPrice > ask) {
-			throw new IllegalStateException(String.format("best price: %s is higher than ask: %s for sell order", bestPrice, bid));
+		if (bestPrice < ask) {
+			throw new NotProceedToFoundCounterpartyException(String.format("best price: %s is lower than ask: %s for sell order", bestPrice, bid));
 		}
 		TreeMap<Double,IPriceOrderQueue> map = askPriceQueueMap;
 		double startPrice = ask;
@@ -682,7 +683,7 @@ public class OrderBook implements IOrderBook {
 				isContinue = false;
 			} else {
 				Double newStartPrice = map.higherKey(startPrice);
-				if (newStartPrice == null || newStartPrice.doubleValue() < endPrice) {
+				if (newStartPrice == null || newStartPrice.doubleValue() > endPrice) {
 					isContinue = false;
 				} else {
 					startPrice = newStartPrice.doubleValue();

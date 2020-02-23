@@ -10,6 +10,7 @@ import org.javatuples.Pair;
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotProceedToFoundCounterpartyException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
 public class OrderBookTest {
@@ -772,7 +773,7 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getBidQueueSize());
 		assertEquals(3000L, orderBook.getTotalBidQuantity());
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000, 61, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000, 60, false);
 		long quantityUnexe = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(2000L, quantityUnexe);
@@ -804,7 +805,7 @@ public class OrderBookTest {
 		assertEquals(3000L, orderBook.getTotalBidQuantity());
 		
 		try {
-			orderBook.executeOrders(true, 5000, 61, true);
+			orderBook.executeOrders(true, 5000, 60, true);
 			fail("should not reach here");
 		}
 		catch (NotEnoughQuantityException ie) {
@@ -831,7 +832,7 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getAskQueueSize());
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000, 60, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000, 61, false);
 		long quantityUnexe = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(2000L, quantityUnexe);
@@ -863,7 +864,7 @@ public class OrderBookTest {
 		assertEquals(1, orderBook.getAskQueueSize());
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 		try {
-			orderBook.executeOrders(false, 5000, 60, true);
+			orderBook.executeOrders(false, 5000, 61, true);
 			fail("should not reach here");
 		}
 		catch (NotEnoughQuantityException ie) {
@@ -874,8 +875,8 @@ public class OrderBookTest {
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 	}
 	
-	@Test(expected=IllegalStateException.class)
-	public void testOrderBookExecuteOrderBuyBestPriceLowerThanBid() {
+	@Test(expected=NotProceedToFoundCounterpartyException.class)
+	public void testOrderBookExecuteOrderBuyBestPriceHigherThanBid() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -886,7 +887,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(true, 3000L, 58, false);
+		orderBook.executeOrders(true, 3000L, 62, false);
 	}
 	
 	@Test
@@ -901,7 +902,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 3000L, 61, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 3000L, 60.5, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
@@ -929,7 +930,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 2000L, 61, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 2000L, 60.5, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
@@ -967,7 +968,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000L, 61, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(true, 5000L, 60.3, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
@@ -992,8 +993,8 @@ public class OrderBookTest {
 		
 	}
 	
-	@Test(expected=IllegalStateException.class)
-	public void testOrderBookExecuteOrderSellBestPriceHigherThanAsk() {
+	@Test(expected=NotProceedToFoundCounterpartyException.class)
+	public void testOrderBookExecuteOrderSellBestPriceLowerThanAsk() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
@@ -1004,7 +1005,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(false, 3000L, 62, false);
+		orderBook.executeOrders(false, 3000L, 58, false);
 	}
 	
 	@Test
@@ -1019,7 +1020,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 3000L, 60, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 3000L, 60.5, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
@@ -1047,7 +1048,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 2000L, 60, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 2000L, 61, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
@@ -1086,7 +1087,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000L, 60, false);
+		Pair<Long,List<OrderEvent>> resultValues = orderBook.executeOrders(false, 5000L, 60.8, false);
 		long quantityUnexec = resultValues.getValue0();
 		List<OrderEvent> result = resultValues.getValue1();
 		assertEquals(0L, quantityUnexec);
