@@ -387,7 +387,9 @@ public class MatchingManagerTest {
 		queue.start();
 		queue.send(oe);
 		queue.send(oe2);
-		Thread.sleep(1000);
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
 		queue.stop();
 		//queue.join();
 		
@@ -424,13 +426,57 @@ public class MatchingManagerTest {
 		queue.start();
 		queue.send(oe);
 		queue.send(oe2);
-		Thread.sleep(1000);
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
 		queue.stop();
 		
 		assertTrue(testNosManager.isLoggedOn());
 		assertEquals(2, publishedOrderEvent.size());
 		
 		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("do not have enough quantity. quantity unreserved: 1200"));
+	}
+	
+	@Test
+	public void testNosLimitOrderNoExecutionAddedToOrderBook() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(1);
+		MatchingManager testNosManager = new MatchingManager(new OrderStateMachine(orderRepo.getOrderModel(), orderRepo), 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosLimitOrderNoExecutionAddedToOrderBook", testNosManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "1");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		queue.stop();
+		
+		assertTrue(testNosManager.isLoggedOn());
+		assertEquals(2, publishedOrderEvent.size());
+		
+		assertEquals("8",publishedOrderEvent.get(1).get(35));
+		assertEquals(1200L,publishedOrderEvent.get(1).get(38));
 	}
 
 }

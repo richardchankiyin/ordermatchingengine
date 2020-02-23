@@ -192,6 +192,7 @@ public class PriceOrderQueue implements IPriceOrderQueue{
 		getOrderEventInternalMap().put(clOrdId.toString(), oeForOrderBook);
 		orderQueue.add(oeForOrderBook);
 		++queueSize;
+		logger.debug("addOrder: order {} added at isBuy: {} orderPrice: {}", oeForOrderBook, isBuy, orderPrice);
 	}
 	
 	private OrderEvent initializeOrder(OrderEvent oe, long cumQty) {

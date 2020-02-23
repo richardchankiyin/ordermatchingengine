@@ -124,13 +124,51 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			
 			// 2.1.2. filled/partially filled based on difference of tag 38 and tag 14
 			long quantityExec = qtyLong - quantityUnexec;
-			oe.put(14, quantityExec);
-			oe.put(32, quantityExec);
-			List<OrderEvent> executions = executionBook.processExecutions(oe, listOfCounterpartyOrders);
+			if (quantityExec > 0) {
+				oe.put(14, quantityExec);
+				oe.put(32, quantityExec);
+			}
+			oe.put(39, "0");
+			// mark NOS as New status 
+			om.handleEvent(oe);
 			
-			// 2.1.3. DFD for filled orders
+			// mark NOS and counterparty orders as suspend
+			oe.put(35, "G");
+			oe.put(39, "9");
+			om.handleEvent(oe);
+			for (OrderEvent counterpartyOrder: listOfCounterpartyOrders) {
+				counterpartyOrder.put(35, "G");
+				counterpartyOrder.put(39, "9");
+				om.handleEvent(counterpartyOrder);
+			}
 			
-			// 2.1.4. for partially filled NOS order, add to orderbook
+			if (!listOfCounterpartyOrders.isEmpty()) {
+				List<OrderEvent> executions = executionBook.processExecutions(oe, listOfCounterpartyOrders);
+				// publish executions
+				for (OrderEvent execution: executions) {
+					this.publisher.publish(execution);
+				}
+			}
+			// mark NOS and counterparty orders as New (for NOS only) / partial filled/filled (for both NOS and counterparty orders)
+			String nosPostExecStatus = quantityUnexec == 0 ? "2" : quantityUnexec < qtyLong ? "1" : "0";
+			oe.put(35, "G");
+			oe.put(39, nosPostExecStatus);
+			om.handleEvent(oe);
+			for (OrderEvent counterpartyOrder: listOfCounterpartyOrders) {
+				counterpartyOrder.put(35, "G");
+				long quantityCounterparty = Long.parseLong(counterpartyOrder.get(38).toString());
+				long cumQuantityCounterparty = Long.parseLong(counterpartyOrder.get(14).toString());
+				String counterpartyPostExecStatus = cumQuantityCounterparty < quantityCounterparty ? "1" : "2";
+				counterpartyOrder.put(39, counterpartyPostExecStatus);
+				om.handleEvent(counterpartyOrder);
+			}
+			
+			// 2.1.3. for partially filled NOS order, add to orderbook
+			oe.put(35, "D");
+			orderbook.addOrder(oe);
+			handleNosExecutionReportMessage(oe);
+			// 2.1.4. DFD for filled orders
+			//TODO to be implemented
 		}
 		else {
 			// 2.2.1 update order as rejected in om
@@ -164,6 +202,14 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		if (oe != null) {
 			oe.put(35, "8");
 			oe.put(58, message);
+			oe.put(60, TimeUtils.getCurrentTimestamp());
+			publisher.publish(oe);
+		}
+	}
+	
+	private void handleNosExecutionReportMessage(OrderEvent oe) {
+		if (oe != null) {
+			oe.put(35, "8");
 			oe.put(60, TimeUtils.getCurrentTimestamp());
 			publisher.publish(oe);
 		}
