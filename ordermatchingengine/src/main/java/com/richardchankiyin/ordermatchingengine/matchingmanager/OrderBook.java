@@ -15,6 +15,7 @@ import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
@@ -763,7 +764,7 @@ public class OrderBook implements IOrderBook {
 		
 		long quantityUnreserved = unreservedQuantityAndquantitiesToBeExecuted.getValue0();
 		if (isAllOnly && quantityUnreserved > 0) {
-			throw new IllegalStateException("do not have enough quantity. quantity unreserved: " + quantityUnreserved);
+			throw new NotEnoughQuantityException(quantityUnreserved);
 		}
 		List<Pair<Double,Long>> quantitiesToBeExecuted = unreservedQuantityAndquantitiesToBeExecuted.getValue1();
 		

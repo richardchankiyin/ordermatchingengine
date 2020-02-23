@@ -9,6 +9,7 @@ import java.util.Map;
 import org.javatuples.Pair;
 import org.junit.Test;
 
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 
 public class OrderBookTest {
@@ -806,7 +807,7 @@ public class OrderBookTest {
 			orderBook.executeOrders(true, 5000, 61, true);
 			fail("should not reach here");
 		}
-		catch (IllegalStateException ie) {
+		catch (NotEnoughQuantityException ie) {
 			
 		}
 		assertTrue(60.5 == orderBook.getBid());
@@ -865,7 +866,7 @@ public class OrderBookTest {
 			orderBook.executeOrders(false, 5000, 60, true);
 			fail("should not reach here");
 		}
-		catch (IllegalStateException ie) {
+		catch (NotEnoughQuantityException ie) {
 			
 		}
 		assertTrue(60.5 == orderBook.getAsk());

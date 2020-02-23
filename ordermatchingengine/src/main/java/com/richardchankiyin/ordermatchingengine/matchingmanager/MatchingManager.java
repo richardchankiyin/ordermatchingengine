@@ -9,9 +9,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
@@ -84,7 +86,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		// 1. change the incoming order to pending new
 		oe.put(39, "A");
 		om.handleEvent(oe);
-		// 2. if orderbook execution ok, become new, else become reject
+		// 2. if orderbook execution ok (2.1.1/2.1.2...), become new, else become reject(2.2.1/2.2.2...)
 		
 		// getting nos side, then execute the reverse side in the orderbook
 		// i.e. NOS bid -> ask, NOS ask -> bid
@@ -96,18 +98,36 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		double nosWorstPrice = getNosWorstPrice(isNosBid, isNosMarketOrder, oe, orderbook);
 		// market order will be All or nothing order (also known as Immediate Or Cancel)
 		boolean isAllOrNothing = isNosMarketOrder;
-		//TODO handle exception here to reject
-		orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);
+		boolean isNosSuccess = false;
+		Pair<Long,List<OrderEvent>> result = null;
+		String rejectReason = null;
 		
+		try {
+			result = orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);
+			isNosSuccess = true;
+		}
+		catch (NotEnoughQuantityException ne) {
+			rejectReason = ne.getMessage();
+		}
+		catch (Throwable t) {
+			logger.error("Something wrong happened here....", t);
+			rejectReason = "System error";
+		}
 		
-		// 3. mark suspended before execution book process
+		if (isNosSuccess) {
+		// 2.1.1 mark suspended before execution book process
 		
-		// 4. filled/partially filled based on difference of tag 38 and tag 14
+		// 2.1.2. filled/partially filled based on difference of tag 38 and tag 14
 		
-		// 5. DFD for filled orders
+		// 2.1.3. DFD for filled orders
 		
-		// 6. for partially filled NOS order, add to orderbook
+		// 2.1.4. for partially filled NOS order, add to orderbook
+		}
+		else {
+		// 2.2.1 create reject execution report
 		
+		// 2.2.2 publish reject execution report
+		}
 	};
 	
 	
