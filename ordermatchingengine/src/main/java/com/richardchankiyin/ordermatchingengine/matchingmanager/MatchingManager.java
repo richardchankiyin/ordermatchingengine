@@ -82,7 +82,15 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		// 1. change the incoming order to pending new
 		oe.put(39, "A");
 		om.handleEvent(oe);
+		// 2. if orderbook execution ok, become new, else become reject
 		
+		// 3. mark suspended before execution book process
+		
+		// 4. filled/partially filled based on difference of tag 38 and tag 14
+		
+		// 5. DFD for filled orders
+		
+		// 6. for partially filled NOS order, add to orderbook
 		
 	};
 	
