@@ -430,7 +430,7 @@ public class MatchingManagerTest {
 		assertTrue(testNosManager.isLoggedOn());
 		assertEquals(2, publishedOrderEvent.size());
 		
-		//TODO assertion to reject due to insufficient quantity
+		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("do not have enough quantity. quantity unreserved: 1200"));
 	}
 
 }

@@ -24,6 +24,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.IncomingOrderVa
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
+import com.richardchankiyin.spreadcalc.SpreadRanges;
 import com.richardchankiyin.utils.TimeUtils;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
@@ -147,7 +148,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	private double getNosWorstPrice(boolean isNosBid, boolean isNosMarketOrder, OrderEvent oe, IOrderBook ob) {
 		if (isNosMarketOrder) {
-			return isNosBid ? ob.getHighestAsk() : ob.getLowestBid();			
+			return isNosBid ? ob.getLowestBid() : ob.getHighestAsk();				
 		} else {
 			return Double.parseDouble(oe.get(44).toString());
 		}
