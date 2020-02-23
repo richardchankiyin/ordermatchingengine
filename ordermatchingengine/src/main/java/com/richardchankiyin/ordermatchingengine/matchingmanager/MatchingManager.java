@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
-import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotProceedToFoundCounterpartyException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.IOrderMessageQueueReceiver;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
@@ -109,9 +108,6 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		try {
 			result = orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);			
 		}
-		catch (NotProceedToFoundCounterpartyException npe) {
-			logger.debug("NotProceedToFoundCounterpartyException found. ", npe);
-		}
 		catch (NotEnoughQuantityException ne) {
 			isNosSuccess = false;
 			rejectReason = ne.getMessage();
@@ -168,8 +164,8 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 				om.handleEvent(counterpartyOrder);
 			}
 			
-			// 2.1.3. for partially filled NOS order, add to orderbook
-			if (!"2".equals(nosPostExecStatus)) {
+			// 2.1.3. for partially filled limited NOS order, add to orderbook
+			if (!isNosMarketOrder && !"2".equals(nosPostExecStatus)) {
 				oe.put(35, "D");
 				orderbook.addOrder(oe);				
 			}

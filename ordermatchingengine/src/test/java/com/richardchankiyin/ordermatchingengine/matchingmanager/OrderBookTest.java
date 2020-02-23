@@ -875,7 +875,7 @@ public class OrderBookTest {
 		assertEquals(3000L, orderBook.getTotalAskQuantity());
 	}
 	
-	@Test(expected=NotProceedToFoundCounterpartyException.class)
+	@Test(expected=NotEnoughQuantityException.class)
 	public void testOrderBookExecuteOrderBuyBestPriceHigherThanBid() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
@@ -887,7 +887,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(true, 3000L, 62, false);
+		orderBook.executeOrders(true, 3000L, 62, true);
 	}
 	
 	@Test
@@ -993,7 +993,7 @@ public class OrderBookTest {
 		
 	}
 	
-	@Test(expected=NotProceedToFoundCounterpartyException.class)
+	@Test(expected=NotEnoughQuantityException.class)
 	public void testOrderBookExecuteOrderSellBestPriceLowerThanAsk() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 60);
 		OrderEvent oe = new OrderEvent();
@@ -1005,7 +1005,7 @@ public class OrderBookTest {
 		oe.put(55, "0005.HK");
 		orderBook.addOrder(oe);
 		
-		orderBook.executeOrders(false, 3000L, 58, false);
+		orderBook.executeOrders(false, 3000L, 58, true);
 	}
 	
 	@Test

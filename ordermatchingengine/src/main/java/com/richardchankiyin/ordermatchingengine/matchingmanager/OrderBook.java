@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotEnoughQuantityException;
-import com.richardchankiyin.ordermatchingengine.matchingmanager.exception.NotProceedToFoundCounterpartyException;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.validation.AbstractOrderValidator;
 import com.richardchankiyin.ordermatchingengine.order.validation.IOrderValidator;
@@ -607,7 +606,7 @@ public class OrderBook implements IOrderBook {
 	// input (quantity, bestprice) -> (quantityUnreserved,listof price/quantity)
 	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findBuyOrderExecutedQuantities = (quantity,bestPrice)-> {
 		if (bestPrice > bid) {
-			throw new NotProceedToFoundCounterpartyException(String.format("best price: %s is higher than bid: %s for buy order", bestPrice, bid));
+			return Pair.with(quantity, new ArrayList<>());
 		}
 		TreeMap<Double,IPriceOrderQueue> map = bidPriceQueueMap;
 		double startPrice = bid;
@@ -654,7 +653,7 @@ public class OrderBook implements IOrderBook {
 	// input (quantity, bestprice) -> (quantityUnreserved, listof price/quantity)
 	private BiFunction<Long, Double, Pair<Long,List<Pair<Double,Long>>>> findSellOrderExecutedQuantities = (quantity,bestPrice)-> {
 		if (bestPrice < ask) {
-			throw new NotProceedToFoundCounterpartyException(String.format("best price: %s is lower than ask: %s for sell order", bestPrice, bid));
+			return Pair.with(quantity, new ArrayList<>());
 		}
 		TreeMap<Double,IPriceOrderQueue> map = askPriceQueueMap;
 		double startPrice = ask;
