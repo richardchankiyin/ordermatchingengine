@@ -1,5 +1,6 @@
 package com.richardchankiyin.ordermatchingengine.matchingmanager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,29 +102,30 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		double nosWorstPrice = getNosWorstPrice(isNosBid, isNosMarketOrder, oe, orderbook);
 		// market order will be All or nothing order (also known as Immediate Or Cancel)
 		boolean isAllOrNothing = isNosMarketOrder;
-		boolean isNosSuccess = false;
+		boolean isNosSuccess = true;
 		Pair<Long,List<OrderEvent>> result = null;
 		String rejectReason = null;
 		
 		try {
-			result = orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);
-			isNosSuccess = true;
+			result = orderbook.executeOrders(!isNosBid, qtyLong, nosWorstPrice, isAllOrNothing);			
 		}
 		catch (NotProceedToFoundCounterpartyException npe) {
 			logger.debug("NotProceedToFoundCounterpartyException found. ", npe);
 		}
 		catch (NotEnoughQuantityException ne) {
+			isNosSuccess = false;
 			rejectReason = ne.getMessage();
 		}
 		catch (Throwable t) {
+			isNosSuccess = false;
 			logger.error("Something wrong happened here....", t);
 			rejectReason = "System error";
 		}
 		
 		if (isNosSuccess) {
 			// 2.1.1 mark suspended before execution book process
-			long quantityUnexec = result.getValue0();
-			List<OrderEvent> listOfCounterpartyOrders = result.getValue1();
+			long quantityUnexec = result != null ? result.getValue0() : qtyLong;
+			List<OrderEvent> listOfCounterpartyOrders = result != null ? result.getValue1() : new ArrayList<>();
 			
 			// 2.1.2. filled/partially filled based on difference of tag 38 and tag 14
 			long quantityExec = qtyLong - quantityUnexec;

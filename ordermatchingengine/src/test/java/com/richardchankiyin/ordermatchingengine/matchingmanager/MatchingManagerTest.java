@@ -550,5 +550,81 @@ public class MatchingManagerTest {
 		"0".equals(om.getOrderModel().getOrder("3333").get(39));
 		"0".equals(om.getOrderModel().getOrder("4444").get(39));
 	}
+	
+	@Test
+	public void testNosMultipleLimitOrdersExecutionsFound() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testNosManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersExecutionsFound", testNosManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "1");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 1600L);
+		oe3.put(40, "2");
+		oe3.put(44, 59.55);
+		oe3.put(54, "1");
+		oe3.put(55, "0005.HK");
+		OrderEvent oe4 = new OrderEvent();
+		oe4.put(11, "3333");
+		oe4.put(35, "D");
+		oe4.put(38, 800L);
+		oe4.put(40, "2");
+		oe4.put(44, 59.6);
+		oe4.put(54, "2");
+		oe4.put(55, "0005.HK");
+		OrderEvent oe5 = new OrderEvent();
+		oe5.put(11, "4444");
+		oe5.put(35, "D");
+		oe5.put(38, 2000L);
+		oe5.put(40, "2");
+		oe5.put(44, 59.5);
+		oe5.put(54, "2");
+		oe5.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		queue.send(oe4);
+		queue.send(oe5);
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		queue.stop();
+		
+		assertTrue(testNosManager.isLoggedOn());
+		
+		logger.debug("orderRepo: {}", orderRepo.getOrderModel());
+		
+		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
+		assertEquals("3", om.getOrderModel().getOrder("2222").get(39));
+		assertEquals(1600L, om.getOrderModel().getOrder("2222").get(14));
+		assertEquals("0", om.getOrderModel().getOrder("3333").get(39));
+		assertEquals("3", om.getOrderModel().getOrder("4444").get(39));
+		assertEquals(2000L, om.getOrderModel().getOrder("4444").get(14));
+	}
 
 }

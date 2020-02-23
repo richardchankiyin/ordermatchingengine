@@ -68,5 +68,8 @@ public class OrderRepository implements IOrderUpdateable{
 			}
 		}
 		
+		public String toString() {
+			return orderMap == null ? "null" : orderMap.toString();
+		}
 	}
 }
