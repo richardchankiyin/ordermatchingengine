@@ -178,8 +178,10 @@ public class OrderMessageQueueTest {
 		queue.start();
 		queue.send(oe);
 		logger.debug("queue after 1: {}", queue);
+		assertEquals(0,queue.getQueueSize());
 		queue.send(oe2);
 		logger.debug("queue after 2: {}", queue);
+		assertEquals(1,queue.getQueueSize());
 		queue.send(oe3);
 		logger.debug("queue after 3: {}", queue);
 		fail("should not come to this line");

@@ -40,6 +40,10 @@ public class OrderMessageQueue implements Runnable {
 					name, receiver, queue);
 	}
 
+	public int getQueueSize() {
+		return this.queue.size();
+	}
+	
 	public void start() {
 		if (this.isStarted) {
 			throw new IllegalStateException("queue started");

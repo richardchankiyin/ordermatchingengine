@@ -118,13 +118,19 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 		
 		if (isNosSuccess) {
-		// 2.1.1 mark suspended before execution book process
-		
-		// 2.1.2. filled/partially filled based on difference of tag 38 and tag 14
-		
-		// 2.1.3. DFD for filled orders
-		
-		// 2.1.4. for partially filled NOS order, add to orderbook
+			// 2.1.1 mark suspended before execution book process
+			long quantityUnexec = result.getValue0();
+			List<OrderEvent> listOfCounterpartyOrders = result.getValue1();
+			
+			// 2.1.2. filled/partially filled based on difference of tag 38 and tag 14
+			long quantityExec = qtyLong - quantityUnexec;
+			oe.put(14, quantityExec);
+			oe.put(32, quantityExec);
+			List<OrderEvent> executions = executionBook.processExecutions(oe, listOfCounterpartyOrders);
+			
+			// 2.1.3. DFD for filled orders
+			
+			// 2.1.4. for partially filled NOS order, add to orderbook
 		}
 		else {
 			// 2.2.1 update order as rejected in om
