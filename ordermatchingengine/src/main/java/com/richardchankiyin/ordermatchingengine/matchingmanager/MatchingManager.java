@@ -24,6 +24,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.IncomingOrderVa
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
+import com.richardchankiyin.utils.TimeUtils;
 
 public class MatchingManager implements IOrderMessageQueueReceiver {
 	private static final Logger logger = LoggerFactory.getLogger(MatchingManager.class);
@@ -124,9 +125,15 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		// 2.1.4. for partially filled NOS order, add to orderbook
 		}
 		else {
-		// 2.2.1 create reject execution report
-		
-		// 2.2.2 publish reject execution report
+			// 2.2.1 update order as rejected in om
+			oe.put(39, "8");
+			om.handleEvent(oe);
+			
+			// 2.2.2 create reject execution report
+			oe.put(35, "8");
+			oe.put(60, TimeUtils.getCurrentTimestamp());
+			// 2.2.3 publish reject execution report
+			publisher.publish(oe);
 		}
 	};
 	
