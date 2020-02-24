@@ -200,6 +200,9 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	};
 	
+	private Consumer<OrderEvent> handleReplaceRequestEvent = oe -> {
+		//TODO to be implemented
+	};
 	
 	protected Consumer<OrderEvent> getHandleLogonEvent() {
 		return this.handleLogonEvent;
@@ -278,7 +281,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 					, MATCHMGRLOGOUTCHECKING
 					// rule 3 order after logged on checking
 					, MATCHMGRCANACCEPTORDERCHECKING
-					// rule 4 NOS order validation
+					// rule 4 NOS/Replace/Cancel order validation
 					, new IncomingMatchingOrderValidator()
 			);
 		}

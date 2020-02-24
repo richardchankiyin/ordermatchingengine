@@ -523,7 +523,7 @@ public class IncomingOrderValidatorTest {
 	}
 	
 	@Test
-	public void testReplaceRequestAmendDownValid() {
+	public void testReplaceRequestAmendDownValidNoCumQty() {
 		OrderEvent oe = new OrderEvent();
 		oe.put(11, "1111");
 		oe.put(35, "G");
@@ -552,6 +552,73 @@ public class IncomingOrderValidatorTest {
 		
 		assertTrue(validator2.validate(oe).isAccepted());
 	}
+	
+	@Test
+	public void testReplaceRequestAmendDownValidWithCumQty() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 1000);
+		oe.put(40, "2");
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(14, 500);
+				oe.put(38, 2000);
+				oe.put(39, "0");
+				oe.put(40, "2");
+				oe.put(44, 60);
+				oe.put(54, "1");
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		
+		assertTrue(validator2.validate(oe).isAccepted());
+	}
+	
+	@Test
+	public void testReplaceRequestAmendDownInValidToLessThanCumQty() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "G");
+		oe.put(38, 1000);
+		oe.put(40, "2");
+		oe.put(44, 60);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		
+		IncomingOrderValidator validator2 = new IncomingOrderValidator(new IOrderModel() {
+			public boolean isClientOrderIdFound(String clientOrderId) {
+				return "1111".equals(clientOrderId);
+			}
+			public OrderEvent getOrder(String clientOrderId) {
+				OrderEvent oe = new OrderEvent();
+				oe.put(11, "1111");
+				oe.put(14, 1500);
+				oe.put(38, 2000);
+				oe.put(39, "0");
+				oe.put(40, "2");
+				oe.put(44, 60);
+				oe.put(54, "1");
+				oe.put(55, "0005.HK");
+				return new OrderEventView(oe);
+			}
+		});
+		
+		OrderValidationResult result2 = validator2.validate(oe);
+		assertFalse(result2.isAccepted());
+		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 1000 is less than CumQty: 1500 for replace request order. ||", result2.getRejectReason());		
+	}
+	
 	
 	@Test
 	public void testReplaceRequestAmendUpInvalid() {

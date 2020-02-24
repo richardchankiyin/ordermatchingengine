@@ -274,16 +274,20 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 					Object clOrdIdValue = oe.get(11);
 					Object orderQtyValue = oe.get(38);
 					if (clOrdIdValue != null && orderQtyValue != null) {
-						int newOrderQty = 0;
-						int oldOrderQty = 0;
+						long newOrderQty = 0;
+						long oldOrderQty = 0;
+						long oldOrderCumQty = 0;
 						try {
 							OrderEvent oldOe = orderModel.getOrder(clOrdIdValue
 									.toString());
 							if (oldOe != null) {
-								newOrderQty = Integer.parseInt(orderQtyValue
+								newOrderQty = Long.parseLong(orderQtyValue
 										.toString());
-								oldOrderQty = Integer.parseInt(oldOe.get(38)
+								oldOrderQty = Long.parseLong(oldOe.get(38)
 										.toString());
+								if (oldOe.containsKey(14)) {
+									oldOrderCumQty = Long.parseLong(oldOe.get(14).toString());
+								}									
 							}
 						} catch (Exception e) {
 							logger.info("issues found.", e);
@@ -291,12 +295,21 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 							oldOrderQty = 0;
 						}
 
+						// amend up rejection
 						if (newOrderQty >= oldOrderQty && newOrderQty != 0
 								&& oldOrderQty != 0) {
 							return new OrderValidationResult(
 									String.format(
 											"Tag 38: %s is larger/equal to %s which is not amend down for replace request order. ",
 											newOrderQty, oldOrderQty));
+						}
+						
+						// amend to value less than cumulative order qty rejection
+						if (newOrderQty < oldOrderCumQty) {
+							return new OrderValidationResult(
+									String.format(
+											"Tag 38: %s is less than CumQty: %s for replace request order. ",
+											newOrderQty, oldOrderCumQty));
 						}
 					}
 					return OrderValidationResult.getAcceptedInstance();
