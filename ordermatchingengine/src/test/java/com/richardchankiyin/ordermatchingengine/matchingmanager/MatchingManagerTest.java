@@ -1037,8 +1037,136 @@ public class MatchingManagerTest {
 		while (queue.getQueueSize() > 0) {
 			Thread.sleep(500);
 		}		
+		queue.stop();
+
+		
 		assertTrue(testReplaceRequestManager.isLoggedOn());
 		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. "));
 		
 	}
+	
+	@Test
+	public void testReplaceRequestOrderAmendUpReject() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderAmendUpReject", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		
+		oe2.put(35, "G");
+		oe2.put(38, 2000L);
+		queue.send(oe2);
+
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		
+		Thread.sleep(500);
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		String expectedStr = "REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 2000 is larger/equal to 1200 which is not amend down for replace request order.";
+		assertTrue(publishedOrderEvent.get(2).get(58).toString().contains(expectedStr));
+	}
+	
+	@Test
+	public void testReplaceRequestOrderPriceChangeReject() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderPriceChangeReject", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		
+		oe2.put(35, "G");
+		oe2.put(44, 60);
+		queue.send(oe2);
+
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(59.5, om.getOrderModel().getOrder("1111").get(44));
+		
+		Thread.sleep(500);
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		String expectedStr = "REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price.";
+		assertTrue(publishedOrderEvent.get(2).get(58).toString().contains(expectedStr));
+	}
+	
 }

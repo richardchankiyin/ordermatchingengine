@@ -133,6 +133,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			super(oe -> oe!=null && "G".equals(oe.get(35)));
 		}
 
+
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(REPLACEREQUESTCOMPULSORYFIELDCHECKING,

@@ -242,8 +242,11 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	}
 	
-	private void handleRejectMessage(OrderEvent oe, String message) {
-		if (oe != null) {
+	private void handleRejectMessage(OrderEvent oein, String message) {
+		if (oein != null) {
+			// need to create a new instance for message as the input event
+			// can be further modified
+			OrderEvent oe = new OrderEvent(oein);
 			oe.put(35, "8");
 			oe.put(39, "8");
 			oe.put(58, message);
@@ -252,8 +255,11 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	}
 	
-	private void handleExecutionReportMessage(OrderEvent oe) {
-		if (oe != null) {
+	private void handleExecutionReportMessage(OrderEvent oein) {
+		if (oein != null) {
+			// need to create a new instance for message as the input event
+			// can be further modified
+			OrderEvent oe = new OrderEvent(oein);
 			oe.put(35, "8");
 			oe.put(60, TimeUtils.getCurrentTimestamp());
 			publisher.publish(oe);
