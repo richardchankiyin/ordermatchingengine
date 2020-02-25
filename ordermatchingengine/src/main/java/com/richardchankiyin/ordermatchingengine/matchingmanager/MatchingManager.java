@@ -61,6 +61,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		eventHandlerMap.put("A", handleLogonEvent);
 		eventHandlerMap.put("5", handleLogoutEvent);
 		eventHandlerMap.put("D", handleNewOrderSingleEvent);
+		eventHandlerMap.put("G", handleReplaceRequestEvent);
 	}
 
 	private Consumer<OrderEvent> handleLogonEvent = oe -> {
@@ -201,13 +202,28 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	};
 	
 	private Consumer<OrderEvent> handleReplaceRequestEvent = oe -> {
-		//TODO to be implemented
 		// 1. change the order status to suspend
+		String originalStatus = oe.get(39).toString();
+		boolean isUpdateSuccess = true;
 		oe.put(39, "9");
-		om.handleEvent(oe);
-		
-		
-		
+		try {
+			om.handleEvent(oe);
+			// 2. order book update order
+			this.orderbook.updateOrder(oe);
+		}
+		catch (Throwable t) {
+			logger.debug("update order failed....", t);
+			isUpdateSuccess = false;
+		}
+		// 3. update om based on status
+		oe.put(39, originalStatus);
+		// 4. publish execution report 
+		if (isUpdateSuccess) {
+			oe.put(39, "5");
+			handleExecutionReportMessage(oe);
+		} else {
+			handleRejectMessage(oe, "Order replace rejected.");
+		}
 	};
 	
 	protected Consumer<OrderEvent> getHandleLogonEvent() {
@@ -229,6 +245,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private void handleRejectMessage(OrderEvent oe, String message) {
 		if (oe != null) {
 			oe.put(35, "8");
+			oe.put(39, "8");
 			oe.put(58, message);
 			oe.put(60, TimeUtils.getCurrentTimestamp());
 			publisher.publish(oe);
