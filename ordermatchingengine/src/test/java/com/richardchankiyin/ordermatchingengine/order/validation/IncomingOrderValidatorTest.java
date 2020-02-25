@@ -616,7 +616,7 @@ public class IncomingOrderValidatorTest {
 		
 		OrderValidationResult result2 = validator2.validate(oe);
 		assertFalse(result2.isAccepted());
-		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 1000 is less than CumQty: 1500 for replace request order. ||", result2.getRejectReason());		
+		assertEquals("REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 1000 is less than/equals to CumQty: 1500 for replace request order. ||", result2.getRejectReason());		
 	}
 	
 	

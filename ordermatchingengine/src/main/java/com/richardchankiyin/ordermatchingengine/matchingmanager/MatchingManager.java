@@ -202,6 +202,12 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	private Consumer<OrderEvent> handleReplaceRequestEvent = oe -> {
 		//TODO to be implemented
+		// 1. change the order status to suspend
+		oe.put(39, "9");
+		om.handleEvent(oe);
+		
+		
+		
 	};
 	
 	protected Consumer<OrderEvent> getHandleLogonEvent() {

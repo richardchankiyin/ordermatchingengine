@@ -288,11 +288,17 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 								if (oldOe.containsKey(14)) {
 									oldOrderCumQty = Long.parseLong(oldOe.get(14).toString());
 								}									
+							} else {
+								// no existing order found, return 
+								return OrderValidationResult.getAcceptedInstance();
 							}
 						} catch (Exception e) {
 							logger.info("issues found.", e);
 							newOrderQty = 0;
 							oldOrderQty = 0;
+							// issue found in getting numeric figure, dont continue
+							// as below error is not meaningful
+							return OrderValidationResult.getAcceptedInstance();
 						}
 
 						// amend up rejection
@@ -305,10 +311,10 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 						}
 						
 						// amend to value less than cumulative order qty rejection
-						if (newOrderQty < oldOrderCumQty) {
+						if (newOrderQty <= oldOrderCumQty) {
 							return new OrderValidationResult(
 									String.format(
-											"Tag 38: %s is less than CumQty: %s for replace request order. ",
+											"Tag 38: %s is less than/equals to CumQty: %s for replace request order. ",
 											newOrderQty, oldOrderCumQty));
 						}
 					}
