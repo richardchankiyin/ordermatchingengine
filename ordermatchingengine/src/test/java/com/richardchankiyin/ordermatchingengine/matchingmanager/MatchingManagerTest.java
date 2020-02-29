@@ -1428,4 +1428,46 @@ public class MatchingManagerTest {
 		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
 		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
 	}
+	
+	
+	@Test
+	public void testCancelOrderNotFound() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testCancelManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderNotFound", testCancelManager, 2);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(55, "0005.HK");
+		oe2.put(35, "F");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testCancelManager.isLoggedOn());
+		
+		Thread.sleep(500);
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		String expectedStr = "REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ";
+		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains(expectedStr));
+	}
 }

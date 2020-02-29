@@ -139,7 +139,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 			return Arrays.asList(REPLACEREQUESTCOMPULSORYFIELDCHECKING,
 					REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING,
 					REPLACEREQUESTAMENDDOWNCHECKING,
-					REPLACEREQUESTOTHERFIELDCHANGECHECKING);
+					REPLACEREQUESTOTHERFIELDCHANGECHECKING,
+					REPLACEREQUESTCANCELORDERSTATUSCHECKING);
 		}
 	}
 
@@ -153,7 +154,8 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 		@Override
 		protected List<IOrderValidator> getListOfOrderValidators() {
 			return Arrays.asList(CANCELREQUESTCOMPULSORYFIELDCHECKING
-				, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING);
+				, REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING
+				, REPLACEREQUESTCANCELORDERSTATUSCHECKING);
 		}
 	}
 
@@ -385,6 +387,30 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 				}
 			});
 
+	private final OrderValidationRule REPLACEREQUESTCANCELORDERSTATUSCHECKING = new OrderValidationRule(
+			"REPLACEREQUESTCANCELORDERSTATUSCHECKING", oe -> {
+				Object msgTypeValue = oe.get(35);
+				if (msgTypeValue != null && ("F".equals(msgTypeValue.toString()) || "G".equals(msgTypeValue.toString()))) {
+					Set<String> notAcceptedStatus = new HashSet<String>();
+					notAcceptedStatus.addAll(Arrays.asList("2","3","4"));
+					Object clOrdIdValue = oe.get(11);
+					try {
+						OrderEvent oldOe = orderModel.getOrder(clOrdIdValue
+								.toString());
+						if (oldOe != null) {
+							if (notAcceptedStatus.contains(oldOe.get(39))) {
+								return new OrderValidationResult(String.format("Cancelling an order with status: %s not allowed"
+									, oldOe.get(39)));
+							}
+						}
+					}
+					catch (Exception e) {
+						logger.debug("validation exception", e);
+					}
+				}
+				return OrderValidationResult.getAcceptedInstance();
+			});
+	
 	@Override
 	protected List<IOrderValidator> getListOfOrderValidators() {
 		return Arrays.asList(

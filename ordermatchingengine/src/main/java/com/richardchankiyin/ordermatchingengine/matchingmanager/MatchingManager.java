@@ -62,6 +62,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		eventHandlerMap.put("5", handleLogoutEvent);
 		eventHandlerMap.put("D", handleNewOrderSingleEvent);
 		eventHandlerMap.put("G", handleReplaceRequestEvent);
+		eventHandlerMap.put("F", handleCancelEvent);
 	}
 
 	private Consumer<OrderEvent> handleLogonEvent = oe -> {
@@ -230,6 +231,37 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		} else {
 			handleRejectMessage(oe, "Order replace rejected.");
 		}
+	};
+	
+	private Consumer<OrderEvent> handleCancelEvent = oe -> {
+		// 1. get the existing order status
+		OrderEvent originalOrder = om.getOrderModel().getOrder(oe.get(11).toString());
+		String orderStatus = originalOrder.get(39).toString();
+		
+		// 2. cancel the order
+		orderbook.cancelOrder(oe);
+		
+		// 3. update the state machine to New -> cancelled/partial filled -> filled
+		String updatedStatus = "4"; //cancelled
+		if ("1".equals(orderStatus)) {
+			updatedStatus = "2"; // filled
+		}
+		oe.put(39, updatedStatus);
+		om.handleEvent(oe);
+		
+		// 4. publish order execution report Cancelled/Fully Filled
+		handleExecutionReportMessage(oe);
+		
+		//DFD for filled order
+		if ("2".equals(updatedStatus)) {
+			oe.put(35, "G");
+			oe.put(39, "3");
+			// 5. update the state machine to DFD for filled order
+			om.handleEvent(oe);
+			// 6. publish order execution report for DFD for filled order
+			handleExecutionReportMessage(oe);
+		}	
+
 	};
 	
 	protected Consumer<OrderEvent> getHandleLogonEvent() {
