@@ -1,6 +1,10 @@
 package com.richardchankiyin.ordermatchingengine.web;
 
+import java.util.UUID;
+
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +16,8 @@ import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.model.OrderRepository;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.OrderStateMachine;
+import com.richardchankiyin.ordermatchingengine.order.validation.IncomingOrderValidator;
+import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationResult;
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 import com.richardchankiyin.ordermatchingengine.publisher.Publisher;
 
@@ -26,6 +32,7 @@ public class AppController {
 	IOrderModel orderModel = null;
 	IOrderStateMachine om = null;
 	MatchingManager matchingManager = null;
+	IncomingOrderValidator incomingOrderValidator = null;
 	IPublisher publisher = null;
 	int orderMsgQueueSize = 100;
 	OrderMessageQueue queue = null;
@@ -33,6 +40,7 @@ public class AppController {
 	public AppController() {
 		orderRepo = new OrderRepository(orderRepoSize);
 		orderModel = orderRepo.getOrderModel();
+		incomingOrderValidator = new IncomingOrderValidator(orderModel);
 		om = new OrderStateMachine(orderModel, orderRepo);
 		publisher = new Publisher(new AppEventOutputPublisher());
 		matchingManager = new MatchingManager(om, publisher);
@@ -72,5 +80,19 @@ public class AppController {
 	public String getOrder(@PathVariable String clOrdId) {
 		OrderEvent oe = orderModel.getOrder(clOrdId);
 		return oe != null ? oe.toString() : "not found";
+	}
+	
+	@PostMapping("/order")
+	public String newOrder(@RequestBody Order order) {
+		OrderEvent oe = order.toOrderEvent();
+		String clOrdId = UUID.randomUUID().toString();
+		oe.put(11, clOrdId);
+		OrderValidationResult validationResult = incomingOrderValidator.validate(oe);
+		if (validationResult.isAccepted()) {
+			queue.send(oe);
+			return "new order sent with clOrdId: " + clOrdId;
+		} else {
+			return validationResult.getRejectReason();
+		}
 	}
 }

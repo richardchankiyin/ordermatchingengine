@@ -195,7 +195,18 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			// 2.1.3. for partially filled limited NOS order, add to orderbook
 			if (!isNosMarketOrder && !"2".equals(nosPostExecStatus)) {
 				oe.put(35, "D");
-				orderbook.addOrder(oe);				
+				try {
+					orderbook.addOrder(oe);	
+				}
+				catch (Exception e) {
+					// issue happens at adding order
+					OrderEvent error = new OrderEvent(oe);
+					error.put(35, "G");
+					error.put(39, 8);
+					om.handleEvent(error);
+					rejectReason = e.getMessage();
+					handleRejectMessage(error,rejectReason);
+				}
 			}
 			// send out order execution report
 			handleExecutionReportMessage(oe);
