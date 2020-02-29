@@ -38,15 +38,21 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	private double lastTradedPriceWhenStarted = Double.NaN;
 	private MatchingManagerIncomingEventValidator validator = null;
 	private Map<String, Consumer<OrderEvent>> eventHandlerMap = null;
+	private boolean isUsingPublishingOrderBook = false;
 	
-	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
+	public MatchingManager(IOrderStateMachine om, IPublisher publisher, boolean isUsingPublishingOrderBook) {
 		Objects.requireNonNull(om, "OrderStateMachine cannot be null");
 		Objects.requireNonNull(publisher, "Publisher cannot be null");
 		this.om = om;
 		this.publisher = publisher;
 		this.validator = new MatchingManagerIncomingEventValidator();
+		this.isUsingPublishingOrderBook = isUsingPublishingOrderBook;
 		initHandlers();
 		initParams();
+	}
+	
+	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
+		this(om, publisher, false);
 	}
 	
 	// init the params
@@ -69,7 +75,8 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.isLoggedOn = true;
 		this.symbol = oe.get(55).toString();
 		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
-		this.orderbook = new OrderBook(symbol, lastTradedPriceWhenStarted);
+		this.orderbook = isUsingPublishingOrderBook ? new EventPublishingOrderBook(symbol, lastTradedPriceWhenStarted, publisher)
+			: new OrderBook(symbol, lastTradedPriceWhenStarted);
 		this.executionBook = new ExecutionBook();
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol

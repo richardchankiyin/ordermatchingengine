@@ -138,6 +138,10 @@ public class OrderBook implements IOrderBook {
 		return this.orderEventInternalMap;
 	}
 	
+	protected IPriceOrderQueue createPriceOrderQueue(double price, boolean isBuy) {
+		return new PriceOrderQueue(price,isBuy);
+	}
+	
 	@Override
 	public double getBid() {
 		return bid;
@@ -351,7 +355,7 @@ public class OrderBook implements IOrderBook {
 		// 1. from Map<Double,IPriceOrderQueue> retrieving IPriceOrderQueue object from price tag 44
 		// 2. if null from 2, create IPriceOrderQueue and add
 		Map<Double, IPriceOrderQueue> priceOrderQueue = isBuy ? bidPriceQueueMap : askPriceQueueMap;
-		IPriceOrderQueue queue = priceOrderQueue.computeIfAbsent(priceDouble, p->new PriceOrderQueue(p, isBuy));
+		IPriceOrderQueue queue = priceOrderQueue.computeIfAbsent(priceDouble, p->createPriceOrderQueue(p, isBuy));
 		// 3. Before adding, retrieving IPriceOrderQueue.getQueueSize and getTotalQuantity, then IPriceOrderQueue.addOrder
 		long beforeQueueSize = queue.getQueueSize();
 		long beforeTotalQuantity = queue.getTotalOrderQuantity();
