@@ -20,6 +20,8 @@ public class EventPublishingPriceOrderQueue extends PriceOrderQueue {
 		
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "B");
+		oe.put(148, "PriceOrderQueue change");
+		oe.put(58, "PriceOrderQueue change");
 		oe.put(54, isBid ? "1" : "2");
 		oe.put(44, price);
 		oe.put(38, queueQuantity);

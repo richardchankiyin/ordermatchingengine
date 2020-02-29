@@ -52,7 +52,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	}
 	
 	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
-		this(om, publisher, false);
+		this(om, publisher, true);
 	}
 	
 	// init the params

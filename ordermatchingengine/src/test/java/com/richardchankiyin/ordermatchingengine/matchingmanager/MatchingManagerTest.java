@@ -59,10 +59,26 @@ public class MatchingManagerTest {
 		
 		@Override
 		public void publish(OrderEvent oe) {
-			publishedOrderEvent.add(oe);
 			logger.debug("publish event: {}", oe);
+			if (!"B".equals(oe.get(35)))
+				publishedOrderEvent.add(oe);
+			
 		}
 		
+	}
+	
+	private class PublisherTestAll implements IPublisher {
+		private List<OrderEvent> publishedOrderEvent = null;
+		public PublisherTestAll(List<OrderEvent> publishedOrderEvent) {
+			this.publishedOrderEvent = publishedOrderEvent;
+		}
+		
+		@Override
+		public void publish(OrderEvent oe) {
+			logger.debug("publish event: {}", oe);
+			publishedOrderEvent.add(oe);
+			
+		}
 	}
 	
 	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
@@ -346,7 +362,7 @@ public class MatchingManagerTest {
 			}
 			
 		}
-		, new PublisherTest(publishedOrderEvent));
+		, new PublisherTestAll(publishedOrderEvent));
 		
 		assertFalse(testLogonMatchingManager.isLoggedOn());
 		
@@ -362,7 +378,7 @@ public class MatchingManagerTest {
 		queue.join();
 		
 		assertTrue(testLogonMatchingManager.isLoggedOn());
-		assertEquals(1, publishedOrderEvent.size());
+		assertEquals("0001.HK starting accepting orders", publishedOrderEvent.get(publishedOrderEvent.size()-1).get(58));
 		
 	}
 	
@@ -395,8 +411,8 @@ public class MatchingManagerTest {
 		//queue.join();
 		
 		assertTrue(testNosManager.isLoggedOn());
-		assertEquals(2, publishedOrderEvent.size());
-		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("INCOMINGORDERSYMBOLCHECKING->Symbol: 0005.HK not match with one assigned by login: 0001.HK"));
+		assertEquals(1, publishedOrderEvent.size());
+		assertTrue(publishedOrderEvent.get(0).get(58).toString().contains("INCOMINGORDERSYMBOLCHECKING->Symbol: 0005.HK not match with one assigned by login: 0001.HK"));
 	}
 	
 	@Test
@@ -427,9 +443,9 @@ public class MatchingManagerTest {
 		queue.stop();
 		
 		assertTrue(testNosManager.isLoggedOn());
-		assertEquals(2, publishedOrderEvent.size());
+		assertEquals(1, publishedOrderEvent.size());
 		
-		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("do not have enough quantity. quantity unreserved: 1200"));
+		assertTrue(publishedOrderEvent.get(0).get(58).toString().contains("do not have enough quantity. quantity unreserved: 1200"));
 	}
 	
 	@Test
@@ -462,10 +478,10 @@ public class MatchingManagerTest {
 		queue.stop();
 		
 		assertTrue(testNosManager.isLoggedOn());
-		assertEquals(2, publishedOrderEvent.size());
+		assertEquals(1, publishedOrderEvent.size());
 		
-		assertEquals("8",publishedOrderEvent.get(1).get(35));
-		assertEquals(1200L,publishedOrderEvent.get(1).get(38));
+		assertEquals("8",publishedOrderEvent.get(0).get(35));
+		assertEquals(1200L,publishedOrderEvent.get(0).get(38));
 	}
 	
 	@Test
@@ -526,7 +542,7 @@ public class MatchingManagerTest {
 		queue.stop();
 		
 		assertTrue(testNosManager.isLoggedOn());
-		assertEquals(5, publishedOrderEvent.size());
+		assertEquals(4, publishedOrderEvent.size());
 		
 		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
 		assertEquals("0", om.getOrderModel().getOrder("2222").get(39));
@@ -982,7 +998,7 @@ public class MatchingManagerTest {
 
 		
 		assertTrue(testReplaceRequestManager.isLoggedOn());
-		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. "));
+		assertTrue(publishedOrderEvent.get(0).get(58).toString().contains("REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. "));
 		
 	}
 	
@@ -1039,7 +1055,7 @@ public class MatchingManagerTest {
 		
 		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
 		String expectedStr = "REPLACEREQUESTAMENDDOWNCHECKING->Tag 38: 2000 is larger/equal to 1200 which is not amend down for replace request order.";
-		assertTrue(publishedOrderEvent.get(2).get(58).toString().contains(expectedStr));
+		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains(expectedStr));
 	}
 	
 	@Test
@@ -1095,7 +1111,7 @@ public class MatchingManagerTest {
 		
 		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
 		String expectedStr = "REPLACEREQUESTOTHERFIELDCHANGECHECKING->Replace request order cannot alter Tag 54: Side, Tag 55: Symbol, Tag 40: OrderType, Tag 44: Price.";
-		assertTrue(publishedOrderEvent.get(2).get(58).toString().contains(expectedStr));
+		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains(expectedStr));
 	}
 	
 	@Test
@@ -1419,7 +1435,7 @@ public class MatchingManagerTest {
 		
 		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
 		String expectedStr = "REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ";
-		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains(expectedStr));
+		assertTrue(publishedOrderEvent.get(0).get(58).toString().contains(expectedStr));
 	}
 	
 	@Test
