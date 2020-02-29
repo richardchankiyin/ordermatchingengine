@@ -205,18 +205,24 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		// 1. change the order status to suspend
 		String originalStatus = oe.get(39).toString();
 		boolean isUpdateSuccess = true;
-		oe.put(39, "9");
+		OrderEvent originalOrder = om.getOrderModel().getOrder(oe.get(11).toString());
 		try {
-			om.handleEvent(oe);
+			OrderEvent omHandleEvent = new OrderEvent(originalOrder);
+			omHandleEvent.put(39, "9");
+			om.handleEvent(omHandleEvent);
 			// 2. order book update order
 			this.orderbook.updateOrder(oe);
+			// 3. update om based on status
+			oe.put(39, originalStatus);
+			om.handleEvent(oe);
 		}
 		catch (Throwable t) {
 			logger.debug("update order failed....", t);
+			// rollback status change
+			om.handleEvent(originalOrder);
 			isUpdateSuccess = false;
 		}
-		// 3. update om based on status
-		oe.put(39, originalStatus);
+		
 		// 4. publish execution report 
 		if (isUpdateSuccess) {
 			oe.put(39, "5");

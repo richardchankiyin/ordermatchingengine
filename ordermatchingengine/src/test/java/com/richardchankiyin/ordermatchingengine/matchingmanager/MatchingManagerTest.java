@@ -1169,4 +1169,118 @@ public class MatchingManagerTest {
 		assertTrue(publishedOrderEvent.get(2).get(58).toString().contains(expectedStr));
 	}
 	
+	@Test
+	public void testReplaceRequestOrderBuyAtNewState() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderBuyAtNewState", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "1");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		
+		oe2.put(35, "G");
+		oe2.put(38, 800L);
+		queue.send(oe2);
+
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		Thread.sleep(500);
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(800L, om.getOrderModel().getOrder("1111").get(38));
+	}
+	
+	
+	@Test
+	public void testReplaceRequestOrderSellAtNewState() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderSellAtNewState", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		
+		oe2.put(35, "G");
+		oe2.put(38, 800L);
+		queue.send(oe2);
+
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		Thread.sleep(500);
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(800L, om.getOrderModel().getOrder("1111").get(38));
+	}
 }
