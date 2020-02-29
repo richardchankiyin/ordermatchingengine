@@ -1,11 +1,14 @@
 package com.richardchankiyin.ordermatchingengine.web;
 
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.MatchingManager;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueue;
+import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
 import com.richardchankiyin.ordermatchingengine.order.model.OrderRepository;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.OrderStateMachine;
@@ -20,6 +23,7 @@ public class AppController {
 	String symbol = "0005.HK";
 	double initPrice = 60;
 	OrderRepository orderRepo = null;
+	IOrderModel orderModel = null;
 	IOrderStateMachine om = null;
 	MatchingManager matchingManager = null;
 	IPublisher publisher = null;
@@ -28,7 +32,8 @@ public class AppController {
 	
 	public AppController() {
 		orderRepo = new OrderRepository(orderRepoSize);
-		om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		orderModel = orderRepo.getOrderModel();
+		om = new OrderStateMachine(orderModel, orderRepo);
 		publisher = new Publisher(new AppEventOutputPublisher());
 		matchingManager = new MatchingManager(om, publisher);
 		queue = new OrderMessageQueue(symbol + "_queue", matchingManager, orderMsgQueueSize);
@@ -61,5 +66,11 @@ public class AppController {
 		oe.put(35, "5");
 		queue.send(oe);
 		return oe.toString();
+	}
+	
+	@GetMapping("/order/{clOrdId}")
+	public String getOrder(@PathVariable String clOrdId) {
+		OrderEvent oe = orderModel.getOrder(clOrdId);
+		return oe != null ? oe.toString() : "not found";
 	}
 }
