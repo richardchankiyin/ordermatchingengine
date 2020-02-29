@@ -1224,6 +1224,8 @@ public class MatchingManagerTest {
 		
 		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
 		assertEquals(800L, om.getOrderModel().getOrder("1111").get(38));
+		
+		queue.stop();
 	}
 	
 	
@@ -1282,5 +1284,148 @@ public class MatchingManagerTest {
 		
 		assertEquals("0", om.getOrderModel().getOrder("1111").get(39));
 		assertEquals(800L, om.getOrderModel().getOrder("1111").get(38));
+		
+		queue.stop();
+	}
+	
+	
+	@Test
+	public void testReplaceRequestPartiallyFilledBuyOrder() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestPartiallyFilledBuyOrder", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 2000L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "1");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 400L);
+		oe3.put(40, "2");
+		oe3.put(44, 59.5);
+		oe3.put(54, "2");
+		oe3.put(55, "0005.HK");
+		
+		queue.start();		
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(2000L, om.getOrderModel().getOrder("1111").get(38));
+		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
+		
+		oe2.put(35, "G");
+		oe2.put(38, 1200L);
+
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		Thread.sleep(1000);
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
+		
+	}
+	
+	@Test
+	public void testReplaceRequestPartiallyFilledSellOrder() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestPartiallyFilledSellOrder", testReplaceRequestManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 2000L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 400L);
+		oe3.put(40, "1");
+		oe3.put(44, 59.5);
+		oe3.put(54, "1");
+		oe3.put(55, "0005.HK");
+		
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testReplaceRequestManager.isLoggedOn());
+		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(2000L, om.getOrderModel().getOrder("1111").get(38));
+		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
+		
+		oe2.put(35, "G");
+		oe2.put(38, 1200L);
+
+		logger.debug("orderRepo before replace request: {}", orderRepo.getOrderModel());
+		
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		Thread.sleep(1000);
+		
+		logger.debug("orderRepo after replace request: {}", orderRepo.getOrderModel());
+		
+		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
+		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(38));
+		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
 	}
 }

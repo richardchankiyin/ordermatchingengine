@@ -203,9 +203,9 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	private Consumer<OrderEvent> handleReplaceRequestEvent = oe -> {
 		// 1. change the order status to suspend
-		String originalStatus = oe.get(39).toString();
 		boolean isUpdateSuccess = true;
 		OrderEvent originalOrder = om.getOrderModel().getOrder(oe.get(11).toString());
+		String originalStatus = originalOrder.get(39).toString();
 		try {
 			OrderEvent omHandleEvent = new OrderEvent(originalOrder);
 			omHandleEvent.put(39, "9");
