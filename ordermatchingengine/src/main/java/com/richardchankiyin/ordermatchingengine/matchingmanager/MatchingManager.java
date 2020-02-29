@@ -246,20 +246,21 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		if ("1".equals(orderStatus)) {
 			updatedStatus = "2"; // filled
 		}
-		oe.put(39, updatedStatus);
-		om.handleEvent(oe);
+		OrderEvent eventToBeUpdated = new OrderEvent(originalOrder);
+		eventToBeUpdated.put(39, updatedStatus);
+		om.handleEvent(eventToBeUpdated);
 		
 		// 4. publish order execution report Cancelled/Fully Filled
-		handleExecutionReportMessage(oe);
+		handleExecutionReportMessage(eventToBeUpdated);
 		
 		//DFD for filled order
 		if ("2".equals(updatedStatus)) {
-			oe.put(35, "G");
-			oe.put(39, "3");
+			eventToBeUpdated.put(35, "G");
+			eventToBeUpdated.put(39, "3");
 			// 5. update the state machine to DFD for filled order
-			om.handleEvent(oe);
+			om.handleEvent(eventToBeUpdated);
 			// 6. publish order execution report for DFD for filled order
-			handleExecutionReportMessage(oe);
+			handleExecutionReportMessage(eventToBeUpdated);
 		}	
 
 	};
