@@ -48,8 +48,7 @@ public class MatchingManagerTest {
 			}
 			
 		});
-		
-		
+
 	}
 	
 	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
@@ -1807,5 +1806,73 @@ public class MatchingManagerTest {
 		assertEquals(800L, executionReportEvent.get(14));
 		assertEquals("2", executionReportEvent.get(39));
 		assertEquals("3", dfdEvent.get(39));
+	}
+	
+	@Test
+	public void testLogoff() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testLogoffManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testLogoff", testLogoffManager, 2);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 1200L);
+		oe3.put(40, "2");
+		oe3.put(44, 59.5);
+		oe3.put(54, "2");
+		oe3.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testLogoffManager.isLoggedOn());
+		
+		OrderEvent oe4 = new OrderEvent();
+		oe4.put(35, "5");
+		
+		queue.send(oe4);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		Thread.sleep(500);
+		
+		assertFalse(testLogoffManager.isLoggedOn());
+		
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		assertEquals("1111", publishedOrderEvent.get(publishedOrderEvent.size() - 2).get(11));
+		assertEquals("4", publishedOrderEvent.get(publishedOrderEvent.size() - 2).get(39));
+		assertEquals("2222", publishedOrderEvent.get(publishedOrderEvent.size() - 1).get(11));
+		assertEquals("4", publishedOrderEvent.get(publishedOrderEvent.size() - 1).get(39));
 	}
 }

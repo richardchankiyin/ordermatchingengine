@@ -81,10 +81,17 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.publisher.publish(news);
 	};
 	private Consumer<OrderEvent> handleLogoutEvent = oe -> {
+		
+		// 1. cancel outstanding orders and DFD
+		List<OrderEvent> outstandingOrders = this.om.getOrderModel()
+				.getListOfOrders(i->!("2".equals(i.get(39)) || "3".equals(i.get(39)) || "4".equals(i.get(39))));
+		for (OrderEvent o : outstandingOrders) {
+			o.put(35, "F");
+			this.onEvent(o);
+		}
+		
+		// 2. mark as logoff
 		this.isLoggedOn = false;
-		
-		
-		// TODO cancel outstanding orders and DFD
 	};
 	private Consumer<OrderEvent> handleOthers = oe -> {
 		logger.warn("incoming event {} has no proper handling function", oe);
