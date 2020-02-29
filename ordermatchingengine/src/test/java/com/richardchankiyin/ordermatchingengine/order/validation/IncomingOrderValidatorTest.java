@@ -1,6 +1,11 @@
 package com.richardchankiyin.ordermatchingengine.order.validation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +25,10 @@ public class IncomingOrderValidatorTest {
 				return false;
 			}
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		});
@@ -346,6 +355,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		IOrderValidator r = validator2.getReplaceRequestOrderValidator();
 		OrderEvent oe = new OrderEvent();
@@ -374,6 +388,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, 1);
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		
@@ -412,6 +431,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, 1);
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		IOrderValidator r = validator2.getCancelOrderValidator();
@@ -458,6 +482,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		IOrderValidator r2 = validator2.getNosOrderValidator();
@@ -496,6 +525,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		assertTrue(validator2.validate(oe).isAccepted());		
 	}
@@ -517,6 +551,11 @@ public class IncomingOrderValidatorTest {
 			}
 			public OrderEvent getOrder(String clientOrderId) {
 				return new OrderEvent();
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		assertTrue(validator2.validate(oe).isAccepted());		
@@ -547,6 +586,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, "1");
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		
@@ -580,6 +624,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -611,6 +660,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, "1");
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		
@@ -646,6 +700,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		OrderValidationResult result2 = validator2.validate(oe);
@@ -677,6 +736,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -707,6 +771,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -736,6 +805,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, 1);
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		
@@ -769,6 +843,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		OrderValidationResult result2 = validator2.validate(oe);
@@ -800,6 +879,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(54, 2);
 				oe.put(55, "0005.HK");
 				return new OrderEventView(oe);
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		});
 		
@@ -833,6 +917,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0001.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		OrderValidationResult result2 = validator2.validate(oe);
@@ -857,6 +946,11 @@ public class IncomingOrderValidatorTest {
 			public OrderEvent getOrder(String clientOrderId) {
 				return null;
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -878,6 +972,10 @@ public class IncomingOrderValidatorTest {
 				return false;
 			}
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		});
@@ -907,6 +1005,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0001.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -934,6 +1037,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0001.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 
 		assertFalse(validator2.validate(oe).isAccepted());
@@ -952,6 +1060,11 @@ public class IncomingOrderValidatorTest {
 				return false;
 			}
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		});
@@ -979,6 +1092,11 @@ public class IncomingOrderValidatorTest {
 				oe.put(55, "0001.HK");
 				return new OrderEventView(oe);
 			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		});
 		
 		assertTrue(validator2.validate(oe).isAccepted());
@@ -995,6 +1113,11 @@ public class IncomingOrderValidatorTest {
 				return false;
 			}
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		});

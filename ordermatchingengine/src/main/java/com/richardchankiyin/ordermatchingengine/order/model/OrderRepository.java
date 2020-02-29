@@ -1,8 +1,11 @@
 package com.richardchankiyin.ordermatchingengine.order.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +69,11 @@ public class OrderRepository implements IOrderUpdateable{
 			} else {
 				return new OrderEventView(oe);
 			}
+		}
+		
+		@Override
+		public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+			return orderMap.values().stream().filter(i -> criterion.apply(i)).collect(Collectors.toList());
 		}
 		
 		public String toString() {

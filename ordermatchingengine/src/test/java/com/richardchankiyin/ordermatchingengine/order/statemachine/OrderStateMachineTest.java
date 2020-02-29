@@ -1,9 +1,12 @@
 package com.richardchankiyin.ordermatchingengine.order.statemachine;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -25,6 +28,10 @@ public class OrderStateMachineTest {
 			}
 			
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		};
@@ -55,6 +62,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "A");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -82,6 +93,10 @@ public class OrderStateMachineTest {
 			}
 			
 			public OrderEvent getOrder(String clientOrderId) {
+				return null;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
 				return null;
 			}
 		};
@@ -152,6 +167,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "A");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -181,6 +200,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "A");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -209,6 +232,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, "A");
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		
@@ -270,6 +297,10 @@ public class OrderStateMachineTest {
 			public OrderEvent getOrder(String clientOrderId) {
 				return null;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -302,6 +333,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "A");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -332,6 +367,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, "3");
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		
@@ -364,6 +403,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "0");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -393,6 +436,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, "1");
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		
@@ -424,6 +471,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "2");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -453,6 +504,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, "9");
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		
@@ -484,6 +539,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "9");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -511,6 +570,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, fromStatus);
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		
@@ -549,6 +612,10 @@ public class OrderStateMachineTest {
 			public OrderEvent getOrder(String clientOrderId) {
 				return null;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -581,6 +648,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "0");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -611,6 +682,10 @@ public class OrderStateMachineTest {
 				oe.put(39, "1");
 				return oe;
 			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
+			}
 		};
 		
 		IOrderUpdateable orderUpdateable = new IOrderUpdateable() {
@@ -640,6 +715,10 @@ public class OrderStateMachineTest {
 				oe.put(11, "1111");
 				oe.put(39, fromStatus);
 				return oe;
+			}
+			@Override
+			public List<OrderEvent> getListOfOrders(Function<OrderEvent, Boolean> criterion) {
+				return null;
 			}
 		};
 		

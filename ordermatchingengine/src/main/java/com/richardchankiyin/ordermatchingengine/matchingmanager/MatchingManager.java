@@ -82,6 +82,8 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	};
 	private Consumer<OrderEvent> handleLogoutEvent = oe -> {
 		this.isLoggedOn = false;
+		
+		
 		// TODO cancel outstanding orders and DFD
 	};
 	private Consumer<OrderEvent> handleOthers = oe -> {
