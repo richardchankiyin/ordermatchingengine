@@ -2,6 +2,8 @@ package com.richardchankiyin.ordermatchingengine.order.model;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
@@ -114,5 +116,45 @@ public class OrderRepositoryTest {
 		assertEquals(1, updated.get(54));
 		assertEquals("0005.HK", updated.get(55));
 		assertNull(updated.get(35));
+	}
+	
+	@Test
+	public void testGetListOfOrderEventsByCriterion() {
+		OrderRepository repo = new OrderRepository(1);
+		String clientOrderId = "1111";
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, clientOrderId);
+		oe.put(35, "D");
+		oe.put(38, 100);
+		oe.put(39, "A");
+		oe.put(40, 1);
+		oe.put(54, 1);
+		oe.put(55, "0005.HK");
+		repo.updateOrder(oe);
+		
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "2222");
+		oe2.put(35, "3");
+		oe2.put(38, 100);
+		oe2.put(39, "A");
+		oe2.put(40, 1);
+		oe2.put(54, 1);
+		oe2.put(55, "0005.HK");
+		repo.updateOrder(oe2);
+		
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "3333");
+		oe3.put(35, "D");
+		oe3.put(38, 100);
+		oe3.put(39, "3");
+		oe3.put(40, 1);
+		oe3.put(54, 1);
+		oe3.put(55, "0005.HK");
+		repo.updateOrder(oe3);
+		
+		List<OrderEvent> orderevents = repo.getOrderModel().getListOfOrders(i->"A".equals(i.get(39)));
+		assertEquals(2, orderevents.size());
+		assertEquals("1111", orderevents.get(0).get(11));
+		assertEquals("2222", orderevents.get(1).get(11));
 	}
 }
