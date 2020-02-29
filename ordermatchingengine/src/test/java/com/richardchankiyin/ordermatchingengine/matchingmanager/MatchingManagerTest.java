@@ -1429,9 +1429,8 @@ public class MatchingManagerTest {
 		assertEquals(400L, om.getOrderModel().getOrder("1111").get(14));
 	}
 	
-	
 	@Test
-	public void testCancelOrderNotFound() throws Exception{
+	public void testReplaceRequestOrderAlreadyDoneForDayReject() throws Exception{
 		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
@@ -1443,7 +1442,66 @@ public class MatchingManagerTest {
 				logger.debug("publish event: {}", oe);
 			}			
 		});
-		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderNotFound", testCancelManager, 2);
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderAlreadyDoneForDayReject", testCancelManager, 2);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 1200L);
+		oe3.put(40, "2");
+		oe3.put(44, 59.5);
+		oe3.put(54, "1");
+		oe3.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testCancelManager.isLoggedOn());
+		
+		oe2.put(35, "G");
+		oe2.put(38, 800L);
+		queue.send(oe2);
+		
+		Thread.sleep(500);
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		String expectedStr = "Replacing Request/Cancelling an order with status: 3 not allowed. ";
+		assertTrue(publishedOrderEvent.get(publishedOrderEvent.size() - 1).get(58).toString().contains(expectedStr));
+	}
+	
+	
+	@Test
+	public void testCancelOrderNotFoundReject() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testCancelManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderNotFoundReject", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
 		oe.put(44, 60);
@@ -1469,5 +1527,62 @@ public class MatchingManagerTest {
 		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
 		String expectedStr = "REPLACEREQUESTANDCANCELREQUESTCLIENTORDERIDISNEWCHECKING->Tag 11: 1111 is not found. ";
 		assertTrue(publishedOrderEvent.get(1).get(58).toString().contains(expectedStr));
+	}
+	
+	@Test
+	public void testCancelOrderAlreadyDoneForDayReject() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testCancelManager = new MatchingManager(om, 
+				new IPublisher() {
+			@Override
+			public void publish(OrderEvent oe) {
+				publishedOrderEvent.add(oe);
+				logger.debug("publish event: {}", oe);
+			}			
+		});
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderAlreadyDoneForDayReject", testCancelManager, 2);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		OrderEvent oe3 = new OrderEvent();
+		oe3.put(11, "2222");
+		oe3.put(35, "D");
+		oe3.put(38, 1200L);
+		oe3.put(40, "2");
+		oe3.put(44, 59.5);
+		oe3.put(54, "1");
+		oe3.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		queue.send(oe3);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		
+		assertTrue(testCancelManager.isLoggedOn());
+		
+		oe2.put(35, "F");
+		queue.send(oe2);
+		
+		Thread.sleep(500);
+		queue.stop();
+		
+		logger.debug("publishedOrderEvent: {}", publishedOrderEvent);
+		String expectedStr = "Replacing Request/Cancelling an order with status: 3 not allowed. ";
+		assertTrue(publishedOrderEvent.get(publishedOrderEvent.size() - 1).get(58).toString().contains(expectedStr));
 	}
 }

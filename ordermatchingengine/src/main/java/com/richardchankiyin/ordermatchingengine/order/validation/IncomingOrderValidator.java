@@ -399,7 +399,7 @@ public class IncomingOrderValidator extends AbstractOrderValidator implements
 								.toString());
 						if (oldOe != null) {
 							if (notAcceptedStatus.contains(oldOe.get(39))) {
-								return new OrderValidationResult(String.format("Cancelling an order with status: %s not allowed"
+								return new OrderValidationResult(String.format("Replacing Request/Cancelling an order with status: %s not allowed. "
 									, oldOe.get(39)));
 							}
 						}
