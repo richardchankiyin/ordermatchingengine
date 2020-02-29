@@ -99,6 +99,16 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		
 		// 2. mark as logoff
 		this.isLoggedOn = false;
+		
+		// 3. publish logoff message
+		String msg = String.format("%s logged off", symbol);
+		// publish a news msg to indicate accepting orders for this symbol
+		OrderEvent news = new OrderEvent();
+		news.put(33, 1);
+		news.put(35, "B");
+		news.put(148, msg);
+		news.put(58, msg);
+		this.publisher.publish(news);
 	};
 	private Consumer<OrderEvent> handleOthers = oe -> {
 		logger.warn("incoming event {} has no proper handling function", oe);

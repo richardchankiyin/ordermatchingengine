@@ -1,12 +1,11 @@
 package com.richardchankiyin.ordermatchingengine.web;
 
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.richardchankiyin.ordermatchingengine.matchingmanager.MatchingManager;
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueue;
-import com.richardchankiyin.ordermatchingengine.order.messagequeue.OrderMessageQueueForTest;
 import com.richardchankiyin.ordermatchingengine.order.model.OrderRepository;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.IOrderStateMachine;
 import com.richardchankiyin.ordermatchingengine.order.statemachine.OrderStateMachine;
@@ -56,4 +55,11 @@ public class AppController {
 		return oe.toString();
 	}
 
+	@RequestMapping("/logoff")
+	public String logogff() {
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "5");
+		queue.send(oe);
+		return oe.toString();
+	}
 }
