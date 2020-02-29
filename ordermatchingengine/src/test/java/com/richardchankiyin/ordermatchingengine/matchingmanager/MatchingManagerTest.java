@@ -51,6 +51,20 @@ public class MatchingManagerTest {
 
 	}
 	
+	private class PublisherTest implements IPublisher {
+		private List<OrderEvent> publishedOrderEvent = null;
+		public PublisherTest(List<OrderEvent> publishedOrderEvent) {
+			this.publishedOrderEvent = publishedOrderEvent;
+		}
+		
+		@Override
+		public void publish(OrderEvent oe) {
+			publishedOrderEvent.add(oe);
+			logger.debug("publish event: {}", oe);
+		}
+		
+	}
+	
 	private OrderValidationResult getMessageTypeOrderValidationResult(String msgType) {
 		OrderValidationRule r = matchingMgr.getMsgTypeChecking();
 		OrderEvent oe = new OrderEvent();
@@ -332,13 +346,7 @@ public class MatchingManagerTest {
 			}
 			
 		}
-		, new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+		, new PublisherTest(publishedOrderEvent));
 		
 		assertFalse(testLogonMatchingManager.isLoggedOn());
 		
@@ -363,13 +371,7 @@ public class MatchingManagerTest {
 		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
 		OrderRepository orderRepo = new OrderRepository(1);
 		MatchingManager testNosManager = new MatchingManager(new OrderStateMachine(orderRepo.getOrderModel(), orderRepo), 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosSymbolNotCorrectQueue", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -402,13 +404,7 @@ public class MatchingManagerTest {
 		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
 		OrderRepository orderRepo = new OrderRepository(1);
 		MatchingManager testNosManager = new MatchingManager(new OrderStateMachine(orderRepo.getOrderModel(), orderRepo), 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMarketOrderNoEnoughQuantity", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -441,13 +437,7 @@ public class MatchingManagerTest {
 		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
 		OrderRepository orderRepo = new OrderRepository(1);
 		MatchingManager testNosManager = new MatchingManager(new OrderStateMachine(orderRepo.getOrderModel(), orderRepo), 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosLimitOrderNoExecutionAddedToOrderBook", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -484,13 +474,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersNoExecutionAddedToOrderBook", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -556,13 +540,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersExecutionsDrivenBySellOrder", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -632,13 +610,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 	
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersExecutionsDrivenByBuyOrder", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -712,13 +684,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersNoExecutionThenExecutedByBuyMarketOrder", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -795,13 +761,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosMultipleLimitOrdersNoExecutionThenExecutedBySellMarketOrder", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -877,13 +837,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosBuyOrderNoExecutionAddedToOrderBookThenPartialFilledFinallyFullFilled", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -942,13 +896,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testNosManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosBuyOrderNoExecutionAddedToOrderBookThenPartialFilledFinallyFullFilled", testNosManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -1007,13 +955,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderNotFound", testReplaceRequestManager, 2);
 		OrderEvent oe = new OrderEvent();
@@ -1050,13 +992,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderAmendUpReject", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -1112,13 +1048,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderPriceChangeReject", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -1174,13 +1104,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderBuyAtNewState", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -1234,13 +1158,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderSellAtNewState", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
@@ -1294,13 +1212,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestPartiallyFilledBuyOrder", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1364,13 +1276,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testReplaceRequestManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestPartiallyFilledSellOrder", testReplaceRequestManager, 10);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1434,13 +1340,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testReplaceRequestOrderAlreadyDoneForDayReject", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1493,13 +1393,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderNotFoundReject", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1534,13 +1428,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelOrderAlreadyDoneForDayReject", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1591,13 +1479,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelBuyOrderAtNewStatus", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1639,13 +1521,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelSellOrderAtNewStatus", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1687,13 +1563,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelBuyOrderAtPartialFilledStatus", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1751,13 +1621,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testCancelManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testCancelSellOrderAtPartialFilledStatus", testCancelManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
@@ -1814,13 +1678,7 @@ public class MatchingManagerTest {
 		OrderRepository orderRepo = new OrderRepository(10);
 		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
 		MatchingManager testLogoffManager = new MatchingManager(om, 
-				new IPublisher() {
-			@Override
-			public void publish(OrderEvent oe) {
-				publishedOrderEvent.add(oe);
-				logger.debug("publish event: {}", oe);
-			}			
-		});
+				new PublisherTest(publishedOrderEvent));
 		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testLogoff", testLogoffManager, 2);
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "A");
