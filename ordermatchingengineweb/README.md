@@ -14,5 +14,6 @@ Tech Requirement
 Build
 -----
 Using maven to build/package. Can be run as basic java (>=1.8)
+   - command for core order matching engine: mvn clean install
    - command: mvn package spring-boot:repackage
    - run: java -jar target/ordermatchingengineweb-1.0-SNAPSHOT.jar
