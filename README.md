@@ -20,9 +20,11 @@ Order state
 1. Order status (FIX Tag 39) NewOrderSingle: 
    - PendingNew (A) -> New (0) 
    - PendingNew (A)/New(0) -> Rejected (8)
-2. Order status (replace request): New (0) <-> Suspended (9) -> PartiallyFilled (1) -> Suspended (9) -> Filled (2) -> Done For Day (3) 
-3. Order status (cancellation): New (0) -> Cancelled (4) <br/> 
-                                PartialFilled (1) -> Filled (2)
+2. Order status (replace request): 
+   - New (0) <-> Suspended (9) -> PartiallyFilled (1) -> Suspended (9) -> Filled (2) -> Done For Day (3) 
+3. Order status (cancellation): 
+   - New (0) -> Cancelled (4) 
+   - PartialFilled (1) -> Filled (2)
 
 <br/>
 Remarks: for 2, we do not have a state called "Replaced" (5) maintained internally in the state machine because it will be very complicated. For orders accepted without execution, the state will be new. Before entering the state machine, amend down replace order (38=G) will be validated before actual matching.
@@ -49,15 +51,15 @@ Spread Calculation
 ------------------
 1. There are different spread values at different price ranges.
 2. Ranges are:
-<p>0.01 - 0.25 -> 0.001</p>
-<p>0.25 - 0.50 -> 0.005</p>
-<p>0.50 - 10.00 -> 0.010</p>
-<p>10.00 - 20.00 -> 0.020</p>
-<p>20.00 - 100.00 -> 0.050</p>
-<p>100.00 - 200.00 -> 0.100</p>
-<p>200.00 - 500.00 -> 0.200</p>
-<p>500.00 - 1000.00 -> 0.500</p>
-<p>1000.00 - 2000.00 -> 1.000</p>
+   - 0.01 - 0.25 -> 0.001
+   - 0.25 - 0.50 -> 0.005
+   - 0.50 - 10.00 -> 0.010
+   - 10.00 - 20.00 -> 0.020
+   - 20.00 - 100.00 -> 0.050
+   - 100.00 - 200.00 -> 0.100
+   - 200.00 - 500.00 -> 0.200
+   - 500.00 - 1000.00 -> 0.500
+   - 1000.00 - 2000.00 -> 1.000
 
 Engine Start/Stop
 -----------------
