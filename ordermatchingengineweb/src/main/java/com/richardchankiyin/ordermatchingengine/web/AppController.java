@@ -5,9 +5,11 @@ import java.util.UUID;
 
 
 
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +31,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.publisher.IPublisher;
 import com.richardchankiyin.ordermatchingengine.publisher.Publisher;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class AppController {
 

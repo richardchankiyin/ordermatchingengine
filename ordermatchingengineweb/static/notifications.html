@@ -8,16 +8,42 @@
   </head>
 
   <body>
+  	<div id="instructionpanel" style="width: 50%; height: 50%; float:left;">
+  	<p>Instruction</p>
   	<p>
   		Login: <input type="button" id="loginbutton" value="Login" />
   		Logoff: <input type="button" id="logoffbutton" value="Logoff" />
   	</p>
-  
+  	<p>
+  		Place Order:
+  	</p>
+  	<p>
+  		Symbol: <select id="symbol"><option value="0005.HK">0005.HK</option></select>
+  		Side: <select id="side"><option value="1">Buy</option><option value="2">Sell</option></select>
+  		Order Type: <select id="orderType"><option value="1">Market</option><option value="2">Limit</option></select>
+  		Price: <input type="number" id="price" style="width: 50px;" maxlength="5" size="5" /> 
+  		Quantity: <input type="number" id="quantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" /> 
+  		 <input type="button" id="placeorderbutton" value="Submit" />
+  	</p>
+  	<p>
+  	  Reply:
+  	</p>
+  	<p>
+  		 <textarea id="notifications-area-reply" cols="95" rows="10" readonly="readonly"></textarea>
+  	</p>
     <p>
-      Notifications received on the web socket channel will be displayed below:
-    </p>
-    <textarea id="notifications-area" cols="200" rows="10" readonly="readonly"></textarea>
-
+	  News:
+	</p>
+	<textarea id="notifications-area-news" cols="95" rows="10" readonly="readonly"></textarea>
+	</div>
+	<div id="marketdatapanel" style="width: 50%; height: 50%; float:right;">
+		<p>Market Data</p>
+		<p>
+      	Executions:
+    	</p>
+    	<textarea id="notifications-area-exec" cols="95" rows="10" readonly="readonly"></textarea>
+	
+	</div>
     <!-- Javascript functions -->
     <script>
     		
@@ -33,10 +59,13 @@
         // Subscribe the '/notify' channel
         stompClient.connect({}, function(frame) {
           stompClient.subscribe('/topic/executionreport/notify', function(notification) {
-			console.log(notification.body);
+			//console.log(notification.body);
+			var msgtype = JSON.parse(notification.body)["35"];
             // Call the notify function when receive a notification
-            notify(JSON.stringify(notification.body));
-
+            if (msgtype == '8')
+            	notifyexecution(JSON.stringify(notification.body));
+			if (msgtype == 'B')
+				notifynews(JSON.stringify(notification.body));
           });
         });
         
@@ -46,9 +75,18 @@
       /**
        * Display the notification message.
        */
-      function notify(message) {
-        $("#notifications-area").append(message + "\n");
+      function notifyexecution(message) {
+        $("#notifications-area-exec").append(message + "\n");
         return;
+      }
+      function notifynews(message) {
+        $("#notifications-area-news").append(message + "\n");
+        return;
+      }
+      function notifyreply(message) {
+    	$("#notifications-area-reply").append(message + "\n");
+        return;
+    	  
       }
       
       /**
@@ -61,15 +99,60 @@
 		// login button        
         $("#loginbutton").click(function(){
       	  $.get("http://localhost:18888/login", function(data, status){
-      	    alert("Data: " + data + "\nStatus: " + status);
+      		notifyreply("login -- [Data: " + data + "|Status: " + status + "]");
       	  });
       	});
 		
+		// logout button
         $("#logoffbutton").click(function(){
-        	  $.get("http://localhost:18888/logoff", function(data, status){
-        	    alert("Data: " + data + "\nStatus: " + status);
-        	  });
+        	$.get("http://localhost:18888/logoff", function(data, status){
+        		notifyreply("logout -- [Data: " + data + "|Status: " + status + "]");
+        	});
         });
+		
+		// placeorder button
+		$("#placeorderbutton").click(function() {
+			var symbol = $("#symbol").children("option:selected").val();
+			var side = $("#side").children("option:selected").val();
+			var orderType = $("#orderType").children("option:selected").val();
+			var price = $("#price").val();
+			var quantity = $("#quantity").val();
+			
+			if (orderType == "2") {
+				var request = $.ajax({
+					method: "POST",
+					url:"http://localhost:18888/order",
+					contentType:"application/json",
+					data: "{ \"symbol\": \"" + symbol + "\", \"side\": \"" + side + "\", \"ordType\": \"" + orderType + "\", \"price\":" + price + ", \"quantity\":" + quantity + "}"
+				});
+				
+				request.done(function( msg ) {
+					notifyreply("placeorder -- " + msg);
+				});
+					 
+				request.fail(function( jqXHR, textStatus ) {
+					notifyreply("placeorder -- " + textStatus);
+				});				
+			} else {
+				var request = $.ajax({
+					method: "POST",
+					url:"http://localhost:18888/order",
+					contentType:"application/json",
+					data: "{ \"symbol\": \"" + symbol + "\", \"side\": \"" + side + "\", \"ordType\": \"" + orderType + "\", \"quantity\":" + quantity + "}"
+				});
+				
+				request.done(function( msg ) {
+					notifyreply("placeorder -- " + msg);
+				});
+					 
+				request.fail(function( jqXHR, textStatus ) {
+					notifyreply("placeorder -- " + textStatus);
+				});	
+				
+			}
+			
+			
+		});
       });
 
     </script>
