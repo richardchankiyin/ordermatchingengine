@@ -149,6 +149,32 @@ public class OrderBookTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookAddOrderBuyPriceTooHigh() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 30);
+		oe.put(54, "1");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testOrderBookAddOrderSellPriceTooLow() {
+		IOrderBook orderBook = new OrderBook("0005.HK", 20);
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, "1111");
+		oe.put(35, "D");
+		oe.put(38, 3000L);
+		oe.put(44, 10);
+		oe.put(54, "2");
+		oe.put(55, "0005.HK");
+		orderBook.addOrder(oe);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
 	public void testOrderBookAddOrderSellPriceTooHigh() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 20);
 		OrderEvent oe = new OrderEvent();

@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.javatuples.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -86,7 +85,6 @@ public class MatchingManagerTest {
 
 		public FailedOrderBook(String symbol, double initPrice) {
 			super(symbol, initPrice);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override

@@ -291,8 +291,11 @@ public class OrderBook implements IOrderBook {
 							if (!isValid) {
 								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for bid. ", price));
 							}
+							if (pricedouble > highestAsk) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask %s for Bid order. ", price, highestAsk));
+							}
 							if (pricedouble < lowestBid) {
-								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid %s. ", price, lowestBid));
+								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid %s for Bid order. ", price, lowestBid));
 							}
 
 						} else {
@@ -302,7 +305,10 @@ public class OrderBook implements IOrderBook {
 								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for ask. ", price));
 							}
 							if (pricedouble > highestAsk) {
-								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask %s. ", price, highestAsk));
+								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask %s for Ask order. ", price, highestAsk));
+							}
+							if (pricedouble < lowestBid) {
+								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid %s for Ask order. ", price, lowestBid));
 							}
 						}
 					}

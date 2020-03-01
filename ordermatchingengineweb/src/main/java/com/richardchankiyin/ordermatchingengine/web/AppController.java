@@ -2,6 +2,7 @@ package com.richardchankiyin.ordermatchingengine.web;
 
 import java.util.UUID;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -91,6 +92,22 @@ public class AppController {
 		if (validationResult.isAccepted()) {
 			queue.send(oe);
 			return "new order sent with clOrdId: " + clOrdId;
+		} else {
+			return validationResult.getRejectReason();
+		}
+	}
+	
+	
+	@DeleteMapping("/order/{clOrdId}")
+	public String cancelOrder(@PathVariable String clOrdId) {
+		OrderEvent oe = new OrderEvent();
+		oe.put(11, clOrdId);
+		oe.put(35, "F");
+		oe.put(55, symbol);
+		OrderValidationResult validationResult = incomingOrderValidator.validate(oe);
+		if (validationResult.isAccepted()) {
+			queue.send(oe);
+			return "cancel order sent with clOrdId: " + oe.get(11);
 		} else {
 			return validationResult.getRejectReason();
 		}
