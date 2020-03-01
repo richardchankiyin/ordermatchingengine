@@ -54,12 +54,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	public MatchingManager(IOrderStateMachine om, IPublisher publisher) {
 		this(om, publisher, true);
 	}
-	
-	protected IOrderBook createdOrderBook(String symbol, double initPrice) {
-		return isUsingPublishingOrderBook ? new EventPublishingOrderBook(symbol, initPrice, publisher)
-		: new OrderBook(symbol, initPrice);
-	}
-	
+
 	// init the params
 	private void initParams() {
 		this.symbol = null;
@@ -306,14 +301,6 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 
 	};
 	
-	protected Consumer<OrderEvent> getHandleLogonEvent() {
-		return this.handleLogonEvent;
-	}
-	
-	protected Consumer<OrderEvent> getHandleLogoffEvent() {
-		return this.handleLogoutEvent;
-	}
-	
 	private double getNosWorstPrice(boolean isNosBid, boolean isNosMarketOrder, OrderEvent oe, IOrderBook ob) {
 		if (isNosMarketOrder) {
 			return isNosBid ? ob.getHighestAsk() : ob.getLowestBid();				
@@ -346,6 +333,19 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		}
 	}
 	
+	protected Consumer<OrderEvent> getHandleLogonEvent() {
+		return this.handleLogonEvent;
+	}
+	
+	protected Consumer<OrderEvent> getHandleLogoffEvent() {
+		return this.handleLogoutEvent;
+	}
+	
+	protected IOrderBook createdOrderBook(String symbol, double initPrice) {
+		return isUsingPublishingOrderBook ? new EventPublishingOrderBook(symbol, initPrice, publisher)
+		: new OrderBook(symbol, initPrice);
+	}
+	
 	@Override
 	public void onEvent(OrderEvent oe) {
 		logger.info("incoming order: {}", oe);
@@ -375,6 +375,30 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	
 	public double getLastTradedPriceWhenStarted() {
 		return this.lastTradedPriceWhenStarted;
+	}
+	
+	public double getBidPrice() {
+		return orderbook != null ? orderbook.getBid() : Double.NaN;
+	}
+	
+	public double getAskPrice() {
+		return orderbook != null ? orderbook.getAsk() : Double.NaN;
+	}
+	
+	public long getBidQueueSize() {
+		return orderbook != null ? orderbook.getBidQueueSize() : 0;
+	}
+	
+	public long getAskQueueSize() {
+		return orderbook != null ? orderbook.getAskQueueSize() : 0;
+	}
+	
+	public long getTotalBidQuantity() {
+		return orderbook != null ? orderbook.getTotalBidQuantity() : 0;
+	}
+	
+	public long getTotalAskQuantity() {
+		return orderbook != null ? orderbook.getTotalAskQuantity() : 0;
 	}
 	
 	private class MatchingManagerIncomingEventValidator extends AbstractOrderValidator {
@@ -520,5 +544,10 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 			return Arrays.asList(INCOMINGORDERSYMBOLCHECKING, new IncomingOrderValidator(om.getOrderModel()));
 		}
 		
+	}
+	
+	public String toString() {
+		return String.format("MatchingManager[Symbol: %s Bid Price: Bid Queue: %s Total Bid Quantity: %s Ask Price: %s Ask Queue: %s Total Ask Quantity: %s]"
+				,this.getSymbol(), this.getBidPrice(), this.getBidQueueSize(), this.getTotalBidQuantity(), this.getAskPrice(), this.getAskQueueSize(), this.getTotalAskQuantity());
 	}
 }

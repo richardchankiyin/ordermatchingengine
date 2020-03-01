@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,7 +52,7 @@ public class AppController {
 	
 	@RequestMapping("/")
 	public String index() {
-		return "Greetings from Spring Boot!";
+		return matchingManager != null ? matchingManager.toString() : "matching manager not found";
 	}
 	
 	@RequestMapping("/symbol")
@@ -88,10 +89,24 @@ public class AppController {
 		OrderEvent oe = order.toOrderEvent();
 		String clOrdId = UUID.randomUUID().toString();
 		oe.put(11, clOrdId);
+		oe.put(35, "D");
 		OrderValidationResult validationResult = incomingOrderValidator.validate(oe);
 		if (validationResult.isAccepted()) {
 			queue.send(oe);
 			return "new order sent with clOrdId: " + clOrdId;
+		} else {
+			return validationResult.getRejectReason();
+		}
+	}
+	
+	@PutMapping("/order")
+	public String replaceOrder(@RequestBody Order order) {
+		OrderEvent oe = order.toOrderEvent();
+		oe.put(35, "G");
+		OrderValidationResult validationResult = incomingOrderValidator.validate(oe);
+		if (validationResult.isAccepted()) {
+			queue.send(oe);
+			return "replace request order sent with clOrdId: " + oe.get(11);
 		} else {
 			return validationResult.getRejectReason();
 		}
