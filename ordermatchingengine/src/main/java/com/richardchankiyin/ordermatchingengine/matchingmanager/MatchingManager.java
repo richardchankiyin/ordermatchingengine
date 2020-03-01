@@ -90,7 +90,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		
 		// 1. cancel outstanding orders and DFD
 		List<OrderEvent> outstandingOrders = this.om.getOrderModel()
-				.getListOfOrders(i->!("2".equals(i.get(39)) || "3".equals(i.get(39)) || "4".equals(i.get(39))));
+				.getListOfOrders(i->!("8".equals(i.get(39)) || "2".equals(i.get(39)) || "3".equals(i.get(39)) || "4".equals(i.get(39))));
 		for (OrderEvent o : outstandingOrders) {
 			o.put(35, "F");
 			this.onEvent(o);
