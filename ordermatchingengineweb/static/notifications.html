@@ -8,18 +8,19 @@
   </head>
 
   <body>
-    <p th:inline="text">
-      You are logged as: <b>[[${#httpServletRequest.remoteUser}]]</b>
-      (<a href="/logout">logout</a>)
-    </p>
+  	<p>
+  		Login: <input type="button" id="loginbutton" value="Login" />
+  		Logoff: <input type="button" id="logoffbutton" value="Logoff" />
+  	</p>
+  
     <p>
       Notifications received on the web socket channel will be displayed below:
     </p>
-    <textarea id="notifications-area" cols="60" rows="10" readonly="readonly"></textarea>
+    <textarea id="notifications-area" cols="200" rows="10" readonly="readonly"></textarea>
 
     <!-- Javascript functions -->
     <script>
-
+    		
       /**
        * Open the web socket connection and subscribe the "/notify" channel.
        */
@@ -57,7 +58,18 @@
         
         // Start the web socket connection.
         connect();
-        
+		// login button        
+        $("#loginbutton").click(function(){
+      	  $.get("http://localhost:18888/login", function(data, status){
+      	    alert("Data: " + data + "\nStatus: " + status);
+      	  });
+      	});
+		
+        $("#logoffbutton").click(function(){
+        	  $.get("http://localhost:18888/logoff", function(data, status){
+        	    alert("Data: " + data + "\nStatus: " + status);
+        	  });
+        });
       });
 
     </script>
