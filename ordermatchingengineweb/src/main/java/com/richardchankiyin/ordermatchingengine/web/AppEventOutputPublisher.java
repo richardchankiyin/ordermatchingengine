@@ -25,7 +25,7 @@ public class AppEventOutputPublisher implements IOrderMessageQueueReceiver {
 	public void onEvent(OrderEvent oe) {
 		logger.info("publishing event:\n{}\n", oe);
 		
-		messagingTemplate.convertAndSend("/executionreport/notify", oe);
+		messagingTemplate.convertAndSend("/topic/executionreport/notify", oe);
 	}
 
 }
