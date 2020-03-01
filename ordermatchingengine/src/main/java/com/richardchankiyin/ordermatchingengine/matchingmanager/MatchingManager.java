@@ -55,6 +55,11 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this(om, publisher, true);
 	}
 	
+	protected IOrderBook createdOrderBook(String symbol, double initPrice) {
+		return isUsingPublishingOrderBook ? new EventPublishingOrderBook(symbol, initPrice, publisher)
+		: new OrderBook(symbol, initPrice);
+	}
+	
 	// init the params
 	private void initParams() {
 		this.symbol = null;
@@ -75,8 +80,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 		this.isLoggedOn = true;
 		this.symbol = oe.get(55).toString();
 		this.lastTradedPriceWhenStarted = Double.parseDouble(oe.get(44).toString());
-		this.orderbook = isUsingPublishingOrderBook ? new EventPublishingOrderBook(symbol, lastTradedPriceWhenStarted, publisher)
-			: new OrderBook(symbol, lastTradedPriceWhenStarted);
+		this.orderbook = createdOrderBook(symbol, lastTradedPriceWhenStarted);
 		this.executionBook = new ExecutionBook();
 		String msg = String.format("%s starting accepting orders", symbol);
 		// publish a news msg to indicate accepting orders for this symbol
@@ -202,7 +206,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 					// issue happens at adding order
 					OrderEvent error = new OrderEvent(oe);
 					error.put(35, "G");
-					error.put(39, 8);
+					error.put(39, "8");
 					om.handleEvent(error);
 					rejectReason = e.getMessage();
 					handleRejectMessage(error,rejectReason);

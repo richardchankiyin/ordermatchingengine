@@ -285,14 +285,14 @@ public class OrderBook implements IOrderBook {
 				if (price != null && side != null) {
 					double pricedouble = Double.parseDouble(price.toString());
 					if (("1".equals(side) || "2".equals(side))) {
-						if (side == "1") {
+						if ("1".equals(side)) {
 							boolean isValid = SpreadRanges.getInstance().isValidPrice(pricedouble, false);
 							logger.debug("price: {} isValid: {} lowestBid: {}", pricedouble, isValid, lowestBid);							
 							if (!isValid) {
 								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for bid. ", price));
 							}
 							if (pricedouble < lowestBid) {
-								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid. ", price, lowestBid));
+								return new OrderValidationResult(String.format("Tag 44: Price %s smaller than lowest bid %s. ", price, lowestBid));
 							}
 
 						} else {
@@ -302,9 +302,8 @@ public class OrderBook implements IOrderBook {
 								return new OrderValidationResult(String.format("Tag 44: Price %s invalid for ask. ", price));
 							}
 							if (pricedouble > highestAsk) {
-								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask. ", price, highestAsk));
+								return new OrderValidationResult(String.format("Tag 44: Price %s higher than highest ask %s. ", price, highestAsk));
 							}
-
 						}
 					}
 				}

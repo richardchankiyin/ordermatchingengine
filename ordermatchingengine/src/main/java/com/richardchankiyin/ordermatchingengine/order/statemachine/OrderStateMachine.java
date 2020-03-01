@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.HashSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.richardchankiyin.ordermatchingengine.order.OrderEvent;
 import com.richardchankiyin.ordermatchingengine.order.model.IOrderModel;
@@ -15,6 +20,7 @@ import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidation
 import com.richardchankiyin.ordermatchingengine.order.validation.OrderValidationRule;
 
 public class OrderStateMachine implements IOrderStateMachine{
+	private final static Logger logger = LoggerFactory.getLogger(OrderStateMachine.class);
 	private IOrderModel model = null;
 	private IOrderUpdateable orderUpdateable = null;
 	private OrderStateMachineProcessOrderValidator processOrderValidator = null;
@@ -39,6 +45,12 @@ public class OrderStateMachine implements IOrderStateMachine{
 		return model;
 	}
 
+	private Set<String> fromListToSet(List<String> r) {
+		Set<String> result = new HashSet<>();
+		result.addAll(r);
+		return result;
+	}
+	
 	private final OrderValidationRule NOSFROMNONEXISTINGTOPENDINGNEW =
 			new OrderValidationRule("NOSFROMNONEXISTINGTOPENDINGNEW", oe->{
 				Object clOrdId = oe.get(11);
@@ -95,30 +107,33 @@ public class OrderStateMachine implements IOrderStateMachine{
 	
 	private final OrderValidationRule REPLACEREQUESTSTATUSCHANGE
 		= new OrderValidationRule("REPLACEREQUESTSTATUSCHANGE", oe->{
-			Map<String, List<String>> fromStatusToStatusMap = new HashMap<>();
-			// new to Suspended
-			fromStatusToStatusMap.put("0",Arrays.asList("9"));
+			
+			
+			Map<String, Set<String>> fromStatusToStatusMap = new HashMap<>();
+			// new to Suspended/Rejected
+			fromStatusToStatusMap.put("0",fromListToSet(Arrays.asList("8","9")));
 			// partial filled to Suspended
-			fromStatusToStatusMap.put("1",Arrays.asList("9"));
-			// Suspended to New/Partial Filled/Filled
-			fromStatusToStatusMap.put("9",Arrays.asList("0","1","2"));
+			fromStatusToStatusMap.put("1",fromListToSet(Arrays.asList("9")));
+			// Suspended to New/Partial Filled/Filled/Rejected
+			fromStatusToStatusMap.put("9",fromListToSet(Arrays.asList("0","1","2","8")));
 			// Filled to Done For Day
-			fromStatusToStatusMap.put("2",Arrays.asList("3"));
+			fromStatusToStatusMap.put("2",fromListToSet(Arrays.asList("3")));
 			
 			Object clOrdId = oe.get(11);
 			Object msgType = oe.get(35);
 			
 			if (clOrdId != null && "G".equals(msgType)) {
-				Object ordStatus = oe.get(39);
+				String ordStatus = oe.get(39).toString();
 				boolean isOrderExist = model.isClientOrderIdFound(clOrdId.toString());
 				if (isOrderExist) {
 					OrderEvent oldOe = model.getOrder(clOrdId.toString());
-					Object oldOrdStatus = oldOe.get(39);
+					String oldOrdStatus = oldOe.get(39).toString();
 					
 					if (!fromStatusToStatusMap.containsKey(oldOrdStatus)) {
 						return new OrderValidationResult(String.format("Tag 39: %s cannot be further replaced. ", oldOrdStatus));
 					} else {
-						List<String> acceptedStatus = fromStatusToStatusMap.get(oldOrdStatus);
+						Set<String> acceptedStatus = fromStatusToStatusMap.get(oldOrdStatus);
+						logger.debug("oldOrdStatus: {} ordStatus: {} acceptedStatus: {}", oldOrdStatus, ordStatus, acceptedStatus);
 						if (!acceptedStatus.contains(ordStatus)) {
 							return new OrderValidationResult(String.format("Tag 39: from %s to %s replace request is rejected. ", oldOrdStatus, ordStatus));
 						} else {

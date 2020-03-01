@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.javatuples.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -78,6 +79,34 @@ public class MatchingManagerTest {
 			logger.debug("publish event: {}", oe);
 			publishedOrderEvent.add(oe);
 			
+		}
+	}
+	
+	private class FailedOrderBook extends OrderBook {
+
+		public FailedOrderBook(String symbol, double initPrice) {
+			super(symbol, initPrice);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void addOrder(OrderEvent oe) {
+			throw new IllegalArgumentException("I am a fake exception!");
+		}
+		
+	}
+	
+	private class MatchingManagerFailedOrderBook extends MatchingManager {
+
+		public MatchingManagerFailedOrderBook(IOrderStateMachine om,
+				IPublisher publisher) {
+			super(om, publisher);
+			
+		}
+
+		@Override
+		protected IOrderBook createdOrderBook(String symbol, double initPrice) {
+			return new FailedOrderBook(symbol, initPrice);
 		}
 	}
 	
@@ -948,7 +977,9 @@ public class MatchingManagerTest {
 		queue.send(oe);
 		queue.send(oe2);
 		queue.send(oe3);
-		Thread.sleep(1000);
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
 		
 		assertTrue(testNosManager.isLoggedOn());
 		assertEquals("1", om.getOrderModel().getOrder("1111").get(39));
@@ -963,6 +994,41 @@ public class MatchingManagerTest {
 		logger.debug("orderRepo: {}", orderRepo.getOrderModel());
 		assertEquals("3", om.getOrderModel().getOrder("1111").get(39));
 		assertEquals(1200L, om.getOrderModel().getOrder("1111").get(14));
+	}
+	
+	@Test
+	public void testNosOrderNotExecutedAddOrderFailedWillReject() throws Exception{
+		List<OrderEvent> publishedOrderEvent = new ArrayList<>();
+		OrderRepository orderRepo = new OrderRepository(10);
+		OrderStateMachine om = new OrderStateMachine(orderRepo.getOrderModel(), orderRepo);
+		MatchingManager testNosManager = new MatchingManagerFailedOrderBook(om, 
+				new PublisherTest(publishedOrderEvent));
+		
+		OrderMessageQueueForTest queue = new OrderMessageQueueForTest("testNosOrderNotExecutedAddOrderFailedWillReject", testNosManager, 10);
+		OrderEvent oe = new OrderEvent();
+		oe.put(35, "A");
+		oe.put(44, 60);
+		oe.put(55, "0005.HK");
+		OrderEvent oe2 = new OrderEvent();
+		oe2.put(11, "1111");
+		oe2.put(35, "D");
+		oe2.put(38, 1200L);
+		oe2.put(40, "2");
+		oe2.put(44, 59.5);
+		oe2.put(54, "2");
+		oe2.put(55, "0005.HK");
+		
+		queue.start();
+		queue.send(oe);
+		queue.send(oe2);
+		
+		while (queue.getQueueSize() > 0) {
+			Thread.sleep(500);
+		}
+		logger.debug("orderRepo: {}", orderRepo.getOrderModel());
+		
+		assertTrue(testNosManager.isLoggedOn());
+		assertEquals("8", om.getOrderModel().getOrder("1111").get(39));
 	}
 	
 	@Test
