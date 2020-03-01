@@ -2,6 +2,12 @@ package com.richardchankiyin.ordermatchingengine.web;
 
 import java.util.UUID;
 
+
+
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,17 +40,21 @@ public class AppController {
 	IOrderModel orderModel = null;
 	IOrderStateMachine om = null;
 	MatchingManager matchingManager = null;
-	IncomingOrderValidator incomingOrderValidator = null;
+	IncomingOrderValidator incomingOrderValidator = null;	
 	IPublisher publisher = null;
 	int orderMsgQueueSize = 100;
 	OrderMessageQueue queue = null;
 	
-	public AppController() {
+	@Autowired
+	AppEventOutputPublisher outputpublisher;
+	
+	@PostConstruct
+	public void init() {
 		orderRepo = new OrderRepository(orderRepoSize);
 		orderModel = orderRepo.getOrderModel();
 		incomingOrderValidator = new IncomingOrderValidator(orderModel);
 		om = new OrderStateMachine(orderModel, orderRepo);
-		publisher = new Publisher(new AppEventOutputPublisher());
+		publisher = new Publisher(outputpublisher);
 		matchingManager = new MatchingManager(om, publisher);
 		queue = new OrderMessageQueue(symbol + "_queue", matchingManager, orderMsgQueueSize);
 		queue.start();
