@@ -547,7 +547,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 	}
 	
 	public String toString() {
-		return String.format("MatchingManager[Symbol: %s Bid Price: Bid Queue: %s Total Bid Quantity: %s Ask Price: %s Ask Queue: %s Total Ask Quantity: %s]"
+		return String.format("MatchingManager[Symbol: %s Bid Price: %s Bid Queue: %s Total Bid Quantity: %s Ask Price: %s Ask Queue: %s Total Ask Quantity: %s]"
 				,this.getSymbol(), this.getBidPrice(), this.getBidQueueSize(), this.getTotalBidQuantity(), this.getAskPrice(), this.getAskQueueSize(), this.getTotalAskQuantity());
 	}
 }

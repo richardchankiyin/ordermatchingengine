@@ -1,6 +1,6 @@
 #!/bin/bash
 host=localhost
-port=8080
+port=18888
 
 for x in $(grep -v "^#" buysell.txt)
 do s="$(echo $x | cut -d',' -f1)"; p="$(echo $x | cut -d',' -f2)"; q="$(echo $x | cut -d',' -f3)"; 
