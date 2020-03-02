@@ -25,7 +25,7 @@ public class EventPublishingOrderBook extends OrderBook {
 	private void publishPrice(boolean isBid, double price) {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "B");
-		oe.put(148, "OrderBook: " + this.getSymbol());
+		oe.put(148, "OrderBook Price: " + this.getSymbol());
 		oe.put(58, (isBid ? "bid price: " : "ask price") + ":" + price);
 		oe.put(54, isBid ? "1" : "2");
 		oe.put(44, price);
@@ -41,7 +41,7 @@ public class EventPublishingOrderBook extends OrderBook {
 	private void publishQuantity(boolean isBid, long quantity) {
 		OrderEvent oe = new OrderEvent();
 		oe.put(35, "B");
-		oe.put(148, "OrderBook: " + this.getSymbol());
+		oe.put(148, "OrderBook Quantity: " + this.getSymbol());
 		oe.put(58, (isBid ? "bid quantity: " : "ask quantity") + ":" + quantity);
 		oe.put(54, isBid ? "1" : "2");
 		oe.put(38, quantity);

@@ -38,6 +38,16 @@
 	</div>
 	<div id="marketdatapanel" style="width: 50%; height: 50%; float:right;">
 		<p>Market Data</p>
+		<div id="bidasktable">
+			<div><div style="width: 20%; height: 50%; float:left;">Symbol</div><div style="width: 80%; height: 50%; float:right;" id="bidasktablesymbol"></div></div>		
+			<div style="width: 50%; height: 50%; float:left;">
+			<div style="width: 50%; height: 50%; float:left;">Bid:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidprice"></div>
+			</div>
+			<div style="width: 50%; height: 50%; float:right;">
+			<div style="width: 50%; height: 50%; float:left;">Ask:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskprice"></div>
+			</div>
+			
+		</div>
 		<p>
       	Executions:
     	</p>
@@ -62,29 +72,47 @@
 			//console.log(notification.body);
 			var msgtype = JSON.parse(notification.body)["35"];
             // Call the notify function when receive a notification
-            if (msgtype == '8')
+            if (msgtype == '8') {
             	notifyexecution(JSON.stringify(notification.body));
-			if (msgtype == 'B')
+            }
+			if (msgtype == 'B') {
 				notifynews(JSON.stringify(notification.body));
+				processnews(notification.body);
+			}
           });
         });
         
         return;
       } // function connect
       
+      function processnews(messageobj) {
+    	  var msgobjparsed = JSON.parse(messageobj);
+    	  var title = msgobjparsed["148"];
+    	  
+    	  if (title.startsWith("OrderBook")) {
+    		  if (msgobjparsed["54"] == "1") {
+    			  $("#bidasktablebidprice").text(msgobjparsed["44"]);
+    		  }
+    		  if (msgobjparsed["54"] == "2") {
+    			  $("#bidasktableaskprice").text(msgobjparsed["44"]);
+    		  }
+    	  }
+    	  
+      }
+      
       /**
        * Display the notification message.
        */
       function notifyexecution(message) {
-        $("#notifications-area-exec").append(message + "\n");
+        $("#notifications-area-exec").prepend(message + "\n");
         return;
       }
       function notifynews(message) {
-        $("#notifications-area-news").append(message + "\n");
+        $("#notifications-area-news").prepend(message + "\n");
         return;
       }
       function notifyreply(message) {
-    	$("#notifications-area-reply").append(message + "\n");
+    	$("#notifications-area-reply").prepend(message + "\n");
         return;
     	  
       }
@@ -96,6 +124,12 @@
         
         // Start the web socket connection.
         connect();
+        // init symbol
+        $.get("http://localhost:18888/symbol", function(data, status){
+        	$("#bidasktablesymbol").text(data);
+       	});
+
+        
 		// login button        
         $("#loginbutton").click(function(){
       	  $.get("http://localhost:18888/login", function(data, status){
