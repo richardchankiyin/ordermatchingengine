@@ -41,12 +41,17 @@
 		<div id="bidasktable">
 			<div><div style="width: 20%; height: 50%; float:left;">Symbol</div><div style="width: 80%; height: 50%; float:right;" id="bidasktablesymbol"></div></div>		
 			<div style="width: 50%; height: 50%; float:left;">
-			<div style="width: 50%; height: 50%; float:left;">Bid:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidprice"></div>
+			<div style="width: 50%; height: 50%; float:left;">Bid Price:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidprice"></div>
 			</div>
 			<div style="width: 50%; height: 50%; float:right;">
-			<div style="width: 50%; height: 50%; float:left;">Ask:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskprice"></div>
+			<div style="width: 50%; height: 50%; float:left;">Ask Price:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskprice"></div>
 			</div>
-			
+			<div style="width: 50%; height: 50%; float:left;">
+			<div style="width: 50%; height: 50%; float:left;">Bid Quantity:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidquantity"></div>
+			</div>
+			<div style="width: 50%; height: 50%; float:right;">
+			<div style="width: 50%; height: 50%; float:left;">Ask Quantity:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskquantity"></div>
+			</div>
 		</div>
 		<p>
       	Executions:
@@ -89,7 +94,7 @@
     	  var msgobjparsed = JSON.parse(messageobj);
     	  var title = msgobjparsed["148"];
     	  
-    	  if (title.startsWith("OrderBook")) {
+    	  if (title.startsWith("OrderBook Price")) {
     		  if (msgobjparsed["54"] == "1") {
     			  $("#bidasktablebidprice").text(msgobjparsed["44"]);
     		  }
@@ -98,6 +103,14 @@
     		  }
     	  }
     	  
+    	  if (title.startsWith("OrderBook Quantity")) {
+    		  if (msgobjparsed["54"] == "1") {
+    			  $("#bidasktablebidquantity").text(msgobjparsed["38"]);
+    		  }
+    		  if (msgobjparsed["54"] == "2") {
+    			  $("#bidasktableaskquantity").text(msgobjparsed["38"]);
+    		  }
+    	  }
       }
       
       /**
