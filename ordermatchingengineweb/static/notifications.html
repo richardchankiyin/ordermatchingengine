@@ -5,6 +5,7 @@
     <script src="jquery-1.12.4.min.js"></script>
     <script src="sockjs.min.js"></script>
     <script src="stomp.min.js"></script>
+    <script src="spreadranges.js"></script>
   </head>
 
   <body>
@@ -39,20 +40,88 @@
 	<div id="marketdatapanel" style="width: 50%; height: 50%; float:right;">
 		<p>Market Data</p>
 		<div id="bidasktable">
-			<div><div style="width: 20%; height: 50%; float:left;">Symbol</div><div style="width: 80%; height: 50%; float:right;" id="bidasktablesymbol"></div></div>		
+			<div>
+				<div style="width: 20%; height: 50%; float:left;">Symbol</div>
+				<div style="width: 80%; height: 50%; float:right;" id="bidasktablesymbol"></div>
+			</div>		
 			<div style="width: 50%; height: 50%; float:left;">
-			<div style="width: 50%; height: 50%; float:left;">Bid Price:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidprice"></div>
+				<div style="width: 50%; height: 50%; float:left;">Bid Price:</div>
+				<div style="width: 50%; height: 50%; float:right;" id="bidasktablebidprice"></div>
 			</div>
 			<div style="width: 50%; height: 50%; float:right;">
-			<div style="width: 50%; height: 50%; float:left;">Ask Price:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskprice"></div>
+				<div style="width: 50%; height: 50%; float:left;">Ask Price:</div>
+				<div style="width: 50%; height: 50%; float:right;" id="bidasktableaskprice"></div>
 			</div>
 			<div style="width: 50%; height: 50%; float:left;">
-			<div style="width: 50%; height: 50%; float:left;">Bid Quantity:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktablebidquantity"></div>
+				<div style="width: 50%; height: 50%; float:left;">Bid Quantity:</div>
+				<div style="width: 50%; height: 50%; float:right;" id="bidasktablebidquantity"></div>
 			</div>
 			<div style="width: 50%; height: 50%; float:right;">
-			<div style="width: 50%; height: 50%; float:left;">Ask Quantity:</div><div style="width: 50%; height: 50%; float:right;" id="bidasktableaskquantity"></div>
+				<div style="width: 50%; height: 50%; float:left;">Ask Quantity:</div>
+				<div style="width: 50%; height: 50%; float:right;" id="bidasktableaskquantity"></div>
 			</div>
 		</div>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice1"></span>(<span id="bidasktablebidquantity1"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice1"></span>(<span id="bidasktableaskquantity1"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice2"></span>(<span id="bidasktablebidquantity2"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice2"></span>(<span id="bidasktableaskquantity2"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice3"></span>(<span id="bidasktablebidquantity3"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice3"></span>(<span id="bidasktableaskquantity3"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice4"></span>(<span id="bidasktablebidquantity4"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice4"></span>(<span id="bidasktableaskquantity4"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice5"></span>(<span id="bidasktablebidquantity5"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice5"></span>(<span id="bidasktableaskquantity5"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice6"></span>(<span id="bidasktablebidquantity6"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice6"></span>(<span id="bidasktableaskquantity6"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice7"></span>(<span id="bidasktablebidquantity7"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice7"></span>(<span id="bidasktableaskquantity7"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice8"></span>(<span id="bidasktablebidquantity8"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice8"></span>(<span id="bidasktableaskquantity8"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice9"></span>(<span id="bidasktablebidquantity9"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice9"></span>(<span id="bidasktableaskquantity9"></span>)</div>
+			</div>
+		</p>
+		<p>
+			<div>
+				<div style="width: 50%; height: 50%; float:left;"><span id="bidasktablebidprice10"></span>(<span id="bidasktablebidquantity10"></span>)</div>
+				<div style="width: 50%; height: 50%; float:right;"><span id="bidasktableaskprice10"></span>(<span id="bidasktableaskquantity10"></span>)</div>
+			</div>
+		</p>
+		
 		<p>
       	Executions:
     	</p>
@@ -97,9 +166,11 @@
     	  if (title.startsWith("OrderBook Price")) {
     		  if (msgobjparsed["54"] == "1") {
     			  $("#bidasktablebidprice").text(msgobjparsed["44"]);
+    			  updatebidprices(com.richardchankiyin.spreadcalc.SpreadRanges.getInstance().getSpreadPrices(msgobjparsed["44"],false,10));
     		  }
     		  if (msgobjparsed["54"] == "2") {
     			  $("#bidasktableaskprice").text(msgobjparsed["44"]);
+    			  updateaskprices(com.richardchankiyin.spreadcalc.SpreadRanges.getInstance().getSpreadPrices(msgobjparsed["44"],true,10));
     		  }
     	  }
     	  
@@ -111,6 +182,32 @@
     			  $("#bidasktableaskquantity").text(msgobjparsed["38"]);
     		  }
     	  }
+      }
+      
+      function updatebidprices(input) {
+    	  $("#bidasktablebidprice1").text(input[0]);
+    	  $("#bidasktablebidprice2").text(input[1]);
+    	  $("#bidasktablebidprice3").text(input[2]);
+    	  $("#bidasktablebidprice4").text(input[3]);
+    	  $("#bidasktablebidprice5").text(input[4]);
+    	  $("#bidasktablebidprice6").text(input[5]);
+    	  $("#bidasktablebidprice7").text(input[6]);
+    	  $("#bidasktablebidprice8").text(input[7]);
+    	  $("#bidasktablebidprice9").text(input[8]);
+    	  $("#bidasktablebidprice10").text(input[9]);
+      }
+      
+      function updateaskprices(input) {
+    	  $("#bidasktableaskprice1").text(input[0]);
+    	  $("#bidasktableaskprice2").text(input[1]);
+    	  $("#bidasktableaskprice3").text(input[2]);
+    	  $("#bidasktableaskprice4").text(input[3]);
+    	  $("#bidasktableaskprice5").text(input[4]);
+    	  $("#bidasktableaskprice6").text(input[5]);
+    	  $("#bidasktableaskprice7").text(input[6]);
+    	  $("#bidasktableaskprice8").text(input[7]);
+    	  $("#bidasktableaskprice9").text(input[8]);
+    	  $("#bidasktableaskprice10").text(input[9]);
       }
       
       /**
