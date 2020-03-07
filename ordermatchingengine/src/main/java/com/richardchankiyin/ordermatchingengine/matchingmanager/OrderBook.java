@@ -78,8 +78,8 @@ public class OrderBook implements IOrderBook {
 		double ask = initPrice;
 		double bid = SpreadRanges.getInstance().getSingleSpreadPrice(ask, false, 1);
 		// add price queue
-		bidPriceQueueMap.put(bid, new PriceOrderQueue(bid, true));
-		askPriceQueueMap.put(ask, new PriceOrderQueue(ask, false));
+		bidPriceQueueMap.put(bid, createPriceOrderQueue(bid, true));
+		askPriceQueueMap.put(ask, createPriceOrderQueue(ask, false));
 		
 		updateBidPrices(bid);
 		updateAskPrices(ask);
