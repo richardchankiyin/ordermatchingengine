@@ -9,6 +9,8 @@
   </head>
 
   <body>
+  	<input type="hidden" id="host" value="localhost" />
+  	<input type="hidden" id="port" value="18888" />
   	<div id="instructionpanel" style="width: 50%; height: 50%; float:left;">
   	<p>Instruction</p>
   	<p>
@@ -25,6 +27,27 @@
   		Price: <input type="number" id="price" style="width: 50px;" maxlength="5" size="5" /> 
   		Quantity: <input type="number" id="quantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" /> 
   		 <input type="button" id="placeorderbutton" value="Submit" />
+  	</p>
+  	<p>
+  		Retrieve Order:
+  	</p>
+  	<p>
+  		Order Id: <input type="text" id="orderid" style="width: 250px;" maxlength="100" size="50" min="0" />
+  		<input type="button" id="retrieveorderbutton" value="Retrieve" />
+  	</p>
+  	<p>
+  		Order status:
+  	</p>
+  	<p>
+  		Symbol: <input type="text" id="retrieveordersymbol" style="width: 60px;" maxlength="20" size="20" readonly />
+  		Side: <input type="text" id="retrieveorderside" style="width: 50px;" maxlength="5" size="5" readonly />
+  		Order Type: <input type="text" id="retrieveordertype" style="width: 50px;" maxlength="5" size="5" readonly />
+  		Price: <input type="text" id="retrieveorderprice" style="width: 50px;" maxlength="5" size="5" readonly />
+  		Quantity: <input type="number" id="retrieveorderquantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" /> 
+  	</p>
+  	<p>
+  		Status: <input type="text" id="retrieveorderstatus" style="width: 70px;" maxlength="5" size="5" readonly />
+  		Cum Quantity: <input type="number" id="retrieveordercumquantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" readonly />  		 
   	</p>
   	<p>
   	  Reply:
@@ -136,6 +159,22 @@
 	</div>
     <!-- Javascript functions -->
     <script>
+    	// host and port
+    	var host = $("#host").val();
+    	var port = $("#port").val();
+    	var hostporthttp = "http://" + host + ":" + port; 
+    
+    	var statusMap = new Map();
+    	// init statusMap
+    	statusMap.set("A", "Pending New");
+    	statusMap.set("0", "New");
+    	statusMap.set("1", "P. Filled");
+    	statusMap.set("2", "Filled");
+    	statusMap.set("3", "DFD");
+    	statusMap.set("4", "Cancelled");
+    	statusMap.set("8", "Rejected");
+    	statusMap.set("9", "Suspended");
+    	
 		var buyPriceQueueMap = new Map();
 		var sellPriceQueueMap = new Map();
 		var currentBid = 0;
@@ -298,21 +337,21 @@
         // Start the web socket connection.
         connect();
         // init symbol
-        $.get("http://localhost:18888/symbol", function(data, status){
+        $.get(hostporthttp + "/symbol", function(data, status){
         	$("#bidasktablesymbol").text(data);
        	});
 
         
 		// login button        
         $("#loginbutton").click(function(){
-      	  $.get("http://localhost:18888/login", function(data, status){
+      	  $.get(hostporthttp + "/login", function(data, status){
       		notifyreply("login -- [Data: " + data + "|Status: " + status + "]");
       	  });
       	});
 		
 		// logout button
         $("#logoffbutton").click(function(){
-        	$.get("http://localhost:18888/logoff", function(data, status){
+        	$.get(hostporthttp + "/logoff", function(data, status){
         		notifyreply("logout -- [Data: " + data + "|Status: " + status + "]");
         	});
         });
@@ -328,7 +367,7 @@
 			if (orderType == "2") {
 				var request = $.ajax({
 					method: "POST",
-					url:"http://localhost:18888/order",
+					url:hostporthttp + "/order",
 					contentType:"application/json",
 					data: "{ \"symbol\": \"" + symbol + "\", \"side\": \"" + side + "\", \"ordType\": \"" + orderType + "\", \"price\":" + price + ", \"quantity\":" + quantity + "}"
 				});
@@ -343,7 +382,7 @@
 			} else {
 				var request = $.ajax({
 					method: "POST",
-					url:"http://localhost:18888/order",
+					url:hostporthttp + "/order",
 					contentType:"application/json",
 					data: "{ \"symbol\": \"" + symbol + "\", \"side\": \"" + side + "\", \"ordType\": \"" + orderType + "\", \"quantity\":" + quantity + "}"
 				});
@@ -357,9 +396,40 @@
 				});	
 				
 			}
-			
-			
 		});
+      });
+      
+      function parseRetrieveOrderResult(strval) {
+    	  var m = new Map();
+    	  var s = strval.replace("{","");
+    	  s = s.replace("}","");
+    	  var splitteds = s.split(",");
+    	  for (i = 0; i < splitteds.length; i++) {
+    		  var item = splitteds[i];
+    		  var kv = item.split("=");
+    		  var k = kv[0];
+    		  var v = kv[1];
+    		  m.set(k.trim(),v.trim());
+    	  }
+    	  return m;
+      }
+      
+      // retrieve order
+      $("#retrieveorderbutton").click(function() {
+    	  var orderid = $("#orderid").val();
+    	  $.get(hostporthttp + "/order/" + orderid, function(data, status){
+      		notifyreply("retrieve order -- [Data: " + data + "|Status: " + status + "]");
+      		var m = parseRetrieveOrderResult(data);
+			
+      		
+      		$("#retrieveordersymbol").val(m.get("55"));
+      		$("#retrieveorderside").val(m.get("54") == "1" ? "Buy" : "Sell");
+      		$("#retrieveordertype").val(m.get("40") == "1" ? "Market" : "Limit");
+      		$("#retrieveorderprice").val(m.get("44"));
+      		$("#retrieveorderquantity").val(m.get("38"));
+      		$("#retrieveorderstatus").val(statusMap.get(m.get("39")));
+      		$("#retrieveordercumquantity").val(m.get("14"));
+      	});
       });
 
     </script>
