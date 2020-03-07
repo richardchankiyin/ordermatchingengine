@@ -187,10 +187,15 @@
 			sellPriceQueueMap.set(price, quantity);
 		}
 		function getQuantityFromBuyPriceQueue(price) {
-			return buyPriceQueueMap.get(price);
+			var result = buyPriceQueueMap.has(price) ? buyPriceQueueMap.get(price) : 0;
+			console.log("price:" + price + " quantity:" + result);
+			return result;
 		}
 		function getQuantityFromSellPriceQueue(price) {
-			return sellPriceQueueMap.get(price);
+			var result = sellPriceQueueMap.has(price) ? sellPriceQueueMap.get(price) : 0;
+			console.log("price:" + price + " quantity:" + result);
+			return result;
+			
 		}
     
       /**
