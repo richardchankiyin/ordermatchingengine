@@ -198,6 +198,7 @@ public class MatchingManager implements IOrderMessageQueueReceiver {
 					orderbook.addOrder(oe);	
 				}
 				catch (Exception e) {
+					logger.error("Something went wrong here.", e);
 					// issue happens at adding order
 					OrderEvent error = new OrderEvent(oe);
 					error.put(35, "G");

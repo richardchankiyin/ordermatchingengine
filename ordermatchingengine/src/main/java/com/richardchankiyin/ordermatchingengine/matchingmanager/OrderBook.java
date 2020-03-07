@@ -78,8 +78,8 @@ public class OrderBook implements IOrderBook {
 		double ask = initPrice;
 		double bid = SpreadRanges.getInstance().getSingleSpreadPrice(ask, false, 1);
 		// add price queue
-		bidPriceQueueMap.put(bid, createPriceOrderQueue(bid, true));
-		askPriceQueueMap.put(ask, createPriceOrderQueue(ask, false));
+		//bidPriceQueueMap.put(bid, createPriceOrderQueue(bid, true));
+		//askPriceQueueMap.put(ask, createPriceOrderQueue(ask, false));
 		
 		updateBidPrices(bid);
 		updateAskPrices(ask);
@@ -216,7 +216,7 @@ public class OrderBook implements IOrderBook {
 				bidPriceToBeUpdated = orderPrice; 
 			} else {
 				IPriceOrderQueue bidQueue = bidPriceQueueMap.get(this.bid);
-				if (bidQueue.getQueueSize() == 0) {
+				if (bidQueue == null || bidQueue.getQueueSize() == 0) {
 					try {
 						bidPriceToBeUpdated = this.getCurrentHighestBid();
 					}
@@ -236,7 +236,7 @@ public class OrderBook implements IOrderBook {
 				askPriceToBeUpdated = orderPrice;
 			} else {
 				IPriceOrderQueue askQueue = askPriceQueueMap.get(this.ask);
-				if (askQueue.getQueueSize() == 0) {
+				if (askQueue == null || askQueue.getQueueSize() == 0) {
 					try {
 						askPriceToBeUpdated = this.getCurrentLowestAsk();
 					} catch (Exception e) {
