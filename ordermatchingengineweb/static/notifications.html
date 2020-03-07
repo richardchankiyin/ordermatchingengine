@@ -39,6 +39,7 @@
   		Order status:
   	</p>
   	<p>
+  		<input type="hidden" id="retrieveorderid" />
   		Symbol: <input type="text" id="retrieveordersymbol" style="width: 60px;" maxlength="20" size="20" readonly />
   		Side: <input type="text" id="retrieveorderside" style="width: 50px;" maxlength="5" size="5" readonly />
   		Order Type: <input type="text" id="retrieveordertype" style="width: 50px;" maxlength="5" size="5" readonly />
@@ -47,7 +48,9 @@
   	</p>
   	<p>
   		Status: <input type="text" id="retrieveorderstatus" style="width: 70px;" maxlength="5" size="5" readonly />
-  		Cum Quantity: <input type="number" id="retrieveordercumquantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" readonly />  		 
+  		Cum Quantity: <input type="number" id="retrieveordercumquantity" style="width: 60px;" maxlength="5" size="5" min="0" pattern="\d*" readonly />
+  		<input type="button" id="updateorderbutton" value="Update" />
+  		<input type="button" id="cancelorderbutton" value="Cancel" />  		 
   	</p>
   	<p>
   	  Reply:
@@ -84,73 +87,65 @@
 				<div style="width: 50%; height: 50%; float:right;" id="bidasktableaskquantity"></div>
 			</div>
 		</div>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-0:<span id="bidasktablebidprice0"></span>(<span id="bidasktablebidquantity0"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+0:<span id="bidasktableaskprice0"></span>(<span id="bidasktableaskquantity0"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-1:<span id="bidasktablebidprice1"></span>(<span id="bidasktablebidquantity1"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+1:<span id="bidasktableaskprice1"></span>(<span id="bidasktableaskquantity1"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-2:<span id="bidasktablebidprice2"></span>(<span id="bidasktablebidquantity2"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+2:<span id="bidasktableaskprice2"></span>(<span id="bidasktableaskquantity2"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-3:<span id="bidasktablebidprice3"></span>(<span id="bidasktablebidquantity3"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+3:<span id="bidasktableaskprice3"></span>(<span id="bidasktableaskquantity3"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-4:<span id="bidasktablebidprice4"></span>(<span id="bidasktablebidquantity4"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+4:<span id="bidasktableaskprice4"></span>(<span id="bidasktableaskquantity4"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-5:<span id="bidasktablebidprice5"></span>(<span id="bidasktablebidquantity5"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+5:<span id="bidasktableaskprice5"></span>(<span id="bidasktableaskquantity5"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-6:<span id="bidasktablebidprice6"></span>(<span id="bidasktablebidquantity6"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+6:<span id="bidasktableaskprice6"></span>(<span id="bidasktableaskquantity6"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-7:<span id="bidasktablebidprice7"></span>(<span id="bidasktablebidquantity7"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+7:<span id="bidasktableaskprice7"></span>(<span id="bidasktableaskquantity7"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-8:<span id="bidasktablebidprice8"></span>(<span id="bidasktablebidquantity8"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+8:<span id="bidasktableaskprice8"></span>(<span id="bidasktableaskquantity8"></span>)</div>
 			</div>
-		</p>
-		<p>
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-9:<span id="bidasktablebidprice9"></span>(<span id="bidasktablebidquantity9"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+9:<span id="bidasktableaskprice9"></span>(<span id="bidasktableaskquantity9"></span>)</div>
 			</div>
-		</p>
-		<p>
+
+
 			<div>
 				<div style="width: 50%; height: 50%; float:left;">-10:<span id="bidasktablebidprice10"></span>(<span id="bidasktablebidquantity10"></span>)</div>
 				<div style="width: 50%; height: 50%; float:right;">+10:<span id="bidasktableaskprice10"></span>(<span id="bidasktableaskquantity10"></span>)</div>
 			</div>
-		</p>
-		
+
+		</div>
+
 		<p>
       	Executions:
     	</p>
@@ -188,14 +183,11 @@
 		}
 		function getQuantityFromBuyPriceQueue(price) {
 			var result = buyPriceQueueMap.has(price) ? buyPriceQueueMap.get(price) : 0;
-			console.log("price:" + price + " quantity:" + result);
 			return result;
 		}
 		function getQuantityFromSellPriceQueue(price) {
 			var result = sellPriceQueueMap.has(price) ? sellPriceQueueMap.get(price) : 0;
-			console.log("price:" + price + " quantity:" + result);
-			return result;
-			
+			return result;	
 		}
     
       /**
@@ -426,7 +418,7 @@
       		notifyreply("retrieve order -- [Data: " + data + "|Status: " + status + "]");
       		var m = parseRetrieveOrderResult(data);
 			
-      		
+      		$("#retrieveorderid").val(m.get("11"));
       		$("#retrieveordersymbol").val(m.get("55"));
       		$("#retrieveorderside").val(m.get("54") == "1" ? "Buy" : "Sell");
       		$("#retrieveordertype").val(m.get("40") == "1" ? "Market" : "Limit");
@@ -435,6 +427,51 @@
       		$("#retrieveorderstatus").val(statusMap.get(m.get("39")));
       		$("#retrieveordercumquantity").val(m.get("14"));
       	});
+      });
+      
+   	  // update order
+      $("#updateorderbutton").click(function() {
+    	  var orderid = $("#retrieveorderid").val();
+    	  var symbol = $("#retrieveordersymbol").val();
+    	  var side = $("#retrieveorderside").val() == "Buy" ? "1" : "2";
+    	  var ordType = $("#retrieveordertype").val() == "Market" ? "1" : "2";    	  
+    	  var price = $("#retrieveorderprice").val();
+    	  var quantity = $("#retrieveorderquantity").val();
+    	  
+    	  var request = $.ajax({
+				method: "PUT",
+				url:hostporthttp + "/order",
+				contentType:"application/json",
+				data: "{ \"clOrdId\":\"" + orderid + "\", \"symbol\": \"" + symbol + "\", \"side\": \"" + side + "\", \"ordType\": \"" + ordType + "\", \"price\":" + price + ", \"quantity\":" + quantity + "}"
+			});
+			
+			request.done(function( msg ) {
+				notifyreply("updateorder -- " + msg);
+			});
+				 
+			request.fail(function( jqXHR, textStatus ) {
+				notifyreply("updateorder -- " + textStatus);
+			});	
+    	  
+      });
+      
+      
+      // cancel order
+      $("#cancelorderbutton").click(function() {
+    	  var orderid = $("#orderid").val();
+    	  var request = $.ajax({
+				method: "DELETE",
+				url:hostporthttp + "/order/" + orderid,
+				contentType:"application/json",
+			});
+			
+			request.done(function( msg ) {
+				notifyreply("cancelorder -- " + msg);
+			});
+				 
+			request.fail(function( jqXHR, textStatus ) {
+				notifyreply("cancelorder -- " + textStatus);
+			});	
       });
 
     </script>
