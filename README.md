@@ -69,3 +69,8 @@ Engine Start/Stop
 3. Once engine is logged out, non-DFD/non-cancelled orders will be DFD and publish out.
 4. The engine start/stop is being controlled by an internal clock to manage the start/stop time.
 5. When the engine is in logged_on state, NOS/Replace/Cancel orders can be accepted. Otherwise these orders will be rejected.
+
+
+Architecture
+============
+![Order Matching Engine Architecture Diagram](ordermatchingengine_architecture.jpg)
