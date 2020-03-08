@@ -40,3 +40,6 @@ Update order. After retrieving the order, change the Quantity value and press Up
 Cancel order. After retrieving the order, press Cancel button. Retrieve the order again to see it cancelled
 ![Cancel Order 1](screencapture/cancelorder1.jpg)
 ![Cancel Order 2](screencapture/cancelorder2.jpg)
+
+News. OrderBook Price/OrderBook Quantity/PriceOrderQueue change fix message with type news (Tag 35: B)
+![News](screencapture/news.jpg) 
