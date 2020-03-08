@@ -43,3 +43,6 @@ Cancel order. After retrieving the order, press Cancel button. Retrieve the orde
 
 News. OrderBook Price/OrderBook Quantity/PriceOrderQueue change fix message with type news (Tag 35: B)
 ![News](screencapture/news.jpg) 
+
+Market Data. Order Queues, bid/ask prices/quantities available at different spreads. The execution console displays the execution reports (Tag 35: 8)
+![Market Data and Executions](screencapture/marketdata_execution.jpg)
