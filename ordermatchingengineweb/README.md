@@ -30,3 +30,6 @@ Login button with reply login successfully
 
 Place Order and Confirmed by Pressing Submit button
 ![Place Order](screencapture/placeorder.jpg)
+
+Retrieve order. First pick the order id generated after order placed successfully at Reply console. Input it as Order Id and Press Retrieve button. Result will be shown at Order Status
+![Retrieve Order](screencapture/retrieveorder.jpg)
