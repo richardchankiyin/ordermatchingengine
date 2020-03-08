@@ -27,3 +27,6 @@ User Interface
 
 Login button with reply login successfully
 ![Login](screencapture/login.jpg)
+
+Place Order and Confirmed by Pressing Submit button
+![Place Order](screencapture/placeorder.jpg)
