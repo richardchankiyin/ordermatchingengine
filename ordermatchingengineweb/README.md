@@ -33,3 +33,6 @@ Place Order and Confirmed by Pressing Submit button
 
 Retrieve order. First pick the order id generated after order placed successfully at Reply console. Input it as Order Id and Press Retrieve button. Result will be shown at Order Status
 ![Retrieve Order](screencapture/retrieveorder.jpg)
+
+Update order. After retrieving the order, change the Quantity value and press Update button.
+![Update Order](screencapture/updateorder.jpg)
