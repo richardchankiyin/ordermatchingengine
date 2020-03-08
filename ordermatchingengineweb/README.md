@@ -36,3 +36,7 @@ Retrieve order. First pick the order id generated after order placed successfull
 
 Update order. After retrieving the order, change the Quantity value and press Update button.
 ![Update Order](screencapture/updateorder.jpg)
+
+Cancel order. After retrieving the order, press Cancel button. Retrieve the order again to see it cancelled
+![Cancel Order 1](screencapture/cancelorder1.jpg)
+![Cancel Order 2](screencapture/cancelorder2.jpg)
