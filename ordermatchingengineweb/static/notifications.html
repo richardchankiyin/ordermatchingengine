@@ -154,9 +154,20 @@
 	</div>
     <!-- Javascript functions -->
     <script>
+    $.urlParam=function(a){var b=new RegExp("[?&]"+a+"=([^&#]*)").exec(window.location.href);if(b==null){return null}else{return b[1]||0}};
     	// host and port
     	var host = $("#host").val();
     	var port = $("#port").val();
+    	
+    	var hostfromurl = $.urlParam('host');
+    	var portfromurl = $.urlParam('port');
+    	if(hostfromurl) {
+    		host = hostfromurl;
+    	}
+    	if (portfromurl) {
+    		port = portfromurl;
+    	}
+    	
     	var hostporthttp = "http://" + host + ":" + port; 
     
     	var statusMap = new Map();
@@ -196,7 +207,7 @@
       function connect() {
 
         // Create and init the SockJS object
-        var socket = new SockJS('http://localhost:18888/ws');
+        var socket = new SockJS(hostporthttp + '/ws');
         var stompClient = Stomp.over(socket);
 
         // Subscribe the '/notify' channel

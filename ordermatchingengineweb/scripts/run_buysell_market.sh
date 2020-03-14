@@ -2,6 +2,8 @@
 host=localhost
 port=18888
 
+if [ "$#" -gt 0 ]; then port=$1; fi
+
 for x in $(grep -v "^#" buysell_market.txt)
 do s="$(echo $x | cut -d',' -f1)"; q="$(echo $x | cut -d',' -f2)";  
 content=$(echo "{\"side\":\"$s\",\"symbol\":\"0005.HK\",\"ordType\":\"1\",\"quantity\":$q}"); 
