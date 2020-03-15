@@ -35,7 +35,7 @@ import com.richardchankiyin.ordermatchingengine.publisher.Publisher;
 @RestController
 public class AppController {
 
-	int orderRepoSize = 100;
+	int orderRepoSize = 1024;
 	boolean isStart = false;
 	String symbol = "0005.HK";
 	double initPrice = 60;
@@ -45,7 +45,8 @@ public class AppController {
 	MatchingManager matchingManager = null;
 	IncomingOrderValidator incomingOrderValidator = null;	
 	IPublisher publisher = null;
-	int orderMsgQueueSize = 100;
+	int orderMsgQueueSize = 1024;
+	int publisherMsgQueueSize = 1024;
 	OrderMessageQueue queue = null;
 	
 	@Autowired
@@ -57,7 +58,7 @@ public class AppController {
 		orderModel = orderRepo.getOrderModel();
 		incomingOrderValidator = new IncomingOrderValidator(orderModel);
 		om = new OrderStateMachine(orderModel, orderRepo);
-		publisher = new Publisher(outputpublisher);
+		publisher = new Publisher(outputpublisher, publisherMsgQueueSize);
 		matchingManager = new MatchingManager(om, publisher);
 		queue = new OrderMessageQueue(symbol + "_queue", matchingManager, orderMsgQueueSize);
 		queue.start();
