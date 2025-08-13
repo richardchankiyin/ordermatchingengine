@@ -34,21 +34,22 @@ public class SpreadRanges {
 	
 	private SpreadRanges() {
 		// HKEx spread
-		srn = new SpreadRangeNode[11];
+		srn = new SpreadRangeNode[12];
 		srn[0] = new SpreadRangeNode(new SpreadRange(0.01,0.25,0.001));
 		srn[1] = new SpreadRangeNode(new SpreadRange(0.25,0.50,0.005));
 		srn[2] = new SpreadRangeNode(new SpreadRange(0.50,10.00,0.01));
-		srn[3] = new SpreadRangeNode(new SpreadRange(10.00,20.00,0.02));
-		srn[4] = new SpreadRangeNode(new SpreadRange(20.00,100.00,0.05));
-		srn[5] = new SpreadRangeNode(new SpreadRange(100.00,200.00,0.1));
-		srn[6] = new SpreadRangeNode(new SpreadRange(200.00,500.00,0.2));
-		srn[7] = new SpreadRangeNode(new SpreadRange(500.00,1000.00,0.5));
-		srn[8] = new SpreadRangeNode(new SpreadRange(1000.00,2000.00,1));
-		srn[9] = new SpreadRangeNode(new SpreadRange(2000.00,5000.00,2));
-		srn[10] = new SpreadRangeNode(new SpreadRange(5000.00,10000.00,5));
+		srn[3] = new SpreadRangeNode(new SpreadRange(10.00,20.00,0.01));
+		srn[4] = new SpreadRangeNode(new SpreadRange(20.00,50.00,0.02));
+		srn[5] = new SpreadRangeNode(new SpreadRange(50.00,100.00,0.05));
+		srn[6] = new SpreadRangeNode(new SpreadRange(100.00,200.00,0.1));
+		srn[7] = new SpreadRangeNode(new SpreadRange(200.00,500.00,0.2));
+		srn[8] = new SpreadRangeNode(new SpreadRange(500.00,1000.00,0.5));
+		srn[9] = new SpreadRangeNode(new SpreadRange(1000.00,2000.00,1));
+		srn[10] = new SpreadRangeNode(new SpreadRange(2000.00,5000.00,2));
+		srn[11] = new SpreadRangeNode(new SpreadRange(5000.00,10000.00,5));
 		
 		firstNode = srn[0];
-		lastNode = srn[10];
+		lastNode = srn[11];
 		
 		minPrice = firstNode.getSpreadRange().getStartFrom();
 		maxPrice = lastNode.getSpreadRange().getEndWith();

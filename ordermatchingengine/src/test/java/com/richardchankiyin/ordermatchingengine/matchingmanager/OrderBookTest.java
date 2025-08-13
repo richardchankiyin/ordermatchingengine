@@ -40,9 +40,9 @@ public class OrderBookTest {
 	public void testOrderBook() {
 		IOrderBook orderBook = new OrderBook("0005.HK", 20);
 		assertTrue(20 == orderBook.getAsk());
-		assertTrue(21.20 == orderBook.getHighestAsk());
-		assertTrue(19.98 == orderBook.getBid());
-		assertTrue(19.50 == orderBook.getLowestBid());
+		assertTrue(20.48 == orderBook.getHighestAsk());
+		assertTrue(19.99 == orderBook.getBid());
+		assertTrue(19.75 == orderBook.getLowestBid());
 		assertEquals("0005.HK", orderBook.getSymbol());
 	}
 	
